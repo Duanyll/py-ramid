@@ -18,10 +18,14 @@
     "watch-sim": "rollup -cw --environment DEST:sim"
   },
   "author": "Duanyll",
-  "license": "AGPL v3",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Duanyll/py-ramid"
+  },
   "devDependencies": {
     "@types/chai": "^4.1.6",
-    "@types/lodash": "^3.10.1",
+    "@types/lodash": "3.10.2",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.5.5",
     "@types/screeps": "^3.0.0",
