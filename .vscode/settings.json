@@ -11,6 +11,7 @@
     "typings/**": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
+  "editor.formatOnType": true,
   "[json]": {
     "editor.formatOnSave": true
   },
