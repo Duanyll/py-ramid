@@ -68,7 +68,7 @@ export class ErrorMapper {
         return outStack;
     }
 
-    public static wrapLoop(loop: () => void): () => void {
+    public static wrap(loop: () => void): () => void {
         return () => {
             try {
                 loop();

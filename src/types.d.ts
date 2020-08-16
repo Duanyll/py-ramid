@@ -7,6 +7,7 @@ interface CreepMemory {
 }
 
 interface Memory {
+    age: number;
 }
 
 interface RoomCallback {
