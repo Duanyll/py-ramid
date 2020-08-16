@@ -1,5 +1,8 @@
 // memory extension samples
+// 命名规范：都用动词
+type CreepRole = "carry" | "harvest" | "work";
 interface CreepMemory {
+    role: CreepRole;
 }
 
 interface Memory {
@@ -10,18 +13,15 @@ interface RoomCallback {
     param: [];
 }
 
-// 命名规范：都用动词
-type CreepType = "carry" | "harvest" | "work";
-
 interface SpawnRequest {
-    type: CreepType;
+    type: CreepRole;
     memory: CreepMemory;
     name: string;
 }
 
 // 表示房间状态的缓存，可以重新被计算的量
 interface RoomState {
-    // refillEnergyInCarrier: number;
+    status: "normal" | "energy-emergency"
 }
 
 interface RoomDesign {
