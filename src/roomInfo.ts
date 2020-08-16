@@ -1,6 +1,5 @@
 import { getRoomDesign } from "designer";
 import { tickCarrier } from "roleCarrier";
-import { strict } from "assert";
 
 var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void } = {}
 export function registerCallback(type: string, func: (room: RoomInfo, ...param: any) => void) {
@@ -11,34 +10,27 @@ export function runCallback(c: RoomCallback, room: RoomInfo) {
     CallbackStore[c.type](room, ...c.param);
 }
 
-export interface MoveRequest {
-    from: AnyStoreStructure;
-    to: AnyStoreStructure;
-    type: ResourceConstant;
-    amount: number;
-    callback?: RoomCallback;
-}
-
+// 自己注意结构存不存在，不用 TS 的 undefined 提示
 class RoomStructures {
     // containers: StructureContainer[] = [];
     controller: StructureController;
     extensions: StructureExtension[] = [];
-    extractor?: StructureExtractor;
-    factory?: StructureFactory;
+    extractor!: StructureExtractor;
+    factory!: StructureFactory;
     labs: StructureLab[] = [];
     links: StructureLink[] = [];
-    nuker?: StructureNuker;
-    observer?: StructureObserver;
-    powerSpawn?: StructurePowerSpawn;
+    nuker!: StructureNuker;
+    observer!: StructureObserver;
+    powerSpawn!: StructurePowerSpawn;
     // ramparts: StructureRampart[];
     // roads: StructureRoad[] = [];
     spawns: StructureSpawn[] = [];
-    storage?: StructureStorage;
-    terminal?: StructureTerminal;
+    storage!: StructureStorage;
+    terminal!: StructureTerminal;
     towers: StructureTower[] = [];
     // walls: StructureWall[];
 
-    centerLink?: StructureLink;
+    centerLink!: StructureLink;
 
     constructor(room: Room) {
         this.controller = room.controller as StructureController;
@@ -94,7 +86,6 @@ export class RoomInfo {
     eventTimer: { [time: number]: RoomCallback[] } = {};
     name: string;
     detail: Room;
-    design!: RoomDesign;
 
     moveQueue: MoveRequest[] = [];
 
@@ -102,8 +93,34 @@ export class RoomInfo {
     spawnQueue: SpawnRequest[] = [];
     state!: RoomState;
 
-    creeps: { [role: string]: Creep[] } = {};
-    structures!: RoomStructures;
+    private _creeps: { [role: string]: Creep[] } = {};
+    private _creepsLoadTime = 0;
+    public get creeps() {
+        if (!this._creeps || this._creepsLoadTime < Game.time) {
+            this._creeps = {};
+            this.detail.find(FIND_MY_CREEPS).forEach((creep) => {
+                if (!this._creeps[creep.memory.role]) this._creeps[creep.memory.role] = [];
+                this._creeps[creep.memory.role].push(creep);
+            });
+            this._creepsLoadTime = Game.time;
+        }
+        return this._creeps;
+    }
+    private _structures?: RoomStructures;
+    private _structuresLoadTime = 0;
+    public get structures() {
+        if (!this._structures || this._structuresLoadTime < Game.time) {
+            this._structures = new RoomStructures(this.detail);
+            this._structuresLoadTime = Game.time;
+        }
+        return this._structures;
+    }
+    public get design() {
+        if (!this.detail.memory.design) {
+            this.detail.memory.design = getRoomDesign(this.detail);
+        }
+        return this.detail.memory.design;
+    }
 
     public constructor(roomName: string) {
         this.name = roomName;
@@ -112,31 +129,22 @@ export class RoomInfo {
             this.load();
         } else {
             this.detail.memory = {} as RoomMemory;
-            this.design = this.detail.memory.design = getRoomDesign(this.detail);
             this.state = this.detail.memory.state = {
-                status: "normal"
+                status: "normal",
+                refillState: {},
             };
         }
     }
 
-    loadCreeps() {
-        this.creeps = {};
-        this.detail.find(FIND_MY_CREEPS).forEach((creep) => {
-            if (!this.creeps[creep.memory.role]) this.creeps[creep.memory.role] = [];
-            this.creeps[creep.memory.role].push(creep);
-        });
-    }
-
     public tick(): void {
-        this.loadCreeps();
-        this.structures = new RoomStructures(this.detail);
-
         if (this.eventTimer[Game.time]) {
             this.eventTimer[Game.time].forEach(c => runCallback(c, this));
             delete this.eventTimer[Game.time];
         }
 
         tickCarrier(this);
+
+        this.save();
     }
 
     public scheduleEvent(time: number, callback: RoomCallback) {
@@ -152,28 +160,30 @@ export class RoomInfo {
     public save(): void {
         let m = this.detail.memory;
         m.eventTimer = this.eventTimer;
-        m.moveQueue = _.map(this.moveQueue, (q) => {
-            return { from: q.from.id, to: q.to.id, amount: q.amount, type: q.type, callback: q.callback }
-        });
+        m.moveQueue = this.moveQueue;
         m.spawnQueue = this.spawnQueue;
-        m.design = this.design;
         m.state = this.state;
     }
 
     public load(): void {
         const m = this.detail.memory;
         this.eventTimer = m.eventTimer;
-        this.moveQueue = _.map(m.moveQueue, (q) => {
-            return {
-                from: Game.getObjectById(q.from) as AnyStoreStructure,
-                to: Game.getObjectById(q.to) as AnyStoreStructure,
-                amount: q.amount,
-                type: q.type,
-                callback: q.callback
-            }
-        });
+        this.moveQueue = m.moveQueue;
         this.spawnQueue = m.spawnQueue;
-        this.design = m.design;
         this.state = m.state;
     }
 }
+
+function loadRefillState(room: RoomInfo) {
+    function f(s: RefillableStructure) {
+        if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+            delete room.state.refillState[s.id];
+        } else {
+            room.state.refillState[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+        }
+    }
+    room.structures.extensions.forEach(f);
+    room.structures.spawns.forEach(f);
+    room.structures.extensions.forEach(f);
+}
+registerCallback("checkRefill", loadRefillState);
