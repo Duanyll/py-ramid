@@ -24,10 +24,34 @@ if (global.Game) {
     console.log(`It seems that the code is running in wrong environment...`)
 }
 
+function loadCreeps() {
+    for (const name in managedRooms) {
+        managedRooms[name].creeps = {};
+        managedRooms[name].creepForRole = {};
+    }
+    for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
+        if (creep.spawning) continue;
+        if (creep.memory.room) {
+            let room = managedRooms[creep.memory.room];
+            if (!room.creeps[creep.memory.role]) {
+                room.creeps[creep.memory.role] = [];
+            }
+            room.creeps[creep.memory.role].push(creep);
+
+            if (creep.memory.roleId) {
+                room.creepForRole[creep.memory.roleId] = creep;
+            }
+        }
+    }
+}
+
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
+    loadCreeps();
+    debugger;
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => managedRooms[name].tick())();
     }
