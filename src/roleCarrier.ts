@@ -54,6 +54,8 @@ function runRefiller(creep: Creep, room: RoomInfo) {
 
 function runCarrier(creep: Creep, room: RoomInfo) {
     let m = creep.memory as CarrierMemory;
+    if (!m.from) m.from = [];
+    if (!m.to) m.to = [];
     if (m.from.length == 0 && m.to.length == 0) {
         if (room.moveQueue.length) {
             if (creep.store.energy > 0) {

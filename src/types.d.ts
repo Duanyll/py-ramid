@@ -3,21 +3,28 @@
 type CreepRole = "carry" | "harvest" | "work";
 interface CreepMemory {
     role: CreepRole;
-    target: string;
+    target?: string;
+    roleId?: string;
+    room?: string;
 }
 
 interface Memory {
     age: number;
 }
 
+type CallbackType = "checkRefill" | "checkCreepHealth";
 interface RoomCallback {
-    type: string;
-    param: [];
+    type: CallbackType;
+    param: any[];
+    id?: number;
 }
 
+type BodyPartDescription = { type: BodyPartConstant, count: number }[];
+
 interface SpawnRequest {
-    type: CreepRole;
     memory: CreepMemory;
+    body: BodyPartDescription;
+    cost?: number;
     name: string;
 }
 

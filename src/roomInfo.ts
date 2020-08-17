@@ -1,8 +1,10 @@
 import { getRoomDesign } from "designer";
 import { tickCarrier } from "roleCarrier";
+import { tickSpawn } from "spawn";
 
-var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void } = {}
-export function registerCallback(type: string, func: (room: RoomInfo, ...param: any) => void) {
+var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
+export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
+    if (!CallbackStore) CallbackStore = {};
     CallbackStore[type] = func;
 }
 
@@ -82,30 +84,31 @@ class RoomStructures {
 
 // 管理每个 room 的主要对象
 export class RoomInfo {
-    // 不保存
-    eventTimer: { [time: number]: RoomCallback[] } = {};
     name: string;
     detail: Room;
 
-    moveQueue: MoveRequest[] = [];
-
-    // 只有非日常种田需求产生的 Creep 才需要通过 spawnQueue 维护, 种田 creep 直接按数量维护即可
-    spawnQueue: SpawnRequest[] = [];
-    state!: RoomState;
-
-    private _creeps: { [role: string]: Creep[] } = {};
-    private _creepsLoadTime = 0;
-    public get creeps() {
-        if (!this._creeps || this._creepsLoadTime < Game.time) {
-            this._creeps = {};
-            this.detail.find(FIND_MY_CREEPS).forEach((creep) => {
-                if (!this._creeps[creep.memory.role]) this._creeps[creep.memory.role] = [];
-                this._creeps[creep.memory.role].push(creep);
-            });
-            this._creepsLoadTime = Game.time;
-        }
-        return this._creeps;
+    public get eventTimer(): { [time: number]: RoomCallback[] } {
+        return this.detail.memory.eventTimer;
+    };
+    public get moveQueue(): MoveRequest[] {
+        return this.detail.memory.moveQueue;
     }
+    public get spawnQueue(): SpawnRequest[] {
+        return this.detail.memory.spawnQueue;
+    }
+    public get state(): RoomState {
+        return this.detail.memory.state;
+    }
+
+    creeps: { [role: string]: Creep[] };
+    creepForRole: { [roleId: string]: Creep };
+    creepRoleDefs: {
+        [roleId: string]: {
+            role: CreepRole,
+            body: BodyPartDescription
+        };
+    }
+
     private _structures?: RoomStructures;
     private _structuresLoadTime = 0;
     public get structures() {
@@ -115,24 +118,30 @@ export class RoomInfo {
         }
         return this._structures;
     }
+
     public get design() {
-        if (!this.detail.memory.design) {
-            this.detail.memory.design = getRoomDesign(this.detail);
-        }
         return this.detail.memory.design;
     }
 
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
-        if (this.detail.memory) {
-            this.load();
-        } else {
-            this.detail.memory = {} as RoomMemory;
-            this.state = this.detail.memory.state = {
+        this.checkMemory();
+    }
+
+    checkMemory() {
+        if (!this.detail.memory) this.detail.memory = {} as RoomMemory;
+        let m = this.detail.memory;
+        if (!m.design) m.design = getRoomDesign(this.detail);
+        if (!m.eventTimer) m.eventTimer = [];
+        if (!m.moveQueue) m.moveQueue = [];
+        if (!m.spawnQueue) m.spawnQueue = [];
+        if (!m.state) {
+            m.state = {
                 status: "normal",
-                refillState: {},
-            };
+                refillState: {}
+            }
+            checkRefillState(this);
         }
     }
 
@@ -144,7 +153,7 @@ export class RoomInfo {
 
         tickCarrier(this);
 
-        this.save();
+        tickSpawn(this);
     }
 
     public scheduleEvent(time: number, callback: RoomCallback) {
@@ -156,25 +165,9 @@ export class RoomInfo {
         }
         this.eventTimer[time].push(callback);
     }
-
-    public save(): void {
-        let m = this.detail.memory;
-        m.eventTimer = this.eventTimer;
-        m.moveQueue = this.moveQueue;
-        m.spawnQueue = this.spawnQueue;
-        m.state = this.state;
-    }
-
-    public load(): void {
-        const m = this.detail.memory;
-        this.eventTimer = m.eventTimer;
-        this.moveQueue = m.moveQueue;
-        this.spawnQueue = m.spawnQueue;
-        this.state = m.state;
-    }
 }
 
-function loadRefillState(room: RoomInfo) {
+function checkRefillState(room: RoomInfo) {
     function f(s: RefillableStructure) {
         if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
             delete room.state.refillState[s.id];
@@ -186,4 +179,4 @@ function loadRefillState(room: RoomInfo) {
     room.structures.spawns.forEach(f);
     room.structures.extensions.forEach(f);
 }
-registerCallback("checkRefill", loadRefillState);
+registerCallback("checkRefill", checkRefillState);
