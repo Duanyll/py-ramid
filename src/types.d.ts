@@ -53,6 +53,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        Game: Game;
         age: number;
         log: any;
     }
