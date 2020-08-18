@@ -1,4 +1,4 @@
-import { Queue, Point, createMatrix } from "utils/DataStructure";
+import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
 
 const INF = 0x3f3f3f3f;
 // 返回从关键点开始 spfa 得到的路程图
@@ -46,7 +46,7 @@ function getRoomCenter(room: Room): RoomPosition {
     const terrain = room.getTerrain();
     let points = new Array<RoomPosition>();
     room.find(FIND_SOURCES).forEach((s) => points.push(s.pos));
-    room.find(FIND_DEPOSITS).forEach((s) => points.push(s.pos));
+    room.find(FIND_MINERALS).forEach((s) => points.push(s.pos));
     if (room.controller) points.push(room.controller.pos);
     points.forEach((pos) => {
         let t = fillDisMap(terrain, pos.x, pos.y);
@@ -60,6 +60,7 @@ function getRoomCenter(room: Room): RoomPosition {
             }
         }
     });
+
     let minval = INF, minx = 0, miny = 0;
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
@@ -152,7 +153,7 @@ export function getRoomDesign(room: Room): RoomDesign {
         let resx = 0, resy = 0, resdis = INF;
         for (let j = 0; j < 50; j++) {
             let curlen = 0;
-            for (let i = 0; j < 50; i++) {
+            for (let i = 0; i < 50; i++) {
                 if (wlen[i][j] >= size) {
                     curlen++;
                 } else {
@@ -168,6 +169,7 @@ export function getRoomDesign(room: Room): RoomDesign {
                 }
             }
         }
+        // console.log(`findSquare Result: ${[resx, resy, resdis]}`)
         return [resx, resy, resdis];
     }
 
@@ -183,10 +185,11 @@ export function getRoomDesign(room: Room): RoomDesign {
     const largeres = findSquare(13);
     let realCenter: RoomPosition = center;
     if (largeres[2] <= 10) {
-        fillSquare(largeCenter, res, largeres[0], largeres[1], largeres.length);
+        fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
         realCenter = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
     } else {
         // TODO: 完成对崎岖地形的填充机制
+        console.log("Can't plan complexed room at present.");
     }
 
     let mat: string[] = []

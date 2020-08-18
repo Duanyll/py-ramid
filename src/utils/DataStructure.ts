@@ -60,3 +60,13 @@ export function createMatrix<T>(h: number, w: number, val: T): T[][] {
     }
     return res;
 }
+
+export function printMatrix(mat: number[][]) {
+    for (let i = 0; i < mat.length; i++) {
+        let line = "";
+        for (let j = 0; j < mat.length; j++) {
+            line += (mat[i][j] == 0x3f3f3f3f) ? '.' : _.last(mat[i][j].toString())
+        }
+        console.log(line);
+    }
+}
