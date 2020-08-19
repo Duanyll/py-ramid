@@ -201,7 +201,7 @@ export function getRoomDesign(room: Room): RoomDesign {
     }
 
     return {
-        structures: mat,
+        matrix: mat,
         center: realCenter
     }
 }

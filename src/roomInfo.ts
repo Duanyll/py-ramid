@@ -1,6 +1,4 @@
 import { getRoomDesign } from "designer";
-import { tickCarrier } from "roleCarrier";
-import { tickSpawn } from "spawn";
 
 var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -123,6 +121,10 @@ export class RoomInfo {
         return this.detail.memory.design;
     }
 
+    public get stats() {
+        return this.detail.memory.stats;
+    }
+
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
@@ -145,15 +147,11 @@ export class RoomInfo {
         }
     }
 
-    public tick(): void {
+    public tickEvents(): void {
         if (this.eventTimer[Game.time]) {
             this.eventTimer[Game.time].forEach(c => runCallback(c, this));
             delete this.eventTimer[Game.time];
         }
-
-        tickCarrier(this);
-
-        tickSpawn(this);
     }
 
     public scheduleEvent(time: number, callback: RoomCallback) {

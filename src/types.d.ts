@@ -12,7 +12,9 @@ interface Memory {
     age: number;
 }
 
-type CallbackType = "checkRefill" | "checkCreepHealth";
+type LoopCallback = "checkCreepHealth" | "summatyStats";
+type DelayCallback = "checkRefill";
+type CallbackType = LoopCallback | DelayCallback;
 interface RoomCallback {
     type: CallbackType;
     param: any[];
@@ -37,8 +39,20 @@ interface RoomState {
 }
 
 interface RoomDesign {
-    structures: string[];
+    matrix: string[];
     center: RoomPosition;
+}
+
+interface RoomStats {
+    energy: {
+        spawnCost: number;
+        buildStructureCost: number;
+        repairCost: number;
+        towerCost: number;
+
+        localHarvestIncome: number;
+        remoteHarvestIncome: number;
+    }
 }
 
 interface MoveRequest {
@@ -54,7 +68,11 @@ interface RoomMemory {
     moveQueue: MoveRequest[];
     spawnQueue: SpawnRequest[];
     design: RoomDesign;
-    state: RoomState
+    state: RoomState;
+    stats: {
+        current: RoomStats;
+        history: RoomStats[];
+    }
 }
 
 // `global` extension samples

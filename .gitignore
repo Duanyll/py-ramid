@@ -20,6 +20,7 @@ screeps.json
 
 # ScreepsServer data from integration tests
 /server
+test-memory.json
 
 # Numerous always-ignore extensions
 *.diff

@@ -58,6 +58,7 @@ export function tickSpawn(room: RoomInfo) {
         spawn.spawnCreep(expandBodypart(req.body), req.name, {
             memory: req.memory
         });
+        room.stats.current.energy.spawnCost += req.cost;
         if (req.memory.roleId) {
             room.scheduleEvent(Game.time + getCreepSpawnTime(req.body), { type: "checkCreepHealth", param: [req.memory.roleId] });
         }

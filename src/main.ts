@@ -2,6 +2,7 @@
 
 import { ErrorMapper } from "utils/ErrorMapper";
 import { RoomInfo } from "roomInfo";
+import { tickRoom } from "room";
 
 var managedRooms: { [name: string]: RoomInfo } = {}
 function loadScript() {
@@ -53,6 +54,6 @@ export const loop = ErrorMapper.wrap(() => {
     loadCreeps();
     debugger;
     for (const name in managedRooms) {
-        ErrorMapper.wrap(() => managedRooms[name].tick())();
+        ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
 });
