@@ -63,6 +63,6 @@ export function tickSpawn(room: RoomInfo) {
             room.scheduleEvent(Game.time + getCreepSpawnTime(req.body), { type: "checkCreepHealth", param: [req.memory.roleId] });
         }
         room.spawnQueue.shift();
-        room.scheduleEvent(Game.time + 1, { type: "checkRefill", param: [] });
+        room.scheduleEvent(Game.time + 1, { type: "checkRefill" });
     }
 }

@@ -7,6 +7,6 @@ function summaryRoomStats(room: RoomInfo) {
     room.stats.history.push(room.stats.current);
     while (room.stats.history.length > STATS_HISTORY_LIMIT) room.stats.history.shift();
 
-    room.scheduleEvent(Game.time + STATS_SUMMARY_TIME, { type: "summatyStats", param: [] });
+    room.scheduleEvent(Game.time + STATS_SUMMARY_TIME, { type: "summatyStats" });
 }
 registerCallback("summatyStats", summaryRoomStats);

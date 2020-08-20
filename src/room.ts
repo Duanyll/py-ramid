@@ -19,6 +19,6 @@ function resetLoopEvents(room: RoomInfo) {
     }
 
     // 自动定时循环调用型
-    runCallback({ type: "summatyStats", param: [] }, room);
+    runCallback({ type: "summatyStats" }, room);
     Object.keys(room.creepRoleDefs).forEach((id) => runCallback({ type: "checkCreepHealth", param: [id] }, room));
 }

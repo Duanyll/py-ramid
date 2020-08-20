@@ -10,7 +10,6 @@ export function runCallback(c: RoomCallback, room: RoomInfo) {
     CallbackStore[c.type](room, ...c.param);
 }
 
-// 自己注意结构存不存在，不用 TS 的 undefined 提示
 class RoomStructures {
     // containers: StructureContainer[] = [];
     controller: StructureController;
@@ -98,6 +97,7 @@ export class RoomInfo {
         return this.detail.memory.state;
     }
 
+    // 必须每 tick 重建
     creeps: { [role: string]: Creep[] };
     creepForRole: { [roleId: string]: Creep };
     creepRoleDefs: {
@@ -110,6 +110,7 @@ export class RoomInfo {
     private _structures?: RoomStructures;
     private _structuresLoadTime = 0;
     public get structures() {
+        // 必须每 tick 重建
         if (!this._structures || this._structuresLoadTime < Game.time) {
             this._structures = new RoomStructures(this.detail);
             this._structuresLoadTime = Game.time;
@@ -132,12 +133,12 @@ export class RoomInfo {
     }
 
     checkMemory() {
-        if (!this.detail.memory) this.detail.memory = {} as RoomMemory;
+        this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
-        if (!m.design) m.design = getRoomDesign(this.detail);
-        if (!m.eventTimer) m.eventTimer = [];
-        if (!m.moveQueue) m.moveQueue = [];
-        if (!m.spawnQueue) m.spawnQueue = [];
+        m.design = m.design || getRoomDesign(this.detail);
+        m.eventTimer = m.eventTimer || [];
+        m.moveQueue = m.moveQueue || [];
+        m.spawnQueue = m.spawnQueue || [];
         if (!m.state) {
             m.state = {
                 status: "normal",

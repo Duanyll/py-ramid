@@ -1,6 +1,6 @@
 // memory extension samples
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work";
+type CreepRole = "carry" | "harvest" | "work" | "build";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -13,12 +13,11 @@ interface Memory {
 }
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
-type DelayCallback = "checkRefill";
+type DelayCallback = "checkRefill" | "setConstruction";
 type CallbackType = LoopCallback | DelayCallback;
 interface RoomCallback {
     type: CallbackType;
-    param: any[];
-    id?: number;
+    param?: any[];
 }
 
 type BodyPartDescription = { type: BodyPartConstant, count: number }[];
@@ -41,6 +40,17 @@ interface RoomState {
 interface RoomDesign {
     matrix: string[];
     center: RoomPosition;
+    structs: {
+        currentStage: number;
+        [stage: number]: {
+            rcl: number;
+            list: {
+                type: BuildableStructureConstant;
+                x: number;
+                y: number;
+            }[]
+        }
+    }
 }
 
 interface RoomStats {

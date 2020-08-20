@@ -202,7 +202,10 @@ export function getRoomDesign(room: Room): RoomDesign {
 
     return {
         matrix: mat,
-        center: realCenter
+        center: realCenter,
+        structs: {
+            currentStage: 0,
+        }
     }
 }
 
