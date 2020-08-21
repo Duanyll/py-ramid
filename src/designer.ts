@@ -1,10 +1,14 @@
 import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
+import { isAbsolute } from "path";
+
+function posToId(x: number, y: number) { return x * 50 + y; }
+function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
 
 const INF = 0x3f3f3f3f;
 // 返回从关键点开始 spfa 得到的路程图
 const dx = [0, 1, 0, -1, 1, 1, -1, -1];
 const dy = [1, 0, -1, 0, 1, -1, -1, 1];
-function fillDisMap(terrain: RoomTerrain, x: number, y: number): number[][] {
+function spfaDisMap(terrain: RoomTerrain, x: number, y: number): number[][] {
     let dis = createMatrix(51, 51, INF);
     let ins = createMatrix(51, 51, false);
     let q = new Queue<[number, number]>();
@@ -40,6 +44,34 @@ function fillDisMap(terrain: RoomTerrain, x: number, y: number): number[][] {
     return dis;
 }
 
+function spfaPath(terrain: string[][], x: number, y: number): [number[][], number[][]] {
+    let dis = createMatrix(51, 51, INF);
+    let ins = createMatrix(51, 51, false);
+    let fa = createMatrix(51, 51, -1);
+    let q = new Queue<[number, number]>();
+    q.push([x, y]);
+    dis[x][y] = 0;
+    ins[x][y] = true;
+    while (!q.empty()) {
+        let u = q.pop();
+        ins[u[0]][u[1]] = false;
+        for (let i = 0; i < 8; i++) {
+            let v: [number, number] = [u[0] + dx[i], u[1] + dy[i]];
+            if (v[0] < 0 || v[0] >= 50 || v[1] < 0 || v[1] >= 50) continue;
+            if (terrain[v[0]][v[1]] != ' ' && terrain[v[0]][v[1]] != 'r') continue;
+            if (dis[u[0]][u[1]] + 1 < dis[v[0]][v[1]]) {
+                dis[v[0]][v[1]] = dis[u[0]][u[1]] + 1;
+                fa[v[0]][v[1]] = posToId(u[0], u[1]);
+                if (!ins[v[0]][v[1]]) {
+                    ins[v[0]][v[1]] = true;
+                    q.push(v);
+                }
+            }
+        }
+    }
+    return [fa, dis];
+}
+
 // 找出房间中距离 source, controller, deposit 距离之和最小的点
 function getRoomCenter(room: Room): RoomPosition {
     let dis = createMatrix(51, 51, 0);
@@ -49,7 +81,7 @@ function getRoomCenter(room: Room): RoomPosition {
     room.find(FIND_MINERALS).forEach((s) => points.push(s.pos));
     if (room.controller) points.push(room.controller.pos);
     points.forEach((pos) => {
-        let t = fillDisMap(terrain, pos.x, pos.y);
+        let t = spfaDisMap(terrain, pos.x, pos.y);
         for (let i = 0; i < 50; i++) {
             for (let j = 0; j < 50; j++) {
                 if (t[i][j] >= INF) {
@@ -92,45 +124,131 @@ export const StructureMapping = {
 }
 
 const largeCenter = [
-    "  rrrr rrrr  ",
-    " reeeeretllr ",
+    "  rrrrtrrrr  ",
+    " reeeere llr ",
     "rereeerellrlr",
     "reereerelrllr",
-    "reeerrerrlltr",
-    "reetrrLnrteer",
-    " rrreSrTerrr ",
-    "reetrpsfrteer",
+    "reeerrerrll r",
+    "reetrrLnrseer",
+    "trrreSrTerrrt",
+    "reesrpsfrteer",
     "reeerrerreeer",
     "reereereereer",
     "rereeereeerer",
     " reeeereeeer ",
-    "  rrrr rrrr  "
+    "  rrrrtrrrr  "
 ];
 
 const smallCenter = [
-    "errre",
-    "rrLnr",
-    "rSrTr",
-    "rpsfr",
-    "errre",
-];
-
-const smallHatch = [
-    "erere",
-    "eeree",
-    "rrtrr",
-    "eeree",
-    "erere"
-];
-
-const smallLab = [
-    " ll ",
-    "lrll",
-    "llrl",
-    " ll "
+    "fpTtrt",
+    "nrsrsr",
+    "SLrllt",
+    "trlrll",
+    "rsllrl",
+    "trtllr"
 ]
 
-export function getRoomDesign(room: Room): RoomDesign {
+function fillOutPoints(res: string[][], room: Room, design: RoomDesign) {
+    function setObj(x: number, y: number, type: string): [number, number] {
+        for (let i = 0; i < 8; i++) {
+            let creepx = x + dx[i];
+            let creepy = y + dy[i];
+            if (creepx < 0 || creepx >= 50 || creepy < 0 || creepy >= 50) continue;
+            if (res[creepx][creepy] != ' ') continue;
+            for (let j = 0; j < 8; j++) {
+                let lx = creepx + dx[i];
+                let ly = creepy + dy[i];
+                if (lx < 0 || lx >= 50 || ly < 0 || ly >= 50) continue;
+                if (res[lx][ly] != ' ') continue;
+                if (Math.abs(lx - x) == 2 || Math.abs(ly - y) == 2) {
+                    res[lx][ly] = type;
+                    return [lx, ly];
+                }
+            }
+        }
+        return [0, 0];
+    }
+    if (room.controller) {
+        design.links.controllerLink = setObj(room.controller.pos.x, room.controller.pos.y, 'L');
+        setObj(room.controller.pos.x, room.controller.pos.y, 'o');
+    }
+    const sources = room.find(FIND_SOURCES);
+    design.links.sourceLink = [];
+    for (let i = 0; i < sources.length; i++) {
+        design.links.sourceLink[i] = setObj(sources[i].pos.x, sources[i].pos.y, 'L');
+    }
+}
+
+type Route = [number, number][];
+function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
+    const sx = design.center.x;
+    const sy = design.center.y;
+    const sid = posToId(sx, sy);
+    let [fa, dis] = spfaPath(res, sx, sy);
+    function fillRoute(x: number, y: number): Route {
+        let route: Route = [];
+        let mindis = INF;
+        let nx = x, ny = y;
+        for (let i = 0; i < 8; i++) {
+            if (dis[x + dx[i]][y + dy[i]] < mindis) {
+                nx = x + dx[i];
+                ny = y + dy[i];
+                mindis = dis[nx][ny];
+            }
+        }
+        if (dis[nx][ny] == INF) return [];
+        let cur = posToId(nx, ny);
+        while (fa[nx][ny] != sid) {
+            res[nx][ny] = 'r';
+            route.push([nx, ny]);
+            cur = fa[nx][ny];
+            [nx, ny] = idToPos(cur);
+        }
+        return route;
+    }
+    let routes: Route[] = [];
+    if (room.controller) routes.push(fillRoute(room.controller.pos.x, room.controller.pos.y));
+    room.find(FIND_SOURCES).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
+    room.find(FIND_MINERALS).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
+    return routes;
+}
+
+function fillExtensions(res: string[][], room: Room, design: RoomDesign) {
+    let dis = createMatrix(51, 51, INF);
+    let ins = createMatrix(51, 51, false);
+    let q = new Queue<[number, number]>();
+    const x = design.center.x;
+    const y = design.center.y;
+    let count = 0;
+    q.push([x, y]);
+    dis[x][y] = 0;
+    ins[x][y] = true;
+    while (!q.empty()) {
+        let u = q.pop();
+        ins[u[0]][u[1]] = false;
+        for (let i = 0; i < 8; i++) {
+            let v: [number, number] = [u[0] + dx[i], u[1] + dy[i]];
+            if (v[0] < 3 || v[0] >= 47 || v[1] < 3 || v[1] >= 47) continue;
+            if (res[v[0]][v[1]] == ' ') {
+                res[v[0]][v[1]] = ((v[0] + v[1]) & 1) ? 'e' : 'r';
+                if (res[v[0]][v[1]] == 'e') {
+                    count++;
+                    if (count >= 60) return;
+                }
+            }
+            if (res[v[0]][v[1]] != 'r') continue;
+            if (dis[u[0]][u[1]] + 1 < dis[v[0]][v[1]]) {
+                dis[v[0]][v[1]] = dis[u[0]][u[1]] + 1;
+                if (!ins[v[0]][v[1]]) {
+                    ins[v[0]][v[1]] = true;
+                    q.push(v);
+                }
+            }
+        }
+    }
+}
+
+export function designRoom(room: Room): RoomDesign {
     let res = new Array<Array<string>>(51);
     const terrain = room.getTerrain();
     let wlen = createMatrix(51, 51, 0);
@@ -182,15 +300,31 @@ export function getRoomDesign(room: Room): RoomDesign {
         }
     }
 
+    let design = {
+        links: {}
+    } as RoomDesign;
+
     const largeres = findSquare(13);
-    let realCenter: RoomPosition = center;
+    let isSmall = false;
     if (largeres[2] <= 10) {
         fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
-        realCenter = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
+        design.center = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
+        design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];
     } else {
-        // TODO: 完成对崎岖地形的填充机制
-        console.log("Can't plan complexed room at present.");
+        const smallRes = findSquare(6);
+        if (smallRes[2] == INF) {
+            console.log(`Can't design room ${room.name}.`);
+            return {} as RoomDesign;
+        }
+        isSmall = true;
+        fillSquare(smallCenter, res, smallRes[0], smallRes[1], smallCenter.length);
+        design.center = new RoomPosition(smallRes[0] + 1, smallRes[1] + 1, room.name);
+        design.links.centerLink = [smallRes[0] + 2, smallRes[0] + 1];
     }
+
+    fillOutPoints(res, room, design);
+    let routes = fillRoutes(res, room, design);
+    if (smallCenter) fillExtensions(res, room, design);
 
     let mat: string[] = []
     for (let i = 0; i < 50; i++) {
@@ -199,13 +333,8 @@ export function getRoomDesign(room: Room): RoomDesign {
             mat[i] += res[i][j];
         }
     }
+    design.matrix = mat;
 
-    return {
-        matrix: mat,
-        center: realCenter,
-        structs: {
-            currentStage: 0,
-        }
-    }
+    return design;
 }
 

@@ -1,4 +1,4 @@
-import { getRoomDesign } from "designer";
+import { designRoom } from "designer";
 
 var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -135,7 +135,7 @@ export class RoomInfo {
     checkMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
-        m.design = m.design || getRoomDesign(this.detail);
+        m.design = m.design || designRoom(this.detail);
         m.eventTimer = m.eventTimer || [];
         m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];

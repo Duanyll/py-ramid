@@ -50,6 +50,13 @@ interface RoomDesign {
                 y: number;
             }[]
         }
+    },
+    links: {
+        sourceLink: {
+            [id: number]: [number, number]
+        }
+        centerLink: [number, number];
+        controllerLink: [number, number];
     }
 }
 
