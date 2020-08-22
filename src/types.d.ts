@@ -1,6 +1,6 @@
 // memory extension samples
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -48,9 +48,7 @@ interface RoomDesign {
             x: number;
             y: number;
         }[]
-    }[]
-
-    ,
+    }[],
     links: {
         sourceLink: {
             [id: number]: [number, number]

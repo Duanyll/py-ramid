@@ -38,6 +38,7 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         }
     });
     if (nextStage) {
+        room.updateCreepCount();
         room.design.currentStage++;
         setConstruction(room);
     }

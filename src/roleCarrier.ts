@@ -110,23 +110,6 @@ function runCarrier(creep: Creep, room: RoomInfo) {
     }
 }
 
-function getCarrierBodySize(room: RoomInfo) {
-    const energy = room.detail.energyCapacityAvailable;
-    return Math.max(Math.floor(energy / 100 * 0.7), 20);
-}
-
-export function getCarrierBodyPart(room: RoomInfo): BodyPartConstant[] {
-    const size = getCarrierBodySize(room);
-    let res: BodyPartConstant[] = [];
-    for (let i = 0; i < size; i++) {
-        res.push(MOVE);
-    }
-    for (let i = 0; i < size; i++) {
-        res.push(CARRY);
-    }
-    return res;
-}
-
 export function tickCarrier(room: RoomInfo): void {
     if (!room.structures.storage) return;
     room.creeps["carry"].forEach((creep) => {

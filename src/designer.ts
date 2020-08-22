@@ -299,11 +299,11 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
     let mineral = room.find(FIND_MINERALS)[0].pos;
     _.last(design.stages).list.push({ type: "extractor", x: mineral.x, y: mineral.y });
     design.stages.push({
-        rcl: 7, list: take("extension", 10).concat(take("lab", 3), take("tower", 1), [
+        rcl: 7, list: take("extension", 10).concat(take("lab", 3), take("tower", 1), take("spawn", 1), [
             { type: "link", x: design.links.centerLink[0], y: design.links.centerLink[1] }
         ])
     });
-    design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("lab", 4), take("tower", 3), take("observer", 1)) });
+    design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("lab", 4), take("tower", 3), take("observer", 1), take("spawn", 1)) });
     design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("terminal", 1), take("factory", 1), take("powerSpawn", 1)) });
 }
 

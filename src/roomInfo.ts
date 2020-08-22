@@ -1,4 +1,5 @@
 import { designRoom } from "designer";
+import { creepRolesForLevel } from "creepCount";
 
 var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -100,6 +101,7 @@ export class RoomInfo {
     // 必须每 tick 重建
     creeps: { [role: string]: Creep[] };
     creepForRole: { [roleId: string]: Creep };
+
     creepRoleDefs: {
         [roleId: string]: {
             role: CreepRole,
@@ -130,6 +132,7 @@ export class RoomInfo {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
         this.checkMemory();
+        this.updateCreepCount();
     }
 
     checkMemory() {
@@ -163,6 +166,16 @@ export class RoomInfo {
             this.eventTimer[time] = [];
         }
         this.eventTimer[time].push(callback);
+    }
+
+    public updateCreepCount() {
+        const last = this.creepRoleDefs;
+        this.creepRoleDefs = creepRolesForLevel[this.design.stages[this.design.currentStage].rcl];
+        if (last) {
+            for (const id in this.creepRoleDefs) {
+                if (!last[id]) this.scheduleEvent(Game.time + 1, { type: "checkCreepHealth", param: [id] });
+            }
+        }
     }
 }
 
