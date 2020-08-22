@@ -9,10 +9,10 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         room.scheduleEvent(Game.time + 500, { type: "setConstruction" });
         return;
     }
-    const stage = room.design.structs.currentStage;
+    const stage = room.design.currentStage;
     if (full) {
         for (let i = 1; i < stage; i++) {
-            const list = room.design.structs[i].list;
+            const list = room.design.stages[i].list;
             list.forEach(s => {
                 if (avalSites < 0) return;
                 if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
@@ -25,9 +25,9 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         }
     }
     let nextStage = true;
-    if (!room.design.structs[stage]) return;
-    if (room.design.structs[stage].rcl > room.structures.controller.level) return;
-    room.design.structs[stage].list.forEach(s => {
+    if (!room.design.stages[stage]) return;
+    if (room.design.stages[stage].rcl > room.structures.controller.level) return;
+    room.design.stages[stage].list.forEach(s => {
         if (avalSites < 0) return;
         if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
             nextStage = false;
@@ -38,7 +38,7 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         }
     });
     if (nextStage) {
-        room.design.structs.currentStage++;
+        room.design.currentStage++;
         setConstruction(room);
     }
 }

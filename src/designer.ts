@@ -1,5 +1,4 @@
 import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
-import { isAbsolute } from "path";
 
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
@@ -106,7 +105,7 @@ function getRoomCenter(room: Room): RoomPosition {
     return new RoomPosition(minx, miny, room.name);
 }
 
-export const StructureMapping = {
+export const StructureMapping: { [s: string]: BuildableStructureConstant } = {
     'e': STRUCTURE_EXTENSION,
     'r': STRUCTURE_ROAD,
     's': STRUCTURE_SPAWN,
@@ -208,8 +207,8 @@ function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
     }
     let routes: Route[] = [];
     if (room.controller) routes.push(fillRoute(room.controller.pos.x, room.controller.pos.y));
-    room.find(FIND_SOURCES).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
     room.find(FIND_MINERALS).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
+    room.find(FIND_SOURCES).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
     return routes;
 }
 
@@ -246,6 +245,66 @@ function fillExtensions(res: string[][], room: Room, design: RoomDesign) {
             }
         }
     }
+}
+
+function createBuildStages(res: string[][], room: Room, design: RoomDesign, routes: Route[]) {
+    let ins = createMatrix(51, 51, false);
+    let structPos: { [type: string]: [number, number][] } = {};
+    let nroutes: { type: STRUCTURE_ROAD, x: number, y: number }[][] = [];
+    for (let i = 0; i < routes.length; i++) {
+        nroutes[i] = [];
+        routes[i].forEach(p => {
+            if (!ins[p[0]][p[1]]) {
+                ins[p[0]][p[1]] = true;
+                nroutes[i].push({ type: STRUCTURE_ROAD, x: p[0], y: p[1] });
+            }
+        })
+    }
+    for (let i = 0; i < 50; i++) {
+        for (let j = 0; j < 50; j++) {
+            if (ins[i][j] || res[i][j] == ' ' || res[i][j] == '.') continue;
+            structPos[StructureMapping[res[i][j]]] = structPos[StructureMapping[res[i][j]]] || [];
+            structPos[StructureMapping[res[i][j]]].push([i, j]);
+        }
+    }
+    function take(type: BuildableStructureConstant, count: number) {
+        let res: { type: BuildableStructureConstant, x: number, y: number }[] = [];
+        while (count > 0) {
+            count--;
+            const cur = structPos[type].pop();
+            if (!cur) { console.log(`Internal design error: need too many ${type}`); continue; }
+            res.push({ type: type, x: cur[0], y: cur[1] });
+        }
+        return res;
+    }
+
+    design.currentStage = 0;
+    design.stages = [];
+    design.stages.push({ rcl: 1, list: take("spawn", 1) });
+    design.stages.push({ rcl: 2, list: take("road", 5) });
+    design.stages.push({ rcl: 3, list: take("extension", 5).concat(take("tower", 1)) });
+    design.stages.push({ rcl: 4, list: take("extension", 10).concat(take("storage", 1)) });
+    nroutes.forEach((r) => design.stages.push({ rcl: 4, list: r }));
+    design.stages.push({
+        rcl: 5, list: take("extension", 10).concat([
+            { type: "link", x: design.links.sourceLink[0][0], y: design.links.sourceLink[0][1] },
+            { type: "link", x: design.links.controllerLink[0], y: design.links.controllerLink[1] }
+        ], take("tower", 1))
+    });
+    design.stages.push({ rcl: 5, list: take("road", structPos["road"].length) });
+    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("lab", 3)) });
+    if (design.links.sourceLink[1])
+        _.last(design.stages).list.push(
+            { type: "link", x: design.links.sourceLink[1][0], y: design.links.sourceLink[1][1] });
+    let mineral = room.find(FIND_MINERALS)[0].pos;
+    _.last(design.stages).list.push({ type: "extractor", x: mineral.x, y: mineral.y });
+    design.stages.push({
+        rcl: 7, list: take("extension", 10).concat(take("lab", 3), take("tower", 1), [
+            { type: "link", x: design.links.centerLink[0], y: design.links.centerLink[1] }
+        ])
+    });
+    design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("lab", 4), take("tower", 3), take("observer", 1)) });
+    design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("terminal", 1), take("factory", 1), take("powerSpawn", 1)) });
 }
 
 export function designRoom(room: Room): RoomDesign {
@@ -324,7 +383,9 @@ export function designRoom(room: Room): RoomDesign {
 
     fillOutPoints(res, room, design);
     let routes = fillRoutes(res, room, design);
-    if (smallCenter) fillExtensions(res, room, design);
+    if (isSmall) fillExtensions(res, room, design);
+
+    createBuildStages(res, room, design, routes);
 
     let mat: string[] = []
     for (let i = 0; i < 50; i++) {

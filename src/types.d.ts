@@ -40,17 +40,17 @@ interface RoomState {
 interface RoomDesign {
     matrix: string[];
     center: RoomPosition;
-    structs: {
-        currentStage: number;
-        [stage: number]: {
-            rcl: number;
-            list: {
-                type: BuildableStructureConstant;
-                x: number;
-                y: number;
-            }[]
-        }
-    },
+    currentStage: number;
+    stages: {
+        rcl: number;
+        list: {
+            type: BuildableStructureConstant;
+            x: number;
+            y: number;
+        }[]
+    }[]
+
+    ,
     links: {
         sourceLink: {
             [id: number]: [number, number]

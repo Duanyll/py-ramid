@@ -10,15 +10,15 @@
     "typings/**": true,
     "LICENSE": true
   },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "node_modules/": true
+  },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.formatOnType": true,
-  "[json]": {
-    "editor.formatOnSave": true
-  },
-  "[javascript]": {
-    "editor.formatOnSave": true
-  },
-  "[typescript]": {
-    "editor.formatOnSave": true
-  }
+  "editor.formatOnSave": true
 }
