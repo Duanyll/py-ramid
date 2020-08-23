@@ -111,7 +111,7 @@ function runCarrier(creep: Creep, room: RoomInfo) {
 }
 
 export function tickCarrier(room: RoomInfo): void {
-    if (!room.structures.storage) return;
+    if (!room.creeps["carry"]) return;
     room.creeps["carry"].forEach((creep) => {
         runCarrier(creep, room);
     })

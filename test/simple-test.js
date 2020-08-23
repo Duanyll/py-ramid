@@ -26,7 +26,7 @@ async function work() {
         main: readFileSync('dist/main.js').toString(),
         'main.js.map': readFileSync('dist/main.js.map.js').toString()
     };
-    const bot = await server.world.addBot({ username: 'bot', room: 'W1N2', x: 25, y: 25, modules });
+    const bot = await server.world.addBot({ username: 'duanyll', room: 'W1N2', x: 25, y: 11, modules });
 
     // Print console logs every tick
     bot.on('console', (logs, results, userid, username) => {
@@ -35,7 +35,7 @@ async function work() {
 
     // Start server and run several ticks
     await server.start();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 50; i++) {
         console.log('[tick]', await server.world.gameTime);
         await server.tick();
         _.each(await bot.newNotifications, ({ message }) => console.log('[notification]', message));

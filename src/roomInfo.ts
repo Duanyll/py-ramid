@@ -3,34 +3,42 @@ import { creepRolesForLevel } from "creepCount";
 
 var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
+    // console.log(`Registering callback ${type}`)
     if (!CallbackStore) CallbackStore = {};
     CallbackStore[type] = func;
 }
 
 export function runCallback(c: RoomCallback, room: RoomInfo) {
-    CallbackStore[c.type](room, ...c.param);
+    console.log(`Running callback ${c.type}.`)
+    if (c.param) {
+        CallbackStore[c.type](room, ...c.param);
+    } else {
+        CallbackStore[c.type](room);
+    }
 }
 
 class RoomStructures {
     // containers: StructureContainer[] = [];
     controller: StructureController;
     extensions: StructureExtension[] = [];
-    extractor!: StructureExtractor;
-    factory!: StructureFactory;
+    extractor: StructureExtractor;
+    factory: StructureFactory;
     labs: StructureLab[] = [];
     links: StructureLink[] = [];
-    nuker!: StructureNuker;
-    observer!: StructureObserver;
-    powerSpawn!: StructurePowerSpawn;
+    nuker: StructureNuker;
+    observer: StructureObserver;
+    powerSpawn: StructurePowerSpawn;
     // ramparts: StructureRampart[];
     // roads: StructureRoad[] = [];
     spawns: StructureSpawn[] = [];
-    storage!: StructureStorage;
-    terminal!: StructureTerminal;
+    storage: StructureStorage;
+    terminal: StructureTerminal;
     towers: StructureTower[] = [];
     // walls: StructureWall[];
 
-    centerLink!: StructureLink;
+    centerLink: StructureLink;
+    sourceLink: StructureLink[];
+    controllerLink: StructureLink;
 
     constructor(room: Room) {
         this.controller = room.controller as StructureController;
@@ -111,12 +119,11 @@ export class RoomInfo {
 
     private _structures?: RoomStructures;
     private _structuresLoadTime = 0;
+    private getLink(pos: [number, number]) {
+        return this.detail.lookForAt(LOOK_STRUCTURES, pos[0], pos[1])
+            .filter(s => s.structureType == STRUCTURE_LINK)[0] as StructureLink;
+    }
     public get structures() {
-        // 必须每 tick 重建
-        if (!this._structures || this._structuresLoadTime < Game.time) {
-            this._structures = new RoomStructures(this.detail);
-            this._structuresLoadTime = Game.time;
-        }
         return this._structures;
     }
 
@@ -139,16 +146,25 @@ export class RoomInfo {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
         m.design = m.design || designRoom(this.detail);
-        m.eventTimer = m.eventTimer || [];
+        m.eventTimer = m.eventTimer || {};
         m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];
         if (!m.state) {
             m.state = {
                 status: "normal",
-                refillState: {}
+                refillState: {},
+                wallHits: 0
             }
-            checkRefillState(this);
+            // checkRefillState(this);
         }
+    }
+
+    public reloadStructures() {
+        this._structures = new RoomStructures(this.detail);
+        this._structures.centerLink = this.getLink(this.design.links.centerLink);
+        this._structures.controllerLink = this.getLink(this.design.links.controllerLink);
+        this._structures.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
+        this._structuresLoadTime = Game.time;
     }
 
     public tickEvents(): void {

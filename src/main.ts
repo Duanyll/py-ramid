@@ -16,10 +16,10 @@ function loadScript() {
             managedRooms[name] = new RoomInfo(name);
         }
     }
-    console.log(`It taked ${Game.cpu.getUsed()} CPU to restart.`)
+    console.log(`It took ${Game.cpu.getUsed()} CPU to restart.`)
 }
 
-if (global.Game) {
+if (Game) {
     ErrorMapper.wrap(loadScript)();
 } else {
     console.log(`It seems that the code is running in wrong environment...`)
@@ -33,11 +33,10 @@ function loadCreeps() {
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         if (creep.spawning) continue;
+        // console.log(`Processing creep: ${name}`)
         if (creep.memory.room) {
             let room = managedRooms[creep.memory.room];
-            if (!room.creeps[creep.memory.role]) {
-                room.creeps[creep.memory.role] = [];
-            }
+            room.creeps[creep.memory.role] = room.creeps[creep.memory.role] || [];
             room.creeps[creep.memory.role].push(creep);
 
             if (creep.memory.roleId) {
@@ -55,5 +54,10 @@ export const loop = ErrorMapper.wrap(() => {
     debugger;
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
+    }
+
+    if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
+        Game.cpu.generatePixel();
+        console.log(`Used CPU in bucket to generate 1 pixel.`);
     }
 });

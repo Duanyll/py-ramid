@@ -41,12 +41,14 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         room.updateCreepCount();
         room.design.currentStage++;
         setConstruction(room);
+    } else {
+        room.scheduleEvent(Game.time + 500, { type: "setConstruction" });
     }
 }
 registerCallback("setConstruction", setConstruction);
 
 interface BuilderMemory extends CreepMemory {
-    state: "pickup"| "work"
+    state: "pickup" | "work"
 }
 
 function goBuild(creep: Creep, room: RoomInfo) {
@@ -96,7 +98,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
 }
 
 export function tickBuilder(room: RoomInfo): void {
-    if (!room.structures.storage) return;
+    if (!room.creeps["build"]) return;
     room.creeps["build"].forEach((creep) => {
         runBuilder(creep, room);
     })

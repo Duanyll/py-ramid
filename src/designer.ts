@@ -308,6 +308,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
 }
 
 export function designRoom(room: Room): RoomDesign {
+    let cpuBefore = Game.cpu.getUsed();
     let res = new Array<Array<string>>(51);
     const terrain = room.getTerrain();
     let wlen = createMatrix(51, 51, 0);
@@ -396,6 +397,7 @@ export function designRoom(room: Room): RoomDesign {
     }
     design.matrix = mat;
 
+    console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;
 }
 

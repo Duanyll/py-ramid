@@ -33,8 +33,9 @@ type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 
 // 表示房间状态的缓存，可以重新被计算的量
 interface RoomState {
-    status: "normal" | "energy-emergency",
-    refillState: { [s: string]: number }
+    status: "normal" | "energy-emergency";
+    refillState: { [s: string]: number };
+    wallHits: number;
 }
 
 interface RoomDesign {
@@ -50,9 +51,7 @@ interface RoomDesign {
         }[]
     }[],
     links: {
-        sourceLink: {
-            [id: number]: [number, number]
-        }
+        sourceLink: [number, number][];
         centerLink: [number, number];
         controllerLink: [number, number];
     }
@@ -87,7 +86,8 @@ interface RoomMemory {
     stats: {
         current: RoomStats;
         history: RoomStats[];
-    }
+    };
+    rcl: number;
 }
 
 // `global` extension samples

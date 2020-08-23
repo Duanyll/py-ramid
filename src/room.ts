@@ -1,24 +1,37 @@
 import { RoomInfo, runCallback } from "roomInfo";
 import { tickCarrier } from "roleCarrier";
 import { tickSpawn } from "spawn";
+import { tickBuilder } from "roleBuilder";
+import { tickHarvester } from "roleHarvester";
+import { tickUpgrader } from "roleUpgrader";
 
 export function tickRoom(room: RoomInfo) {
+    room.detail = Game.rooms[room.name];
+    room.reloadStructures();
+    if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
+        resetCallback(room);
+    }
+    room.detail.memory.rcl = room.detail.controller.level;
+
     room.tickEvents();
 
+    tickBuilder(room);
     tickCarrier(room);
+    tickHarvester(room);
+    tickUpgrader(room);
 
     tickSpawn(room);
 }
 
-function resetLoopEvents(room: RoomInfo) {
-    const loopCallbacklist: LoopCallback[] = [
-        "summatyStats", "checkCreepHealth"
+function resetCallback(room: RoomInfo) {
+    const callbackToClear: CallbackType[] = [
+        "summatyStats", "checkCreepHealth", "setConstruction"
     ]
     for (const tick in room.eventTimer) {
-        room.eventTimer[tick] = _.filter(room.eventTimer[tick], (c) => !(_.contains(loopCallbacklist, c.type)));
+        room.eventTimer[tick] = _.filter(room.eventTimer[tick], (c) => !(_.contains(callbackToClear, c.type)));
     }
 
-    // 自动定时循环调用型
-    runCallback({ type: "summatyStats" }, room);
+    // runCallback({ type: "summatyStats" }, room);
     Object.keys(room.creepRoleDefs).forEach((id) => runCallback({ type: "checkCreepHealth", param: [id] }, room));
+    runCallback({ type: "setConstruction" }, room);
 }
