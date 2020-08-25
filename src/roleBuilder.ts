@@ -4,10 +4,10 @@ import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
 
-function setConstruction(room: RoomInfo, full?: boolean) {
+export function setConstruction(room: RoomInfo, full?: boolean) {
     let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
     if (avalSites <= 0) {
-        room.scheduleEvent(Game.time + 500, { type: "setConstruction" });
+        room.delay("setConstruction", 500);
         return;
     }
     const stage = room.design.currentStage;
@@ -41,11 +41,12 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         }
     });
     if (nextStage) {
+        console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`)
         room.updateCreepCount();
         room.design.currentStage++;
         setConstruction(room);
     } else {
-        room.scheduleEvent(Game.time + 500, { type: "setConstruction" });
+        room.delay("setConstruction", 500);
     }
 }
 registerCallback("setConstruction", setConstruction);

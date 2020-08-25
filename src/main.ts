@@ -46,6 +46,19 @@ function loadCreeps() {
     }
 }
 
+function clearMemory() {
+    for (const name in Memory.rooms) {
+        if (!(name in Game.rooms)) {
+            delete Memory.creeps[name];
+        }
+    }
+    for (const name in Memory.creeps) {
+        if (!(name in Game.creeps)) {
+            delete Memory.creeps[name];
+        }
+    }
+}
+
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
@@ -55,6 +68,8 @@ export const loop = ErrorMapper.wrap(() => {
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
+
+    clearMemory();
 
     if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
         Game.cpu.generatePixel();

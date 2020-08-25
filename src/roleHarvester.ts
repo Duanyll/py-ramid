@@ -1,5 +1,6 @@
 import { RoomInfo } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
+import { goRefill } from "roleCarrier";
 
 interface HarvesterMemory extends CreepMemory {
     status: "harvest" | "move"
@@ -24,6 +25,7 @@ function runHarvester(creep: Creep, room: RoomInfo) {
             moveCreepTo(creep, target);
         }
     } else {
+        if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
         const target = room.structures.sourceLink[sourceId] || room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.transfer(target, RESOURCE_ENERGY);

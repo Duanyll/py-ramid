@@ -36,6 +36,7 @@ interface RoomState {
     status: "normal" | "energy-emergency";
     refillState: { [s: string]: number };
     wallHits: number;
+    roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
 }
 
 interface RoomDesign {
@@ -79,7 +80,9 @@ interface MoveRequest {
 }
 
 interface RoomMemory {
-    eventTimer: { [time: number]: RoomCallback[] };
+    tasks: {
+        [name: string]: number;
+    }
     moveQueue: MoveRequest[];
     spawnQueue: SpawnRequest[];
     design: RoomDesign;

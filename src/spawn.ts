@@ -1,33 +1,4 @@
 import { RoomInfo, registerCallback } from "roomInfo";
-import { Console } from "console";
-
-function checkCreepHealth(room: RoomInfo, roleId: string) {
-    if (!room.creepRoleDefs[roleId]) return;
-    function doSpawn() {
-        room.spawnQueue.push({
-            name: `${room.name}-${roleId}`,
-            body: room.creepRoleDefs[roleId].body,
-            memory: {
-                role: room.creepRoleDefs[roleId].role,
-                room: room.name,
-                roleId: roleId
-            }
-        });
-    }
-    if (!room.creepForRole[roleId]) {
-        doSpawn();
-        return;
-    }
-    let creep = room.creepForRole[roleId];
-    const spawnTime = getCreepSpawnTime(room.creepRoleDefs[roleId].body);
-    if (creep.ticksToLive <= spawnTime) {
-        doSpawn();
-        return;
-    }
-    const nextCheckTime = Math.min(creep.ticksToLive - spawnTime, 300) + Game.time;
-    room.scheduleEvent(nextCheckTime, { type: "checkCreepHealth", param: [roleId] })
-}
-registerCallback("checkCreepHealth", checkCreepHealth);
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sum(body, (p) => p.count) * 3;
@@ -45,11 +16,35 @@ function expandBodypart(body: BodyPartDescription) {
     return res;
 }
 
+function checkCreepHealth(room: RoomInfo) {
+    _.forIn(room.creepRoleDefs, (info, roleId) => {
+        if (room.state.roleSpawnStatus[roleId] == "disabled") return;
+        if (room.state.roleSpawnStatus[roleId] == "spawning") {
+            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 10) {
+                room.state.roleSpawnStatus[roleId] = "ok";
+            }
+            return;
+        }
+        if (!room.creepForRole[roleId] || room.creepForRole[roleId].ticksToLive <= getCreepSpawnTime(info.body)) {
+            room.spawnQueue.push({
+                name: `${room.name}-${roleId}-${Game.time}`,
+                body: info.body,
+                memory: { role: info.role, roleId: roleId, room: room.name }
+            });
+            room.state.roleSpawnStatus[roleId] = "spawning";
+            return;
+        }
+    })
+}
+
 export function tickSpawn(room: RoomInfo) {
+    checkCreepHealth(room);
+
     if (room.spawnQueue.length == 0) return;
     let req = room.spawnQueue[0];
     if (Game.creeps[req.name]) {
-        room.spawnQueue.push(room.spawnQueue.shift());
+        console.log(`Room ${room.name}: Trying to spawn a existing creep.`);
+        room.spawnQueue.shift();
         return;
     }
     if (!req.cost) req.cost = getCreepCost(req.body);
@@ -62,10 +57,21 @@ export function tickSpawn(room: RoomInfo) {
         });
         console.log(`Spawning creep ${req.name}`);
         // room.stats.current.energy.spawnCost += req.cost;
-        if (req.memory.roleId) {
-            room.scheduleEvent(Game.time + getCreepSpawnTime(req.body) + 1, { type: "checkCreepHealth", param: [req.memory.roleId] });
-        }
         room.spawnQueue.shift();
-        room.scheduleEvent(Game.time + 1, { type: "checkRefill" });
+        room.delay("checkRefill", 1);
     }
 }
+
+function checkRefillState(room: RoomInfo) {
+    function f(s: RefillableStructure) {
+        if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+            delete room.state.refillState[s.id];
+        } else {
+            room.state.refillState[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+        }
+    }
+    room.structures.extensions.forEach(f);
+    room.structures.spawns.forEach(f);
+    room.structures.extensions.forEach(f);
+}
+registerCallback("checkRefill", checkRefillState);

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { ScreepsServer, TerrainMatrix } = require('screeps-server-mockup');
 const { readFileSync, writeFileSync } = require('fs');
+const { execSync } = require('child_process');
 
 async function work() {
     // Initialize server
@@ -29,23 +30,27 @@ async function work() {
     const bot = await server.world.addBot({ username: 'duanyll', room: 'W1N2', x: 25, y: 11, modules });
 
     // Print console logs every tick
-    bot.on('console', (logs, results, userid, username) => {
-        _.each(logs, line => console.log(`[console|${username}]`, line));
+    bot.on('console', async (logs, results, userid, username) => {
+        let time = await server.world.gameTime;
+        _.each(logs, line => console.log(`[console|${username}|${time}]`, line));
     });
 
     // Start server and run several ticks
     await server.start();
-    for (let i = 0; i < 50; i++) {
-        console.log('[tick]', await server.world.gameTime);
+    for (let i = 0; i < 100; i++) {
+        // console.log('[tick]', await server.world.gameTime);
         await server.tick();
         _.each(await bot.newNotifications, ({ message }) => console.log('[notification]', message));
+        if (i % 100 == 0) console.log(`[tick] ${i + 1}`);
     }
 
     // console.log('[memory]', await bot.memory, '\n');
-    writeFileSync('test-memory.json', await bot.memory);
+    writeFileSync('test-memory.json', JSON.stringify(JSON.parse(await bot.memory), null, 4));
     // Stop server and disconnect storage
     server.stop();
     process.exit(); // required as there is no way to properly shutdown storage :(
 }
 
+execSync('npm run build');
+console.log('Script compiled.')
 work();

@@ -93,8 +93,8 @@ export class RoomInfo {
     name: string;
     detail: Room;
 
-    public get eventTimer(): { [time: number]: RoomCallback[] } {
-        return this.detail.memory.eventTimer;
+    public get tasks() {
+        return this.detail.memory.tasks;
     };
     public get moveQueue(): MoveRequest[] {
         return this.detail.memory.moveQueue;
@@ -113,7 +113,7 @@ export class RoomInfo {
     creepRoleDefs: {
         [roleId: string]: {
             role: CreepRole,
-            body: BodyPartDescription
+            body: BodyPartDescription,
         };
     }
 
@@ -138,28 +138,30 @@ export class RoomInfo {
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
-        this.checkMemory();
+        this.initMemory();
         this.updateCreepCount();
     }
 
-    checkMemory() {
+    initMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
         m.design = m.design || designRoom(this.detail);
-        m.eventTimer = m.eventTimer || {};
+        m.tasks = m.tasks || {};
         m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];
         if (!m.state) {
             m.state = {
                 status: "normal",
                 refillState: {},
-                wallHits: 0
+                wallHits: 0,
+                roleSpawnStatus: {}
             }
             // checkRefillState(this);
         }
     }
 
-    public reloadStructures() {
+    public reload() {
+        this.detail = Game.rooms[this.name];
         this._structures = new RoomStructures(this.detail);
         this._structures.centerLink = this.getLink(this.design.links.centerLink);
         this._structures.controllerLink = this.getLink(this.design.links.controllerLink);
@@ -167,44 +169,22 @@ export class RoomInfo {
         this._structuresLoadTime = Game.time;
     }
 
-    public tickEvents(): void {
-        if (this.eventTimer[Game.time]) {
-            this.eventTimer[Game.time].forEach(c => runCallback(c, this));
-            delete this.eventTimer[Game.time];
-        }
+    public tickTasks(): void {
+        _.forIn(this.tasks, (next, name) => {
+            if (next == Game.time) runCallback({ type: name as CallbackType }, this);
+        })
     }
 
-    public scheduleEvent(time: number, callback: RoomCallback) {
-        if (time <= Game.time) {
-            console.log(`Warning: Trying to schedule event in the past.`);
+    public delay(type: CallbackType, time: number) {
+        if (!this.tasks[type] || this.tasks[type] <= Game.time) {
+            this.tasks[type] = Game.time + time;
         }
-        if (this.eventTimer[time] == undefined) {
-            this.eventTimer[time] = [];
+        else {
+            this.tasks[type] = _.min([Game.time + time, this.tasks[type]]);
         }
-        this.eventTimer[time].push(callback);
     }
 
     public updateCreepCount() {
-        const last = this.creepRoleDefs;
-        this.creepRoleDefs = creepRolesForLevel[this.design.stages[this.design.currentStage].rcl];
-        if (last) {
-            for (const id in this.creepRoleDefs) {
-                if (!last[id]) this.scheduleEvent(Game.time + 1, { type: "checkCreepHealth", param: [id] });
-            }
-        }
+        this.creepRoleDefs = creepRolesForLevel[this.design.stages[Math.max(this.design.currentStage - 1, 0)].rcl];
     }
 }
-
-function checkRefillState(room: RoomInfo) {
-    function f(s: RefillableStructure) {
-        if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-            delete room.state.refillState[s.id];
-        } else {
-            room.state.refillState[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
-        }
-    }
-    room.structures.extensions.forEach(f);
-    room.structures.spawns.forEach(f);
-    room.structures.extensions.forEach(f);
-}
-registerCallback("checkRefill", checkRefillState);

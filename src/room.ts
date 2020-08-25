@@ -1,20 +1,19 @@
-import { RoomInfo, runCallback } from "roomInfo";
+import { RoomInfo } from "roomInfo";
 import { tickCarrier } from "roleCarrier";
 import { tickSpawn } from "spawn";
-import { tickBuilder } from "roleBuilder";
+import { tickBuilder, setConstruction } from "roleBuilder";
 import { tickHarvester } from "roleHarvester";
 import { tickUpgrader } from "roleUpgrader";
 import { tickWorker } from "roleWorker";
 
 export function tickRoom(room: RoomInfo) {
-    room.detail = Game.rooms[room.name];
-    room.reloadStructures();
+    room.reload();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
-        resetCallback(room);
+        onRclUpgrade(room);
     }
     room.detail.memory.rcl = room.detail.controller.level;
 
-    room.tickEvents();
+    room.tickTasks();
 
     tickWorker(room);
     tickBuilder(room);
@@ -25,15 +24,7 @@ export function tickRoom(room: RoomInfo) {
     tickSpawn(room);
 }
 
-function resetCallback(room: RoomInfo) {
-    const callbackToClear: CallbackType[] = [
-        "summatyStats", "checkCreepHealth", "setConstruction"
-    ]
-    for (const tick in room.eventTimer) {
-        room.eventTimer[tick] = _.filter(room.eventTimer[tick], (c) => !(_.contains(callbackToClear, c.type)));
-    }
-
-    // runCallback({ type: "summatyStats" }, room);
-    Object.keys(room.creepRoleDefs).forEach((id) => runCallback({ type: "checkCreepHealth", param: [id] }, room));
-    runCallback({ type: "setConstruction" }, room);
+function onRclUpgrade(room: RoomInfo) {
+    console.log(`Room ${room.name} ungraded to level ${room.detail.controller.level}.`)
+    setConstruction(room);
 }

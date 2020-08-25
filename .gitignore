@@ -21,6 +21,7 @@ screeps.json
 # ScreepsServer data from integration tests
 /server
 test-memory.json
+push-to-localhost.ps1
 
 # Numerous always-ignore extensions
 *.diff
