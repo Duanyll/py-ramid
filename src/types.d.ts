@@ -13,7 +13,7 @@ interface Memory {
 }
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
-type DelayCallback = "checkRefill" | "setConstruction";
+type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads";
 type CallbackType = LoopCallback | DelayCallback;
 interface RoomCallback {
     type: CallbackType;
@@ -37,6 +37,7 @@ interface RoomState {
     refillState: { [s: string]: number };
     wallHits: number;
     roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
+    roadToRepair: string[];
 }
 
 interface RoomDesign {

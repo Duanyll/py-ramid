@@ -154,7 +154,8 @@ export class RoomInfo {
                 status: "normal",
                 refillState: {},
                 wallHits: 0,
-                roleSpawnStatus: {}
+                roleSpawnStatus: {},
+                roadToRepair: []
             }
             // checkRefillState(this);
         }

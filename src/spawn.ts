@@ -72,6 +72,6 @@ function checkRefillState(room: RoomInfo) {
     }
     room.structures.extensions.forEach(f);
     room.structures.spawns.forEach(f);
-    room.structures.extensions.forEach(f);
+    room.structures.towers.forEach(f);
 }
 registerCallback("checkRefill", checkRefillState);

@@ -1,10 +1,11 @@
 import { RoomInfo } from "roomInfo";
 import { tickCarrier } from "roleCarrier";
 import { tickSpawn } from "spawn";
-import { tickBuilder, setConstruction } from "roleBuilder";
+import { tickBuilder } from "roleBuilder";
 import { tickHarvester } from "roleHarvester";
 import { tickUpgrader } from "roleUpgrader";
 import { tickWorker } from "roleWorker";
+import { tickTower } from "tower";
 
 export function tickRoom(room: RoomInfo) {
     room.reload();
@@ -22,9 +23,11 @@ export function tickRoom(room: RoomInfo) {
     tickUpgrader(room);
 
     tickSpawn(room);
+    tickTower(room);
 }
 
 function onRclUpgrade(room: RoomInfo) {
     console.log(`Room ${room.name} ungraded to level ${room.detail.controller.level}.`)
-    setConstruction(room);
+    room.delay("setConstruction", 1);
+    room.delay("checkRoads", 1);
 }
