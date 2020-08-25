@@ -4,6 +4,7 @@ import { tickSpawn } from "spawn";
 import { tickBuilder } from "roleBuilder";
 import { tickHarvester } from "roleHarvester";
 import { tickUpgrader } from "roleUpgrader";
+import { tickWorker } from "roleWorker";
 
 export function tickRoom(room: RoomInfo) {
     room.detail = Game.rooms[room.name];
@@ -15,6 +16,7 @@ export function tickRoom(room: RoomInfo) {
 
     room.tickEvents();
 
+    tickWorker(room);
     tickBuilder(room);
     tickCarrier(room);
     tickHarvester(room);
