@@ -2,6 +2,7 @@ import { RoomInfo, registerCallback } from "roomInfo";
 import { ROOM_STORE_ENERGY } from "config";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
+import { goUpgrade } from "roleUpgrader";
 
 function setConstruction(room: RoomInfo, full?: boolean) {
     let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
@@ -17,7 +18,8 @@ function setConstruction(room: RoomInfo, full?: boolean) {
                 if (avalSites < 0) return;
                 if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
                     || _.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type))) {
-                    room.detail.createConstructionSite(s.x, s.y, s.type);
+                    // @ts-expect-error 2345
+                    room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
                     avalSites--;
                 }
             })
@@ -32,7 +34,8 @@ function setConstruction(room: RoomInfo, full?: boolean) {
         if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
             nextStage = false;
             if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
-                room.detail.createConstructionSite(s.x, s.y, s.type);
+                // @ts-expect-error 2345
+                room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
                 avalSites--;
             }
         }
@@ -51,7 +54,7 @@ interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work"
 }
 
-function goBuild(creep: Creep, room: RoomInfo) {
+export function goBuild(creep: Creep, room: RoomInfo) {
     const target = _.first(room.detail.find(FIND_MY_CONSTRUCTION_SITES));
     if (!target) return false;
     if (creep.pos.inRangeTo(target, 3)) {
@@ -74,7 +77,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
 
     if (m.state == "pickup") {
         if (room.structures.storage.store.energy <= ROOM_STORE_ENERGY) {
-            const target = _.first(creep.room.find(FIND_SOURCES_ACTIVE));
+            const target = _.last(creep.room.find(FIND_SOURCES_ACTIVE));
             if (!target) return;
             if (creep.pos.isNearTo(target)) {
                 creep.harvest(target);
@@ -91,9 +94,8 @@ function runBuilder(creep: Creep, room: RoomInfo) {
             }
         }
     } else {
-        if (!goBuild(creep, room)) {
-            goRefill(creep, room);
-        }
+        if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
+        if (!goBuild(creep, room)) goUpgrade(creep, room);
     }
 }
 

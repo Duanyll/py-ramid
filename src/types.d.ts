@@ -48,6 +48,7 @@ interface RoomDesign {
             type: BuildableStructureConstant;
             x: number;
             y: number;
+            name?: string;
         }[]
     }[],
     links: {

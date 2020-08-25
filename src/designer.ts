@@ -268,12 +268,14 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         }
     }
     function take(type: BuildableStructureConstant, count: number) {
-        let res: { type: BuildableStructureConstant, x: number, y: number }[] = [];
+        let res: { type: BuildableStructureConstant, x: number, y: number, name?: string }[] = [];
         while (count > 0) {
             count--;
+            if (!structPos[type]) return res;
             const cur = structPos[type].pop();
             if (!cur) { console.log(`Internal design error: need too many ${type}`); continue; }
             res.push({ type: type, x: cur[0], y: cur[1] });
+            if (type == "spawn") _.last(res).name = `${room.name}-Spawn${3 - structPos["spawn"].length}`;
         }
         return res;
     }
@@ -281,7 +283,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
     design.currentStage = 0;
     design.stages = [];
     design.stages.push({ rcl: 1, list: take("spawn", 1) });
-    design.stages.push({ rcl: 2, list: take("road", 5) });
+    design.stages.push({ rcl: 2, list: take("extension", 5) });
     design.stages.push({ rcl: 3, list: take("extension", 5).concat(take("tower", 1)) });
     design.stages.push({ rcl: 4, list: take("extension", 10).concat(take("storage", 1)) });
     nroutes.forEach((r) => design.stages.push({ rcl: 4, list: r }));
@@ -325,8 +327,16 @@ export function designRoom(room: Room): RoomDesign {
         }
     }
 
-    const center = getRoomCenter(room);
-
+    let center: RoomPosition;
+    let fixedCenter = false;
+    let spawn = room.find(FIND_MY_SPAWNS)[0];
+    if (spawn && _.keys(Game.rooms).length == 1) {
+        console.log("Designing first room.");
+        fixedCenter = true;
+        center = new RoomPosition(spawn.pos.x - 3, spawn.pos.y, room.name);
+    } else {
+        center = getRoomCenter(room);
+    }
     function findSquare(size: number): [number, number, number] {
         let resx = 0, resy = 0, resdis = INF;
         for (let j = 0; j < 50; j++) {
@@ -364,22 +374,29 @@ export function designRoom(room: Room): RoomDesign {
         links: {}
     } as RoomDesign;
 
-    const largeres = findSquare(13);
     let isSmall = false;
-    if (largeres[2] <= 10) {
-        fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
-        design.center = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
-        design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];
-    } else {
-        const smallRes = findSquare(6);
-        if (smallRes[2] == INF) {
-            console.log(`Can't design room ${room.name}.`);
-            return {} as RoomDesign;
-        }
+    if (fixedCenter) {
         isSmall = true;
-        fillSquare(smallCenter, res, smallRes[0], smallRes[1], smallCenter.length);
-        design.center = new RoomPosition(smallRes[0] + 1, smallRes[1] + 1, room.name);
-        design.links.centerLink = [smallRes[0] + 2, smallRes[0] + 1];
+        fillSquare(smallCenter, res, center.x - 1, center.y - 1, smallCenter.length);
+        design.center = new RoomPosition(center.x, center.y, room.name);
+        design.links.centerLink = [center.x + 1, center.y];
+    } else {
+        const largeres = findSquare(13);
+        if (largeres[2] <= 10) {
+            fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
+            design.center = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
+            design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];
+        } else {
+            const smallRes = findSquare(6);
+            if (smallRes[2] == INF) {
+                console.log(`Can't design room ${room.name}.`);
+                return {} as RoomDesign;
+            }
+            isSmall = true;
+            fillSquare(smallCenter, res, smallRes[0], smallRes[1], smallCenter.length);
+            design.center = new RoomPosition(smallRes[0] + 1, smallRes[1] + 1, room.name);
+            design.links.centerLink = [smallRes[0] + 2, smallRes[0] + 1];
+        }
     }
 
     fillOutPoints(res, room, design);
