@@ -12,12 +12,12 @@ function runHarvester(creep: Creep, room: RoomInfo) {
     if (m.status == "move" && creep.store.energy == 0) {
         m.status = "harvest";
     }
-    if (m.status == "harvest" && creep.store.getFreeCapacity(RESOURCE_ENERGY) < 10) {
-        m.status = "harvest";
+    if (m.status == "harvest" && creep.store.getFreeCapacity() == 0) {
+        m.status = "move";
     }
 
-    const sourceId = Number(_.last(m.roleId));
-    if (m.status = "harvest") {
+    const sourceId = Number(_.last(m.roleId)) - 1;
+    if (m.status == "harvest") {
         const target = room.detail.find(FIND_SOURCES)[sourceId];
         if (creep.pos.isNearTo(target)) {
             creep.harvest(target);

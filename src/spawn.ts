@@ -29,7 +29,7 @@ function checkCreepHealth(room: RoomInfo) {
             room.spawnQueue.push({
                 name: `${room.name}-${roleId}-${Game.time}`,
                 body: info.body,
-                memory: { role: info.role, roleId: roleId, room: room.name }
+                memory: { role: info.role, roleId, room: room.name }
             });
             room.state.roleSpawnStatus[roleId] = "spawning";
             return;

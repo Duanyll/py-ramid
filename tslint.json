@@ -16,6 +16,14 @@
       "check-format",
       "allow-pascal-case",
       "allow-leading-underscore"
-    ]
+    ],
+    "ordered-imports": false,
+    "curly": false,
+    "triple-equals": false,
+    "member-access": false,
+    "no-string-literal": false,
+    "max-classes-per-file": false,
+    "object-literal-sort-keys": false,
+    "prefer-const": false
   }
 }

@@ -46,10 +46,20 @@ export function goRefill(creep: Creep, room: RoomInfo) {
 
 function runRefiller(creep: Creep, room: RoomInfo) {
     if (creep.store.energy == 0) {
-        if (creep.pos.isNearTo(room.structures.storage)) {
-            creep.withdraw(room.structures.storage, RESOURCE_ENERGY);
+        let dropped = room.detail.find(FIND_DROPPED_RESOURCES)
+            .filter(r => r.resourceType == RESOURCE_ENERGY && r.amount > 100)[0];
+        if (dropped) {
+            if (creep.pos.isNearTo(dropped)) {
+                creep.pickup(dropped)
+            } else {
+                moveCreepTo(creep, dropped);
+            }
         } else {
-            moveCreepTo(creep, room.structures.storage);
+            if (creep.pos.isNearTo(room.structures.storage)) {
+                creep.withdraw(room.structures.storage, RESOURCE_ENERGY);
+            } else {
+                moveCreepTo(creep, room.structures.storage);
+            }
         }
     } else {
         goRefill(creep, room);

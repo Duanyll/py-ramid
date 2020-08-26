@@ -1,4 +1,4 @@
-import { RoomInfo } from "roomInfo";
+import { RoomInfo, registerCallback } from "roomInfo";
 
 function checkRoads(room: RoomInfo) {
     if (room.state.roadToRepair.length > 0) return;
@@ -11,6 +11,7 @@ function checkRoads(room: RoomInfo) {
         roads.forEach((r) => room.state.roadToRepair.push(r.id));
     }
 }
+registerCallback("checkRoads", checkRoads)
 
 function getTowerAttackHits(range: number) {
     if (range <= 5) return 600;
@@ -45,7 +46,7 @@ export function tickTower(room: RoomInfo) {
                 remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
             }
         });
-        if (remainHits <= 0) room.state.roadToRepair.pop();
+        if (remainHits <= 0) room.state.roadToRepair.shift();
         towerWorked = true;
         room.delay("checkRoads", 1);
     }

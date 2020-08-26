@@ -1,7 +1,7 @@
 import { designRoom } from "designer";
 import { creepRolesForLevel } from "creepCount";
 
-var CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
+let CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
     // console.log(`Registering callback ${type}`)
     if (!CallbackStore) CallbackStore = {};

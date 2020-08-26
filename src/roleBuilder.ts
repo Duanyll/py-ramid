@@ -52,18 +52,33 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
 registerCallback("setConstruction", setConstruction);
 
 interface BuilderMemory extends CreepMemory {
-    state: "pickup" | "work"
+    state: "pickup" | "work",
+    lastBuildPos?: { x: number, y: number }
 }
 
 export function goBuild(creep: Creep, room: RoomInfo) {
-    const target = _.first(room.detail.find(FIND_MY_CONSTRUCTION_SITES));
-    if (!target) return false;
-    if (creep.pos.inRangeTo(target, 3)) {
-        creep.build(target);
-    } else {
-        moveCreepTo(creep, target);
+    let m = creep.memory as BuilderMemory;
+    if (m.lastBuildPos) {
+        let rampart = room.detail.lookForAt(LOOK_STRUCTURES, m.lastBuildPos.x, m.lastBuildPos.y)
+            .find(s => s.structureType == "rampart" && s.hits < 100) as StructureRampart;
+        if (rampart) {
+            creep.repair(rampart);
+            return true;
+        }
     }
-    return true;
+    const target = _.first(room.detail.find(FIND_MY_CONSTRUCTION_SITES));
+    if (target) {
+        if (creep.pos.inRangeTo(target, 3)) {
+            creep.build(target);
+            m.lastBuildPos = { x: target.pos.x, y: target.pos.y }
+        } else {
+            moveCreepTo(creep, target);
+            m.lastBuildPos = undefined;
+        }
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function runBuilder(creep: Creep, room: RoomInfo) {
