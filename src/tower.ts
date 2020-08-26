@@ -35,7 +35,10 @@ export function tickTower(room: RoomInfo) {
     let hostile = room.detail.find(FIND_HOSTILE_CREEPS)[0];
     let towerWorked = false;
     if (hostile) {
-        room.structures.towers.forEach((tower) => tower.attack(hostile));
+        room.structures.towers.forEach((tower) => {
+            tower.attack(hostile);
+            room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+        });
         towerWorked = true;
     } else if (room.state.roadToRepair.length > 0) {
         let road = Game.getObjectById(room.state.roadToRepair[0]) as StructureRoad;
@@ -44,11 +47,11 @@ export function tickTower(room: RoomInfo) {
             if (remainHits > 0) {
                 tower.repair(road);
                 remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
+                room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
             }
         });
         if (remainHits <= 0) room.state.roadToRepair.shift();
         towerWorked = true;
         room.delay("checkRoads", 1);
     }
-    if (towerWorked) room.delay("checkRefill", 1);
 }

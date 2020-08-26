@@ -111,6 +111,15 @@ function runBuilder(creep: Creep, room: RoomInfo) {
         }
     } else {
         if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
+        if (room.structures.storage.store.energy <= ROOM_STORE_ENERGY) {
+            const target = room.structures.storage;
+            if (creep.pos.isNearTo(target)) {
+                creep.transfer(target, RESOURCE_ENERGY);
+            } else {
+                moveCreepTo(creep, target);
+            }
+            return;
+        }
         if (!goBuild(creep, room)) goUpgrade(creep, room);
     }
 }

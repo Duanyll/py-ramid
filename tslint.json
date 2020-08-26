@@ -24,6 +24,10 @@
     "no-string-literal": false,
     "max-classes-per-file": false,
     "object-literal-sort-keys": false,
-    "prefer-const": false
+    "prefer-const": false,
+    "one-variable-per-declaration":false,
+    "array-type": false,
+    "no-bitwise": false,
+    "object-literal-shorthand": false
   }
 }

@@ -18,7 +18,7 @@ function runHarvester(creep: Creep, room: RoomInfo) {
 
     const sourceId = Number(_.last(m.roleId)) - 1;
     if (m.status == "harvest") {
-        const target = room.detail.find(FIND_SOURCES)[sourceId];
+        const target = room.structures.sources[sourceId];
         if (creep.pos.isNearTo(target)) {
             creep.harvest(target);
         } else {
@@ -26,7 +26,9 @@ function runHarvester(creep: Creep, room: RoomInfo) {
         }
     } else {
         if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
-        const target = room.structures.sourceLink[sourceId] || room.structures.storage;
+        let target = room.structures.sourceLink[sourceId] || room.structures.storage;
+        // 6 级房没有 centerLink, 不能传送, 必须直接送达
+        if (room.design.stages[room.design.currentStage - 1].rcl == 6 && sourceId == 1) target = room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.transfer(target, RESOURCE_ENERGY);
         } else {

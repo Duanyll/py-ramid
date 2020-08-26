@@ -180,8 +180,8 @@ function fillOutPoints(res: string[][], room: Room, design: RoomDesign) {
 
 type Route = [number, number][];
 function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
-    const sx = design.center.x;
-    const sy = design.center.y;
+    const sx = design.center[0];
+    const sy = design.center[1];
     const sid = posToId(sx, sy);
     let [fa, dis] = spfaPath(res, sx, sy);
     function fillRoute(x: number, y: number): Route {
@@ -216,8 +216,8 @@ function fillExtensions(res: string[][], room: Room, design: RoomDesign) {
     let dis = createMatrix(51, 51, INF);
     let ins = createMatrix(51, 51, false);
     let q = new Queue<[number, number]>();
-    const x = design.center.x;
-    const y = design.center.y;
+    const x = design.center[0];
+    const y = design.center[1];
     let count = 0;
     q.push([x, y]);
     dis[x][y] = 0;
@@ -260,6 +260,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
             }
         })
     }
+    ins[design.centerSpawn[0]][design.centerSpawn[1]] = true;
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
             if (ins[i][j] || res[i][j] == ' ' || res[i][j] == '.') continue;
@@ -268,21 +269,24 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         }
     }
     function take(type: BuildableStructureConstant, count: number) {
-        let res: { type: BuildableStructureConstant, x: number, y: number, name?: string }[] = [];
+        let takeRes: { type: BuildableStructureConstant, x: number, y: number, name?: string }[] = [];
         while (count > 0) {
             count--;
-            if (!structPos[type]) return res;
+            if (!structPos[type]) return takeRes;
             const cur = structPos[type].pop();
             if (!cur) { console.log(`Internal design error: need too many ${type}`); continue; }
-            res.push({ type: type, x: cur[0], y: cur[1] });
-            if (type == "spawn") _.last(res).name = `${room.name}-Spawn${3 - structPos["spawn"].length}`;
+            takeRes.push({ type: type, x: cur[0], y: cur[1] });
+            if (type == "spawn") _.last(takeRes).name = `${room.name}-Spawn${3 - structPos["spawn"].length}`;
         }
-        return res;
+        return takeRes;
     }
 
     design.currentStage = 0;
     design.stages = [];
-    design.stages.push({ rcl: 1, list: take("spawn", 1) });
+    design.stages.push({
+        rcl: 1, list: [
+            { x: design.centerSpawn[0], y: design.centerSpawn[1], type: "spawn", name: `${room.name}-Spawn1` }]
+    });
     design.stages.push({ rcl: 2, list: take("extension", 5) });
     design.stages.push({ rcl: 3, list: take("extension", 5).concat(take("tower", 1)) });
     design.stages.push({ rcl: 4, list: take("extension", 10).concat(take("storage", 1)) });
@@ -333,7 +337,7 @@ export function designRoom(room: Room): RoomDesign {
     if (spawn && _.keys(Game.rooms).length == 1) {
         console.log("Designing first room.");
         fixedCenter = true;
-        center = new RoomPosition(spawn.pos.x - 3, spawn.pos.y, room.name);
+        center = new RoomPosition(spawn.pos.x, spawn.pos.y - 1, room.name);
     } else {
         center = getRoomCenter(room);
     }
@@ -378,14 +382,16 @@ export function designRoom(room: Room): RoomDesign {
     if (fixedCenter) {
         isSmall = true;
         fillSquare(smallCenter, res, center.x - 1, center.y - 1, smallCenter.length);
-        design.center = new RoomPosition(center.x, center.y, room.name);
+        design.center = [center.x, center.y];
         design.links.centerLink = [center.x + 1, center.y];
+        design.centerSpawn = [center.x, center.y + 1];
     } else {
         const largeres = findSquare(13);
         if (largeres[2] <= 10) {
             fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
-            design.center = new RoomPosition(largeres[0] + 6, largeres[1] + 6, room.name);
+            design.center = [largeres[0] + 6, largeres[1] + 6];
             design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];
+            design.centerSpawn = [largeres[0] + 7, largeres[1] + 6]
         } else {
             const smallRes = findSquare(6);
             if (smallRes[2] == INF) {
@@ -394,8 +400,9 @@ export function designRoom(room: Room): RoomDesign {
             }
             isSmall = true;
             fillSquare(smallCenter, res, smallRes[0], smallRes[1], smallCenter.length);
-            design.center = new RoomPosition(smallRes[0] + 1, smallRes[1] + 1, room.name);
-            design.links.centerLink = [smallRes[0] + 2, smallRes[0] + 1];
+            design.center = [smallRes[0] + 1, smallRes[1] + 1];
+            design.links.centerLink = [smallRes[0] + 2, smallRes[1] + 1];
+            design.centerSpawn = [smallRes[0] + 1, smallRes[1] + 2];
         }
     }
 
@@ -413,6 +420,7 @@ export function designRoom(room: Room): RoomDesign {
         }
     }
     design.matrix = mat;
+    design.sources = room.find(FIND_SOURCES).map(s => [s.pos.x, s.pos.y]);
 
     console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;

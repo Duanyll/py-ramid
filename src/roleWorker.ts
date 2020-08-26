@@ -23,7 +23,7 @@ function runWorker(creep: Creep, room: RoomInfo) {
     }
     if (m.status == "pickup") {
         const sourceId = Number(_.last(m.roleId)) % 2;
-        const target = room.detail.find(FIND_SOURCES_ACTIVE)[sourceId];
+        const target = room.structures.sources[sourceId];
         if (creep.pos.isNearTo(target)) {
             creep.harvest(target);
         } else {

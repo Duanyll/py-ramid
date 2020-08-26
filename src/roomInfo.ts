@@ -40,6 +40,10 @@ class RoomStructures {
     sourceLink: StructureLink[];
     controllerLink: StructureLink;
 
+    sources: Source[];
+
+    centerSpawn: StructureSpawn;
+
     constructor(room: Room) {
         this.controller = room.controller as StructureController;
         room.find(FIND_MY_STRUCTURES).forEach((s) => {
@@ -58,9 +62,6 @@ class RoomStructures {
                     break;
                 case STRUCTURE_LINK:
                     this.links.push(s);
-                    if (s.pos.inRangeTo(this.controller, 5)) {
-                        this.centerLink = s;
-                    }
                     break;
                 case STRUCTURE_NUKER:
                     this.nuker = s;
@@ -139,7 +140,6 @@ export class RoomInfo {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
         this.initMemory();
-        this.updateCreepCount();
     }
 
     initMemory() {
@@ -167,6 +167,9 @@ export class RoomInfo {
         this._structures.centerLink = this.getLink(this.design.links.centerLink);
         this._structures.controllerLink = this.getLink(this.design.links.controllerLink);
         this._structures.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
+        this._structures.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
+        this._structures.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
+            .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
         this._structuresLoadTime = Game.time;
     }
 

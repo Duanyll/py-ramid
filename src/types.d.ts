@@ -14,7 +14,8 @@ interface Memory {
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
 type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads";
-type CallbackType = LoopCallback | DelayCallback;
+type MoveCallback = "removeLinkLock";
+type CallbackType = LoopCallback | DelayCallback | MoveCallback;
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -42,7 +43,7 @@ interface RoomState {
 
 interface RoomDesign {
     matrix: string[];
-    center: RoomPosition;
+    center: [number, number];
     currentStage: number;
     stages: {
         rcl: number;
@@ -57,7 +58,9 @@ interface RoomDesign {
         sourceLink: [number, number][];
         centerLink: [number, number];
         controllerLink: [number, number];
-    }
+    },
+    sources: [number, number][],
+    centerSpawn: [number, number];
 }
 
 interface RoomStats {

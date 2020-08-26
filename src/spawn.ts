@@ -49,11 +49,23 @@ export function tickSpawn(room: RoomInfo) {
     }
     if (!req.cost) req.cost = getCreepCost(req.body);
     // console.log(`To spawn ${req.name} costs ${req.cost} energy. ${room.detail.energyAvailable} energy available`)
+    if (req.cost > room.detail.energyCapacityAvailable) {
+        console.log("Trying to spawn a creep which is too big.");
+    }
     if (req.cost <= room.detail.energyAvailable) {
-        const spawn = _.find(room.structures.spawns, s => !s.spawning);
-        if (!spawn) return;
+        let spawn: StructureSpawn;
+        let dir: DirectionConstant;
+        if (req.memory.role == "manage") {
+            spawn = room.structures.centerSpawn;
+            if (spawn.spawning) return;
+            dir = spawn.pos.getDirectionTo(room.design.center[0], room.design.center[1]);
+        } else {
+            spawn = _.find(room.structures.spawns, s => !s.spawning);
+            if (!spawn) return;
+        }
         spawn.spawnCreep(expandBodypart(req.body), req.name, {
-            memory: req.memory
+            memory: req.memory,
+            directions: dir ? [dir] : undefined
         });
         console.log(`Spawning creep ${req.name}`);
         // room.stats.current.energy.spawnCost += req.cost;
@@ -73,5 +85,7 @@ function checkRefillState(room: RoomInfo) {
     room.structures.extensions.forEach(f);
     room.structures.spawns.forEach(f);
     room.structures.towers.forEach(f);
+
+    room.delay("checkRefill", 200);
 }
 registerCallback("checkRefill", checkRefillState);

@@ -4,7 +4,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { RoomInfo } from "roomInfo";
 import { tickRoom } from "room";
 
-var managedRooms: { [name: string]: RoomInfo } = {}
+let managedRooms: { [name: string]: RoomInfo } = {}
 function loadScript() {
     global.age = 0;
     console.log(`Restarting PY-RAMID ...`);
@@ -49,7 +49,7 @@ function loadCreeps() {
 function clearMemory() {
     for (const name in Memory.rooms) {
         if (!(name in Game.rooms)) {
-            delete Memory.creeps[name];
+            delete Memory.rooms[name];
         }
     }
     for (const name in Memory.creeps) {
@@ -64,7 +64,6 @@ export const loop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
     loadCreeps();
-    debugger;
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
