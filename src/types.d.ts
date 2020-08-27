@@ -14,8 +14,7 @@ interface Memory {
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
 type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads";
-type MoveCallback = "removeLinkLock";
-type CallbackType = LoopCallback | DelayCallback | MoveCallback;
+type CallbackType = LoopCallback | DelayCallback;
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
