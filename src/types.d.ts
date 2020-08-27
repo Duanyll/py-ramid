@@ -1,6 +1,6 @@
 // memory extension samples
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -95,6 +95,10 @@ interface RoomMemory {
         history: RoomStats[];
     };
     rcl: number;
+    remoteSources: {
+        id: string;
+        room: string;
+    }[]
 }
 
 // `global` extension samples

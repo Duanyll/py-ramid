@@ -54,13 +54,15 @@ function runRefiller(creep: Creep, room: RoomInfo) {
             } else {
                 moveCreepTo(creep, dropped);
             }
-        } else {
-            if (creep.pos.isNearTo(room.structures.storage)) {
-                creep.withdraw(room.structures.storage, RESOURCE_ENERGY);
-            } else {
-                moveCreepTo(creep, room.structures.storage);
-            }
+            return;
         }
+        let target = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100)[0] || room.structures.storage;
+        if (creep.pos.isNearTo(target)) {
+            creep.withdraw(target, RESOURCE_ENERGY);
+        } else {
+            moveCreepTo(creep, target);
+        }
+
     } else {
         goRefill(creep, room);
     }

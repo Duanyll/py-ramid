@@ -85,3 +85,13 @@ export const creepRolesForLevel: {
     build: build, repair walls and ramparts
     link: sourceLink[0] => controllerLink, sourceLink[1] => centerLink
 */
+
+export const remoteHarvesterBody: {
+    [rcl: number]: BodyPartDescription
+} = {
+    4: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }],
+    5: [{ type: "work", count: 6 }, { type: "carry", count: 10 }, { type: "move", count: 8 }],
+    6: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }],
+    7: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }],
+    8: [{ type: "work", count: 16 }, { type: "carry", count: 16 }, { type: "move", count: 16 }]
+}

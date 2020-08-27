@@ -1,6 +1,6 @@
 import { RoomInfo } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
-import { CONTROLLER_SIGN, ROOM_STORE_ENERGY } from "config";
+import { CONTROLLER_SIGN, ROOM_LEAST_STORE_ENERGY } from "config";
 
 interface UpgraderMemory extends CreepMemory {
     status: "pickup" | "upgrade"
@@ -18,7 +18,7 @@ function runUpgrader(creep: Creep, room: RoomInfo) {
 
     if (m.status == "pickup") {
         let target: AnyStoreStructure = room.structures.controllerLink;
-        if (!target && room.structures.storage && room.structures.storage.store.energy > ROOM_STORE_ENERGY) {
+        if (!target && room.structures.storage && room.structures.storage.store.energy > ROOM_LEAST_STORE_ENERGY) {
             target = room.structures.storage;
         }
         if (target) {

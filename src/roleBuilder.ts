@@ -1,5 +1,5 @@
 import { RoomInfo, registerCallback } from "roomInfo";
-import { ROOM_STORE_ENERGY } from "config";
+import { ROOM_LEAST_STORE_ENERGY, ROOM_STORE_ENERGY } from "config";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
@@ -93,7 +93,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
 
     if (m.state == "pickup") {
         if (room.structures.storage.store.energy <= ROOM_STORE_ENERGY) {
-            const target = _.last(creep.room.find(FIND_SOURCES_ACTIVE));
+            const target = _.last(room.detail.find(FIND_SOURCES_ACTIVE));
             if (!target) return;
             if (creep.pos.isNearTo(target)) {
                 creep.harvest(target);

@@ -1,5 +1,5 @@
 import { designRoom } from "designer";
-import { creepRolesForLevel } from "creepCount";
+import { creepRolesForLevel, remoteHarvesterBody } from "creepCount";
 
 let CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -136,6 +136,10 @@ export class RoomInfo {
         return this.detail.memory.stats;
     }
 
+    public get structRcl() {
+        return this.design.stages[Math.max(this.design.currentStage - 1, 0)].rcl;
+    }
+
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
@@ -149,6 +153,7 @@ export class RoomInfo {
         m.tasks = m.tasks || {};
         m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];
+        m.remoteSources = m.remoteSources || [];
         if (!m.state) {
             m.state = {
                 status: "normal",
@@ -189,6 +194,14 @@ export class RoomInfo {
     }
 
     public updateCreepCount() {
-        this.creepRoleDefs = creepRolesForLevel[this.design.stages[Math.max(this.design.currentStage - 1, 0)].rcl];
+        this.creepRoleDefs = creepRolesForLevel[this.structRcl];
+        if (remoteHarvesterBody[this.structRcl]) {
+            for (const i in this.detail.memory.remoteSources) {
+                this.creepRoleDefs[`rharv${i}`] = {
+                    role: "remoteHarvest",
+                    body: remoteHarvesterBody[this.structRcl]
+                }
+            }
+        }
     }
 }
