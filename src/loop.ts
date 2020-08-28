@@ -1,21 +1,17 @@
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 
 import { ErrorMapper } from "utils/ErrorMapper";
-import { RoomInfo } from "roomInfo";
+import { RoomInfo, managedRooms } from "roomInfo";
 import { tickRoom } from "room";
+import { tickExpansion } from "expansion";
 
-export let managedRooms: { [name: string]: RoomInfo } = {}
+export let globalCreeps: { [role: string]: Creep[] } = {}
 function loadScript() {
     global.age = 0;
     console.log(`Restarting PY-RAMID ...`);
     console.log(`Current game tick is ${Game.time}`);
     console.log(`Last load lasted for ${Memory.age} ticks.`);
-    for (const name in Game.rooms) {
-        const room = Game.rooms[name];
-        if (room.controller?.my) {
-            managedRooms[name] = new RoomInfo(name);
-        }
-    }
+    loadRooms();
     console.log(`It took ${Game.cpu.getUsed()} CPU to restart.`)
 }
 
@@ -25,11 +21,21 @@ if (Game) {
     console.log(`It seems that the code is running in wrong environment...`)
 }
 
+function loadRooms() {
+    for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        if (room.controller?.my) {
+            managedRooms[name] = new RoomInfo(name);
+        }
+    }
+}
+
 function loadCreeps() {
     for (const name in managedRooms) {
         managedRooms[name].creeps = {};
         managedRooms[name].creepForRole = {};
     }
+    globalCreeps = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         if (creep.spawning) continue;
@@ -42,16 +48,20 @@ function loadCreeps() {
             if (creep.memory.roleId) {
                 room.creepForRole[creep.memory.roleId] = creep;
             }
+        } else {
+            globalCreeps[creep.memory.role] = globalCreeps[creep.memory.role] || [];
+            globalCreeps[creep.memory.role].push(creep);
         }
     }
 }
 
 function clearMemory() {
-    for (const name in Memory.rooms) {
-        if (!(name in Game.rooms)) {
-            delete Memory.rooms[name];
-        }
-    }
+    // Delete unused room memory manually.
+    // for (const name in Memory.rooms) {
+    //     if (!(name in Game.rooms)) {
+    //         delete Memory.rooms[name];
+    //     }
+    // }
     for (const name in Memory.creeps) {
         if (!(name in Game.creeps)) {
             delete Memory.creeps[name];
@@ -63,10 +73,17 @@ function clearMemory() {
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
+    if (global.reloadRoomsNextTick) {
+        console.log("Reloading rooms ...");
+        loadRooms();
+        delete global.reloadRoomsNextTick;
+    }
+
     loadCreeps();
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
+    tickExpansion(globalCreeps["claim"]);
 
     clearMemory();
 

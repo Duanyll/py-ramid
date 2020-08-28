@@ -1,4 +1,5 @@
 import { RoomInfo, registerCallback } from "roomInfo";
+import { PLAYER_WHITELIST } from "config";
 
 function checkRoads(room: RoomInfo) {
     if (room.state.roadToRepair.length > 0) return;
@@ -32,7 +33,7 @@ function getTowerRepairHits(range: number) {
 }
 
 export function tickTower(room: RoomInfo) {
-    let hostile = room.detail.find(FIND_HOSTILE_CREEPS)[0];
+    let hostile = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => !PLAYER_WHITELIST[creep.owner.username])[0];
     let towerWorked = false;
     if (hostile) {
         room.structures.towers.forEach((tower) => {

@@ -1,5 +1,5 @@
 import { RoomInfo } from "roomInfo";
-import { moveCreepTo } from "moveHelper";
+import { moveCreepTo, moveCreepToRoom } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goBuild } from "roleBuilder";
 import { goUpgrade } from "roleUpgrader";
@@ -9,6 +9,10 @@ interface WorkerMemory extends CreepMemory {
 }
 
 function runWorker(creep: Creep, room: RoomInfo) {
+    if (creep.room.name != room.name) {
+        moveCreepToRoom(creep, room.name);
+        return;
+    }
     let m = creep.memory as WorkerMemory;
     if (!m.status) m.status = "pickup";
     if ((m.status == "build" || m.status == "refill") && creep.store.energy == 0) {
@@ -22,6 +26,16 @@ function runWorker(creep: Creep, room: RoomInfo) {
         }
     }
     if (m.status == "pickup") {
+        let ruin = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 0)[0]
+            || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0];
+        if (ruin) {
+            if (creep.pos.isNearTo(ruin)) {
+                creep.withdraw(ruin, RESOURCE_ENERGY);
+            } else {
+                moveCreepTo(creep, ruin);
+            }
+            return;
+        }
         const sourceId = Number(_.last(m.roleId)) % 2;
         const target = room.structures.sources[sourceId];
         if (creep.pos.isNearTo(target)) {
@@ -33,6 +47,9 @@ function runWorker(creep: Creep, room: RoomInfo) {
     }
     if (m.status == "refill") {
         if (goRefill(creep, room)) return;
+    }
+    if (room.detail.controller.ticksToDowngrade < 10000) {
+        goUpgrade(creep, room); return;
     }
     if (goBuild(creep, room)) return;
     goUpgrade(creep, room);

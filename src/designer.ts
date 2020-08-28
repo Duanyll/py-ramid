@@ -387,7 +387,7 @@ export function designRoom(room: Room): RoomDesign {
         design.centerSpawn = [center.x, center.y + 1];
     } else {
         const largeres = findSquare(13);
-        if (largeres[2] <= 10) {
+        if (largeres[2] <= 50) {
             fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
             design.center = [largeres[0] + 6, largeres[1] + 6];
             design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];

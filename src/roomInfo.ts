@@ -93,6 +93,7 @@ class RoomStructures {
 export class RoomInfo {
     name: string;
     detail: Room;
+    helperRoom: string;
 
     public get tasks() {
         return this.detail.memory.tasks;
@@ -164,6 +165,7 @@ export class RoomInfo {
             }
             // checkRefillState(this);
         }
+        this.helperRoom = this.detail.memory.helperRoom;
     }
 
     public reload() {
@@ -205,3 +207,5 @@ export class RoomInfo {
         }
     }
 }
+
+export let managedRooms: { [name: string]: RoomInfo } = {}

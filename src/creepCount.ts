@@ -95,3 +95,17 @@ export const remoteHarvesterBody: {
     7: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }],
     8: [{ type: "work", count: 16 }, { type: "carry", count: 16 }, { type: "move", count: 16 }]
 }
+
+export const helperCreepCount: {
+    [rcl: number]: {
+        count: number;
+        body: BodyPartDescription
+    }
+} = {
+    3: { count: 4, body: [{ type: "work", count: 3 }, { type: "carry", count: 5 }, { type: "move", count: 4 }] },
+    4: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+    5: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+    6: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+    7: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+    8: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+}

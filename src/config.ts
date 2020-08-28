@@ -4,5 +4,9 @@ export const STATS_HISTORY_LIMIT = 20;
 export const ROOM_LEAST_STORE_ENERGY = 100000;
 export const ROOM_STORE_ENERGY = 120000;
 
-export const CONTROLLER_SIGN = `🔺Py-Ramid🔺 is here! \n Too young too simple.`
+export const CONTROLLER_SIGN = `🔺Py-Ramid🔺 is here! Too young too simple.`
 export const USER_NAME = "duanyll";
+
+export const PLAYER_WHITELIST: { [name: string]: boolean } = {
+    "Administrator-": true
+}

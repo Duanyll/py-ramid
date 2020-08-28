@@ -1,6 +1,5 @@
-// memory extension samples
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -10,6 +9,7 @@ interface CreepMemory {
 
 interface Memory {
     age: number;
+    roomsToClaim: { from: string, to: string }[];
 }
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
@@ -31,7 +31,6 @@ interface SpawnRequest {
 
 type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 
-// 表示房间状态的缓存，可以重新被计算的量
 interface RoomState {
     status: "normal" | "energy-emergency";
     refillState: { [s: string]: number };
@@ -98,7 +97,8 @@ interface RoomMemory {
     remoteSources: {
         id: string;
         room: string;
-    }[]
+    }[];
+    helperRoom?: string;
 }
 
 // `global` extension samples
@@ -107,5 +107,6 @@ declare namespace NodeJS {
         Game: Game;
         age: number;
         log: any;
+        reloadRoomsNextTick?: boolean;
     }
 }

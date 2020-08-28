@@ -1,4 +1,4 @@
-import { managedRooms } from "loop";
+import { managedRooms } from "roomInfo";
 
 export function setRoomDelayTask(roomName: string, task: CallbackType, delayTime: number) {
     managedRooms[roomName].delay(task, delayTime);

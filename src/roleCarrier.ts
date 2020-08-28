@@ -56,7 +56,9 @@ function runRefiller(creep: Creep, room: RoomInfo) {
             }
             return;
         }
-        let target = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100)[0] || room.structures.storage;
+        let target = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100)[0]
+            || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0]
+            || room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.withdraw(target, RESOURCE_ENERGY);
         } else {

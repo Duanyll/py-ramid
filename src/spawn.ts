@@ -1,4 +1,5 @@
-import { RoomInfo, registerCallback } from "roomInfo";
+import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
+import { helperCreepCount } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sum(body, (p) => p.count) * 3;
@@ -37,7 +38,34 @@ function checkCreepHealth(room: RoomInfo) {
     })
 }
 
+function checkHelpersHealth(room: RoomInfo) {
+    let helperRoom = managedRooms[room.helperRoom];
+    let herperInfo = helperCreepCount[helperRoom.structRcl];
+    for (let i = 0; i < herperInfo.count; i++) {
+        const roleId = `helper${i}`;
+        if (room.state.roleSpawnStatus[roleId] == "spawning") {
+            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 10) {
+                room.state.roleSpawnStatus[roleId] = "ok";
+            }
+            return;
+        }
+        if (!room.creepForRole[roleId] || room.creepForRole[roleId].ticksToLive <= getCreepSpawnTime(herperInfo.body)) {
+            helperRoom.spawnQueue.push({
+                name: `${room.name}-${roleId}-${Game.time}`,
+                body: herperInfo.body,
+                memory: { role: "work", roleId, room: room.name }
+            });
+            room.state.roleSpawnStatus[roleId] = "spawning";
+            return;
+        }
+    }
+}
+
 export function tickSpawn(room: RoomInfo) {
+    if (room.structures.spawns.length == 0 && room.helperRoom) {
+        checkHelpersHealth(room);
+        return;
+    }
     checkCreepHealth(room);
 
     if (room.spawnQueue.length == 0) return;
