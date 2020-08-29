@@ -62,7 +62,7 @@ function checkHelpersHealth(room: RoomInfo) {
 }
 
 export function tickSpawn(room: RoomInfo) {
-    if (room.structures.spawns.length == 0 && room.helperRoom) {
+    if (room.structRcl <= 2 && room.helperRoom) {
         checkHelpersHealth(room);
         return;
     }

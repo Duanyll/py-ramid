@@ -9,10 +9,10 @@ interface WorkerMemory extends CreepMemory {
 }
 
 function runWorker(creep: Creep, room: RoomInfo) {
-    if (creep.room.name != room.name) {
-        moveCreepToRoom(creep, room.name);
-        return;
-    }
+    // if (creep.room.name != room.name) {
+    //     moveCreepToRoom(creep, room.name);
+    //     return;
+    // }
     let m = creep.memory as WorkerMemory;
     if (!m.status) m.status = "pickup";
     if ((m.status == "build" || m.status == "refill") && creep.store.energy == 0) {
@@ -48,7 +48,7 @@ function runWorker(creep: Creep, room: RoomInfo) {
     if (m.status == "refill") {
         if (goRefill(creep, room)) return;
     }
-    if (room.detail.controller.ticksToDowngrade < 10000) {
+    if (room.detail.controller.ticksToDowngrade < 5000) {
         goUpgrade(creep, room); return;
     }
     if (goBuild(creep, room)) return;

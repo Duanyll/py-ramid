@@ -47,6 +47,7 @@ class RoomStructures {
     constructor(room: Room) {
         this.controller = room.controller as StructureController;
         room.find(FIND_MY_STRUCTURES).forEach((s) => {
+            if (!s.isActive) return;
             switch (s.structureType) {
                 case STRUCTURE_EXTENSION:
                     this.extensions.push(s);

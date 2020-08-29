@@ -46,8 +46,8 @@ export function goUpgrade(creep: Creep, room: RoomInfo) {
     const c = room.structures.controller;
     if (creep.pos.inRangeTo(c, 3)) {
         creep.upgradeController(c);
-        if (!c.sign || c.sign.text != CONTROLLER_SIGN) {
-            if (creep.pos.isNearTo(c))
+        if (!c.sign || c.sign.text != CONTROLLER_SIGN && c.sign.username != SYSTEM_USERNAME) {
+            if (creep.pos.isNearTo(c)) 
                 creep.signController(c, CONTROLLER_SIGN);
             else {
                 moveCreepTo(creep, c);

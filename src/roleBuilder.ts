@@ -34,6 +34,11 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
             nextStage = false;
             if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
+                if (s.type != STRUCTURE_WALL) {
+                    let wall = _.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y),
+                        st => st.structureType == STRUCTURE_WALL) as StructureWall;
+                    if (wall) wall.destroy();
+                }
                 // @ts-expect-error 2345
                 room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
                 avalSites--;

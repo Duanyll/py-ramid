@@ -333,9 +333,10 @@ export function designRoom(room: Room): RoomDesign {
 
     let center: RoomPosition;
     let fixedCenter = false;
-    let spawn = room.find(FIND_MY_SPAWNS)[0];
-    if (spawn && _.keys(Game.rooms).length == 1) {
-        console.log("Designing first room.");
+    let spawn = room.find(FIND_MY_SPAWNS)[0]
+        || room.find(FIND_MY_CONSTRUCTION_SITES).filter(s => s.structureType == STRUCTURE_SPAWN)[0];
+    if (spawn) {
+        console.log("Designing room with spawn at specific position.");
         fixedCenter = true;
         center = new RoomPosition(spawn.pos.x, spawn.pos.y - 1, room.name);
     } else {
