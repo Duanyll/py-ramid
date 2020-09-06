@@ -1,5 +1,5 @@
 import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
-import { helperCreepCount } from "creepCount";
+import { helperCreepCount, emergencyCreepBody } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sum(body, (p) => p.count) * 3;
@@ -21,7 +21,7 @@ function checkCreepHealth(room: RoomInfo) {
     _.forIn(room.creepRoleDefs, (info, roleId) => {
         if (room.state.roleSpawnStatus[roleId] == "disabled") return;
         if (room.state.roleSpawnStatus[roleId] == "spawning") {
-            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 10) {
+            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 1000) {
                 room.state.roleSpawnStatus[roleId] = "ok";
             }
             return;
@@ -44,7 +44,7 @@ function checkHelpersHealth(room: RoomInfo) {
     for (let i = 0; i < herperInfo.count; i++) {
         const roleId = `helper${i}`;
         if (room.state.roleSpawnStatus[roleId] == "spawning") {
-            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 10) {
+            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 1000) {
                 room.state.roleSpawnStatus[roleId] = "ok";
             }
             return;
@@ -79,6 +79,7 @@ export function tickSpawn(room: RoomInfo) {
     // console.log(`To spawn ${req.name} costs ${req.cost} energy. ${room.detail.energyAvailable} energy available`)
     if (req.cost > room.detail.energyCapacityAvailable) {
         console.log("Trying to spawn a creep which is too big.");
+        room.spawnQueue.shift();
     }
     if (req.cost <= room.detail.energyAvailable) {
         let spawn: StructureSpawn;
@@ -96,9 +97,24 @@ export function tickSpawn(room: RoomInfo) {
             directions: dir ? [dir] : undefined
         });
         console.log(`Spawning creep ${req.name}`);
+        delete room.state.refillFailTime;
         // room.stats.current.energy.spawnCost += req.cost;
         room.spawnQueue.shift();
         room.delay("checkRefill", 1);
+    } else {
+        room.state.refillFailTime = room.state.refillFailTime || 0;
+        room.state.refillFailTime++;
+        if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
+            let spawn = room.structures.spawns[0];
+            if (spawn && !spawn.spawning) {
+                spawn.spawnCreep(expandBodypart(emergencyCreepBody), `${room.name}-emergency-${Game.time}`, {
+                    memory: {
+                        room: room.name,
+                        role: "emergency"
+                    }
+                });
+            }
+        }
     }
 }
 

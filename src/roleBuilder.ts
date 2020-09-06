@@ -97,7 +97,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
     }
 
     if (m.state == "pickup") {
-        if (room.structures.storage.store.energy <= ROOM_STORE_ENERGY) {
+        if (room.state.energyState == "store") {
             const target = _.last(room.detail.find(FIND_SOURCES_ACTIVE));
             if (!target) return;
             if (creep.pos.isNearTo(target)) {
@@ -116,7 +116,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
         }
     } else {
         if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
-        if (room.structures.storage.store.energy <= ROOM_STORE_ENERGY) {
+        if (room.state.energyState == "store") {
             const target = room.structures.storage;
             if (creep.pos.isNearTo(target)) {
                 creep.transfer(target, RESOURCE_ENERGY);

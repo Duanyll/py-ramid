@@ -159,6 +159,7 @@ export class RoomInfo {
         if (!m.state) {
             m.state = {
                 status: "normal",
+                energyState: "take",
                 refillState: {},
                 wallHits: 0,
                 roleSpawnStatus: {},
@@ -197,7 +198,7 @@ export class RoomInfo {
     }
 
     public updateCreepCount() {
-        this.creepRoleDefs = creepRolesForLevel[this.structRcl];
+        this.creepRoleDefs = _.clone(creepRolesForLevel[this.structRcl]);
         if (remoteHarvesterBody[this.structRcl]) {
             for (const i in this.detail.memory.remoteSources) {
                 this.creepRoleDefs[`rharv${i}`] = {

@@ -1,5 +1,5 @@
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -33,10 +33,12 @@ type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 
 interface RoomState {
     status: "normal" | "energy-emergency";
+    energyState: "store" | "take";
     refillState: { [s: string]: number };
     wallHits: number;
     roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
     roadToRepair: string[];
+    refillFailTime?: number;
 }
 
 interface RoomDesign {

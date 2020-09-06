@@ -8,6 +8,7 @@ import { tickWorker } from "roleWorker";
 import { tickTower } from "tower";
 import { tickLink } from "link";
 import { tickManager } from "manager";
+import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
 
 export function tickRoom(room: RoomInfo) {
     room.reload();
@@ -16,6 +17,16 @@ export function tickRoom(room: RoomInfo) {
         onRclUpgrade(room);
     }
     room.detail.memory.rcl = room.detail.controller.level;
+
+
+    if (room.structures.storage) {
+        if (room.state.energyState == "store" && room.structures.storage.store.energy > ROOM_STORE_ENERGY) {
+            room.state.energyState = "take";
+        }
+        if (room.state.energyState == "take" && room.structures.storage.store.energy < ROOM_LEAST_STORE_ENERGY) {
+            room.state.energyState = "store";
+        }
+    }
 
     room.tickTasks();
 

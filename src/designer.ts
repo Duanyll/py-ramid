@@ -207,8 +207,8 @@ function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
     }
     let routes: Route[] = [];
     if (room.controller) routes.push(fillRoute(room.controller.pos.x, room.controller.pos.y));
-    room.find(FIND_MINERALS).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
     room.find(FIND_SOURCES).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
+    room.find(FIND_MINERALS).forEach((s) => routes.push(fillRoute(s.pos.x, s.pos.y)));
     return routes;
 }
 

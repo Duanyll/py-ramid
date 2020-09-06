@@ -55,9 +55,56 @@ function runWorker(creep: Creep, room: RoomInfo) {
     goUpgrade(creep, room);
 }
 
+function runEmergencyWorker(creep: Creep, room: RoomInfo) {
+    let m = creep.memory as WorkerMemory;
+    if (!m.status) m.status = "pickup";
+    if (m.status == "refill" && creep.store.energy == 0) {
+        m.status = "pickup";
+    }
+    if (m.status == "pickup" && creep.store.getFreeCapacity(RESOURCE_ENERGY) < 10) {
+        if (room.structures.controller.ticksToDowngrade < 5000) {
+            m.status = "build"
+        } else {
+            m.status = "refill"
+        }
+    }
+    if (m.status == "pickup") {
+        let st = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 0)[0]
+            || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0]
+            || room.structures.storage;
+        if (st && st.store.energy > 0) {
+            if (creep.pos.isNearTo(st)) {
+                creep.withdraw(st, RESOURCE_ENERGY);
+            } else {
+                moveCreepTo(creep, st);
+            }
+            return;
+        }
+        const target = room.structures.sources[0];
+        if (creep.pos.isNearTo(target)) {
+            creep.harvest(target);
+        } else {
+            moveCreepTo(creep, target);
+        }
+        return;
+    }
+    if (m.status == "build") {
+        goUpgrade(creep, room);
+    } else {
+        goRefill(creep, room);
+    }
+}
+
 export function tickWorker(room: RoomInfo): void {
-    if (!room.creeps["work"]) return;
-    room.creeps["work"].forEach((creep) => {
-        runWorker(creep, room);
-    })
+    if (room.creeps["work"]) {
+        room.creeps["work"].forEach((creep) => {
+            runWorker(creep, room);
+        })
+    }
+
+    if (room.creeps["emergency"]) {
+        room.creeps["emergency"].forEach((creep) => {
+            runEmergencyWorker(creep, room);
+        })
+    }
 }

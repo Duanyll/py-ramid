@@ -109,3 +109,5 @@ export const helperCreepCount: {
     7: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
     8: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
 }
+
+export const emergencyCreepBody: BodyPartDescription = [{ type: "work", count: 1 }, { type: "carry", count: 2 }, { type: "move", count: 2 }];
