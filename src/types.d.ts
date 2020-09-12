@@ -13,7 +13,7 @@ interface Memory {
 }
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";
-type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads";
+type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction";
 type CallbackType = LoopCallback | DelayCallback;
 interface RoomCallback {
     type: CallbackType;

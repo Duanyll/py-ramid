@@ -55,6 +55,10 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
     }
 }
 registerCallback("setConstruction", setConstruction);
+registerCallback("fullCheckConstruction", (room) => {
+    setConstruction(room, true);
+    room.delay("fullCheckConstruction", 3000);
+})
 
 interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work",

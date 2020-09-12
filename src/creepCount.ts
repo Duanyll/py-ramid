@@ -52,7 +52,7 @@ export const creepRolesForLevel: {
         build1: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         build2: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 24 }, { type: "move", count: 12 }] },
-        upgr1: { role: "upgrade", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
+        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 2 }] },
     },
     7: {
         harv1: { role: "harvest", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
@@ -61,7 +61,7 @@ export const creepRolesForLevel: {
         build2: { role: "build", body: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 32 }, { type: "move", count: 16 }] },
         center: { role: "manage", body: [{ type: "carry", count: 16 }] },
-        upgr1: { role: "upgrade", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
+        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 2 }] },
     },
     8: {
         harv1: { role: "harvest", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
@@ -69,7 +69,7 @@ export const creepRolesForLevel: {
         build1: { role: "build", body: [{ type: "work", count: 16 }, { type: "carry", count: 16 }, { type: "move", count: 16 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 32 }, { type: "move", count: 16 }] },
         center: { role: "manage", body: [{ type: "carry", count: 16 }] },
-        upgr1: { role: "upgrade", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
+        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 2 }] },
     }
 }
 

@@ -7,7 +7,7 @@ function checkRoads(room: RoomInfo) {
         filter: (s) => s.structureType == "road" && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
-        room.delay("checkRoads", 900);
+        room.delay("checkRoads", 500);
     } else {
         roads.forEach((r) => room.state.roadToRepair.push(r.id));
     }
@@ -43,16 +43,22 @@ export function tickTower(room: RoomInfo) {
         towerWorked = true;
     } else if (room.state.roadToRepair.length > 0) {
         let road = Game.getObjectById(room.state.roadToRepair[0]) as StructureRoad;
+        if (!road) {
+            room.state.roadToRepair = [];
+            room.delay("checkRoads", 1);
+            return;
+        }
         let remainHits = road.hitsMax - road.hits;
         room.structures.towers.forEach((tower) => {
             if (remainHits > 0) {
                 tower.repair(road);
                 remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
-                room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+                if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 200)
+                    room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
             }
         });
         if (remainHits <= 0) room.state.roadToRepair.shift();
         towerWorked = true;
-        room.delay("checkRoads", 1);
+        room.delay("checkRoads", 10);
     }
 }

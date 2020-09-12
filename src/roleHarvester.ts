@@ -54,17 +54,8 @@ function runRemoteHarvester(creep: Creep, room: RoomInfo) {
     }
 
     if (m.status == "harvest") {
-        if (creep.room.name == m.source.room) {
-            let tombStone = creep.room.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100)[0];
-            if (tombStone) {
-                if (creep.pos.isNearTo(tombStone)) {
-                    creep.withdraw(tombStone, RESOURCE_ENERGY);
-                } else {
-                    moveCreepTo(creep, tombStone);
-                }
-                return;
-            }
-            const target = Game.getObjectById(m.source.id) as Source;
+        const target = Game.getObjectById(m.source.id) as Source;
+        if (target) {
             if (creep.pos.isNearTo(target)) {
                 creep.harvest(target);
             } else {

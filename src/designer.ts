@@ -1,4 +1,5 @@
 import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
+import { RoomInfo } from "roomInfo";
 
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
@@ -426,4 +427,3 @@ export function designRoom(room: Room): RoomDesign {
     console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;
 }
-

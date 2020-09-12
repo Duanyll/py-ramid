@@ -28,7 +28,7 @@ class RoomStructures {
     nuker: StructureNuker;
     observer: StructureObserver;
     powerSpawn: StructurePowerSpawn;
-    // ramparts: StructureRampart[];
+    ramparts: StructureRampart[] = [];
     // roads: StructureRoad[] = [];
     spawns: StructureSpawn[] = [];
     storage: StructureStorage;
@@ -168,6 +168,8 @@ export class RoomInfo {
             // checkRefillState(this);
         }
         this.helperRoom = this.detail.memory.helperRoom;
+        this.delay("fullCheckConstruction", 1);
+        this.delay("checkRoads", 1);
     }
 
     public reload() {
