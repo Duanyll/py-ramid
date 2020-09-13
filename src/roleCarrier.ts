@@ -127,6 +127,6 @@ function runCarrier(creep: Creep, room: RoomInfo) {
 export function tickCarrier(room: RoomInfo): void {
     if (!room.creeps["carry"]) return;
     room.creeps["carry"].forEach((creep) => {
-        runCarrier(creep, room); // XXX: 想好 MoveQueue 怎么写了，再改成 runCarrier
+        runRefiller(creep, room); // XXX: 想好 MoveQueue 怎么写了，再改成 runCarrier
     })
 }

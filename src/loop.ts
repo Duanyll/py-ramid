@@ -4,6 +4,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { RoomInfo, managedRooms } from "roomInfo";
 import { tickRoom } from "room";
 import { tickExpansion } from "expansion";
+import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 
 export let globalCreeps: { [role: string]: Creep[] } = {}
 function loadScript() {
@@ -80,11 +81,12 @@ export const runLoop = ErrorMapper.wrap(() => {
     }
 
     loadCreeps();
+    prepareMoveHelper();
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
     tickExpansion(globalCreeps["claim"]);
-
+    tickMoveHelper();
     clearMemory();
 
     if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {

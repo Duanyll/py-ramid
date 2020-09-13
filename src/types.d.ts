@@ -5,6 +5,15 @@ interface CreepMemory {
     target?: string;
     roleId?: string;
     room?: string;
+    moveData?: {
+        target: {
+            x: number,
+            y: number,
+            roomName: string
+        },
+        path: string,
+        pathRoom: string
+    }
 }
 
 interface Memory {
