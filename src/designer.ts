@@ -299,7 +299,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         ], take("tower", 1))
     });
     design.stages.push({ rcl: 5, list: take("road", structPos["road"].length) });
-    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("lab", 3)) });
+    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("lab", 3), take("terminal", 1)) });
     if (design.links.sourceLink[1])
         _.last(design.stages).list.push(
             { type: "link", x: design.links.sourceLink[1][0], y: design.links.sourceLink[1][1] });
@@ -311,7 +311,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         ])
     });
     design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("lab", 4), take("tower", 3), take("observer", 1), take("spawn", 1)) });
-    design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("terminal", 1), take("factory", 1), take("powerSpawn", 1)) });
+    design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("factory", 1), take("powerSpawn", 1)) });
 }
 
 export function designRoom(room: Room): RoomDesign {

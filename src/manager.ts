@@ -11,7 +11,7 @@ export function tickManager(room: RoomInfo) {
         }
         m.target = undefined;
     } else {
-        if (room.structures.centerLink.store.getFreeCapacity(RESOURCE_ENERGY) <= 100) {
+        if (room.structures.centerLink.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
             m.target = room.structures.storage.id;
             creep.withdraw(room.structures.centerLink, RESOURCE_ENERGY);
             return;

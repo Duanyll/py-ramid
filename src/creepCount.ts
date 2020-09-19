@@ -58,7 +58,7 @@ export const creepRolesForLevel: {
         harv1: { role: "harvest", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
         harv2: { role: "harvest", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
         build1: { role: "build", body: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }] },
-        build2: { role: "build", body: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }] },
+        // build2: { role: "build", body: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 32 }, { type: "move", count: 16 }] },
         center: { role: "manage", body: [{ type: "carry", count: 16 }] },
         upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 2 }] },

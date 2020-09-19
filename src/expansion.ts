@@ -12,7 +12,8 @@ function sendClaimer(room: RoomInfo, target: string) {
 
 function runClaimer(creep: Creep) {
     if (creep.room.name != creep.memory.target) {
-        moveCreepToRoom(creep, creep.memory.target);
+        // moveCreepToRoom(creep, creep.memory.target);
+        moveCreepTo(creep, new RoomPosition(25, 25, creep.memory.target))
     } else {
         if (creep.pos.isNearTo(creep.room.controller)) {
             if (creep.room.controller.owner && !creep.room.controller.my) {

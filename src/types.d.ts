@@ -19,6 +19,7 @@ interface CreepMemory {
 interface Memory {
     age: number;
     roomsToClaim: { from: string, to: string }[];
+    roomsToAvoid: { [name: string]: boolean };
 }
 
 type LoopCallback = "checkCreepHealth" | "summatyStats";

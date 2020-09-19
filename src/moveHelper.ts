@@ -11,6 +11,13 @@ let creepMoveRequests: {
     [name: string]: RoomPosition
 }
 
+let blockedRoomMatrix: CostMatrix = new PathFinder.CostMatrix();
+for (let i = 0; i < 50; i++) {
+    for (let j = 0; j < 50; j++) {
+        blockedRoomMatrix.set(i, j, 0xff);
+    }
+}
+
 function createBaseCostMatrixCache(room: string): CostMatrix {
     let terrain = Game.map.getRoomTerrain(room);
     let matrix = new PathFinder.CostMatrix();
@@ -116,8 +123,11 @@ export function tickMoveHelper() {
         // }
 
         creep.moveTo(pos, {
-            reusePath: 30,
-            costCallback: getRoomCostMatrix
+            reusePath: 10,
+            // @ts-ignore 7030
+            costCallback: (roomName) => {
+                if (Memory.roomsToAvoid[roomName]) return blockedRoomMatrix;
+            }
         });
     })
 }
@@ -129,7 +139,13 @@ interface ExitingCreepMemory extends CreepMemory {
 export function moveCreepToRoom(creep: Creep, room: string) {
     let m = creep.memory as ExitingCreepMemory;
     if (!m._exitInfo || m._exitInfo.target != room || m._exitInfo.room != creep.room.name) {
-        const dir = creep.room.findExitTo(room) as ExitConstant;
+        let route = Game.map.findRoute(creep.room, room, {
+            routeCallback: (name) => {
+                if (Memory.roomsToAvoid[name]) return Infinity;
+                return 1;
+            }
+        }) as { exit: ExitConstant, room: string }[];
+        const dir = route[0].exit;
         let exit = creep.pos.findClosestByPath(dir);
         m._exitInfo = { target: room, room: creep.room.name, x: exit.x, y: exit.y };
     }
