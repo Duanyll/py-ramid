@@ -1,18 +1,23 @@
 // 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency" | "dismantle";
+
 interface CreepMemory {
+    _move?: {
+        dest: { x: number, y: number, room: string };
+        time: number;
+        path: string;
+    }
     role: CreepRole;
     target?: string;
     roleId?: string;
     room?: string;
-    moveData?: {
-        target: {
-            x: number,
-            y: number,
-            roomName: string
-        },
-        path: string,
-        pathRoom: string
+}
+
+interface PowerCreepMemory {
+    _move?: {
+        dest: { x: number, y: number, room: string };
+        time: number;
+        path: string;
     }
 }
 

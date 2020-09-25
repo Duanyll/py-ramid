@@ -43,51 +43,6 @@ class RoomStructures {
     sources: Source[];
 
     centerSpawn: StructureSpawn;
-
-    constructor(room: Room) {
-        this.controller = room.controller as StructureController;
-        room.find(FIND_MY_STRUCTURES).forEach((s) => {
-            if (!s.isActive) return;
-            switch (s.structureType) {
-                case STRUCTURE_EXTENSION:
-                    this.extensions.push(s);
-                    break;
-                case STRUCTURE_EXTRACTOR:
-                    this.extractor = s;
-                    break;
-                case STRUCTURE_FACTORY:
-                    this.factory = s;
-                    break;
-                case STRUCTURE_LAB:
-                    this.labs.push(s);
-                    break;
-                case STRUCTURE_LINK:
-                    this.links.push(s);
-                    break;
-                case STRUCTURE_NUKER:
-                    this.nuker = s;
-                    break;
-                case STRUCTURE_OBSERVER:
-                    this.observer = s;
-                    break;
-                case STRUCTURE_POWER_SPAWN:
-                    this.powerSpawn = s;
-                    break;
-                case STRUCTURE_SPAWN:
-                    this.spawns.push(s);
-                    break;
-                case STRUCTURE_STORAGE:
-                    this.storage = s;
-                    break;
-                case STRUCTURE_TERMINAL:
-                    this.terminal = s;
-                    break;
-                case STRUCTURE_TOWER:
-                    this.towers.push(s);
-                    break;
-            }
-        });
-    }
 }
 
 // 管理每个 room 的主要对象
@@ -95,6 +50,8 @@ export class RoomInfo {
     name: string;
     detail: Room;
     helperRoom: string;
+
+    matrixCache: CostMatrix;
 
     public get tasks() {
         return this.detail.memory.tasks;
@@ -148,6 +105,63 @@ export class RoomInfo {
         this.initMemory();
     }
 
+    loadStructures() {
+        this._structures = new RoomStructures();
+        this.detail = Game.rooms[this.name];
+        let strobj = this._structures;
+        strobj.controller = this.detail.controller as StructureController;
+        this.detail.find(FIND_MY_STRUCTURES).forEach((s) => {
+            if (!s.isActive) return;
+            switch (s.structureType) {
+                case STRUCTURE_EXTENSION:
+                    strobj.extensions.push(s);
+                    break;
+                case STRUCTURE_EXTRACTOR:
+                    strobj.extractor = s;
+                    break;
+                case STRUCTURE_FACTORY:
+                    strobj.factory = s;
+                    break;
+                case STRUCTURE_LAB:
+                    strobj.labs.push(s);
+                    break;
+                case STRUCTURE_LINK:
+                    strobj.links.push(s);
+                    break;
+                case STRUCTURE_NUKER:
+                    strobj.nuker = s;
+                    break;
+                case STRUCTURE_OBSERVER:
+                    strobj.observer = s;
+                    break;
+                case STRUCTURE_POWER_SPAWN:
+                    strobj.powerSpawn = s;
+                    break;
+                case STRUCTURE_SPAWN:
+                    strobj.spawns.push(s);
+                    break;
+                case STRUCTURE_STORAGE:
+                    strobj.storage = s;
+                    break;
+                case STRUCTURE_TERMINAL:
+                    strobj.terminal = s;
+                    break;
+                case STRUCTURE_TOWER:
+                    strobj.towers.push(s);
+                    break;
+                case STRUCTURE_RAMPART:
+                    strobj.ramparts.push(s);
+                    break;
+            }
+        });
+        strobj.centerLink = this.getLink(this.design.links.centerLink);
+        strobj.controllerLink = this.getLink(this.design.links.controllerLink);
+        strobj.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
+        strobj.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
+        strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
+            .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
+    }
+
     initMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
@@ -170,18 +184,6 @@ export class RoomInfo {
         this.helperRoom = this.detail.memory.helperRoom;
         this.delay("fullCheckConstruction", 1);
         this.delay("checkRoads", 1);
-    }
-
-    public reload() {
-        this.detail = Game.rooms[this.name];
-        this._structures = new RoomStructures(this.detail);
-        this._structures.centerLink = this.getLink(this.design.links.centerLink);
-        this._structures.controllerLink = this.getLink(this.design.links.controllerLink);
-        this._structures.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
-        this._structures.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
-        this._structures.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
-            .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
-        this._structuresLoadTime = Game.time;
     }
 
     public tickTasks(): void {
