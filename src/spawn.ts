@@ -1,5 +1,5 @@
 import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
-import { helperCreepCount, emergencyCreepBody } from "creepCount";
+import { helperCreepCount, emergencyCreepBody, creepRolesForLevel } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sum(body, (p) => p.count) * 3;
@@ -19,6 +19,7 @@ function expandBodypart(body: BodyPartDescription) {
 
 function checkCreepHealth(room: RoomInfo) {
     _.forIn(room.creepRoleDefs, (info, roleId) => {
+        if (info.role == "build" && room.structRcl >= 7 && room.state.energyState == "store") return;
         if (room.state.roleSpawnStatus[roleId] == "disabled") return;
         if (room.state.roleSpawnStatus[roleId] == "spawning") {
             if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 1000) {

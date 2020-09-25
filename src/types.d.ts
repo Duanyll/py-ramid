@@ -1,5 +1,5 @@
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency" | "dismantle";
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -71,6 +71,13 @@ interface RoomDesign {
     },
     sources: [number, number][],
     centerSpawn: [number, number];
+    remoteSources: {
+        sources: { x: number, y: number, room: string }[];
+        containers: { x: number, y: number, room: string }[];
+        route: {
+            [room: string]: { x: number, y: number }[];
+        }
+    }
 }
 
 interface RoomStats {
@@ -116,6 +123,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        sendDismantler: (roomName: string, target: string) => void;
         Game: Game;
         age: number;
         log: any;

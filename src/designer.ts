@@ -427,3 +427,40 @@ export function designRoom(room: Room): RoomDesign {
     console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;
 }
+
+export function designRemoteHarvest(roomName: string, design: RoomDesign, remoteSources: RoomPosition[]) {
+    const centerPos = new RoomPosition(design.center[0], design.center[1], roomName);
+    let routes: RoomPosition[] = [];
+    design.remoteSources = { sources: [], containers: [], route: {} };
+    remoteSources.forEach(s => {
+        design.remoteSources.sources.push({ x: s.x, y: s.y, room: s.roomName });
+        let path = PathFinder.search(centerPos, { pos: s, range: 1 }, {
+            roomCallback: (name) => {
+                let matrix = new PathFinder.CostMatrix();
+                if (name == roomName) {
+                    let room = Game.rooms[roomName];
+                    for (let i = 0; i < 50; i++) {
+                        for (let j = 0; j < 50; j++) {
+                            if (design.matrix[i][j] == '.') {
+                                matrix.set(i, j, 0xff);
+                            } else if (design.matrix[i][j] == ' ') {
+                                matrix.set(i, j, 0);
+                            } else if (design.matrix[i][j] == 'r') {
+                                matrix.set(i, j, 1);
+                            } else {
+                                matrix.set(i, j, 0xff);
+                            }
+                        }
+                    }
+                }
+                return matrix;
+            }
+        });
+        routes = routes.concat(path.path);
+        let containerPos = _.last(path.path);
+        design.remoteSources.containers.push({
+            x: containerPos.x, y: containerPos.y, room: containerPos.roomName
+        });
+    });
+    
+}
