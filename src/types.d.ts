@@ -1,3 +1,11 @@
+/// <reference path="../node_modules/@types/lodash/index.d.ts" />
+
+declare const _: _.LoDashStatic;
+declare namespace _ {
+    // tslint:disable-next-line no-empty-interface (This will be augmented)
+    interface LoDashStatic { }
+}
+
 // 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency" | "dismantle";
 
@@ -133,5 +141,6 @@ declare namespace NodeJS {
         age: number;
         log: any;
         reloadRoomsNextTick?: boolean;
+        _: _.LoDashStatic;
     }
 }

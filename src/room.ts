@@ -11,7 +11,7 @@ import { tickManager } from "manager";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
 
 export function tickRoom(room: RoomInfo) {
-    room.reload();
+    room.loadStructures();
     room.updateCreepCount();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
         onRclUpgrade(room);

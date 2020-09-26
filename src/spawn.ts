@@ -2,11 +2,11 @@ import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody, creepRolesForLevel } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
-    return _.sum(body, (p) => p.count) * 3;
+    return _.sumBy(body, (p) => p.count) * 3;
 }
 
 function getCreepCost(body: BodyPartDescription) {
-    return _.sum(body, (p) => BODYPART_COST[p.type] * p.count);
+    return _.sumBy(body, (p) => BODYPART_COST[p.type] * p.count);
 }
 
 function expandBodypart(body: BodyPartDescription) {

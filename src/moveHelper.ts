@@ -59,21 +59,23 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
         let tarpos = getTargetpos(this.pos, target);
         if (tarpos) {
             let targetCreep = tarpos.lookFor(LOOK_CREEPS)[0] || tarpos.lookFor(LOOK_POWER_CREEPS)[0];
-            if (targetCreep.my && (targetCreep.memory as CreepMemory).role != "manage") {
-                if (!creepMoveRequests[targetCreep.name]) {
-                    // @ts-ignore 2345
-                    defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
-                }
-            } else if (Game.time & 1 && this.memory._move && this.memory._move.dest) {
-                let dest = this.memory._move.dest;
-                let pos = new RoomPosition(dest.x, dest.y, dest.room);
-                if (pos.x != tarpos.x || pos.y != tarpos.y || pos.roomName != tarpos.roomName) {
-                    let path = this.pos.findPathTo(pos);
-                    if (path.length) {
-                        this.memory._move.time = Game.time;
-                        this.memory._move.path = Room.serializePath(path);
+            if (targetCreep) {
+                if (targetCreep.my && (targetCreep.memory as CreepMemory).role != "manage") {
+                    if (!creepMoveRequests[targetCreep.name]) {
                         // @ts-ignore 2345
-                        return defaultCreepMove.call(this, path[0].direction as DirectionConstant);
+                        defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
+                    }
+                } else if (Game.time & 1 && this.memory._move && this.memory._move.dest) {
+                    let dest = this.memory._move.dest;
+                    let pos = new RoomPosition(dest.x, dest.y, dest.room);
+                    if (pos.x != tarpos.x || pos.y != tarpos.y || pos.roomName != tarpos.roomName) {
+                        let path = this.pos.findPathTo(pos);
+                        if (path.length) {
+                            this.memory._move.time = Game.time;
+                            this.memory._move.path = Room.serializePath(path);
+                            // @ts-ignore 2345
+                            return defaultCreepMove.call(this, path[0].direction as DirectionConstant);
+                        }
                     }
                 }
             }
@@ -93,9 +95,6 @@ PowerCreep.prototype.move = function (this: PowerCreep, target: DirectionConstan
 }
 
 export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPosition }) {
-    // creep.moveTo(pos, {
-    //     reusePath: 10,
-    // });
     if (!(pos instanceof RoomPosition)) pos = pos.pos;
     creepMoveRequests[creep.name] = pos;
 }

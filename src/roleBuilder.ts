@@ -103,7 +103,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
     if (m.state == "pickup") {
         if (room.state.energyState == "store") {
             if (room.structRcl >= 7) return;
-            const target = room.detail.find(FIND_SOURCES_ACTIVE)[0];
+            const target = _.last(room.detail.find(FIND_SOURCES_ACTIVE));
             if (!target) return;
             if (creep.pos.isNearTo(target)) {
                 creep.harvest(target);

@@ -13,6 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "strictNullChecks": false,
+    "removeComments": true
   },
   "exclude": [
     "node_modules"

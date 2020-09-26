@@ -44,7 +44,7 @@ export const creepRolesForLevel: {
         build1: { role: "build", body: [{ type: "work", count: 8 }, { type: "carry", count: 8 }, { type: "move", count: 8 }] },
         build2: { role: "build", body: [{ type: "work", count: 8 }, { type: "carry", count: 8 }, { type: "move", count: 8 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 24 }, { type: "move", count: 12 }] },
-        upgr1: { role: "upgrade", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
+        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
     },
     6: {
         harv1: { role: "harvest", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
@@ -52,7 +52,7 @@ export const creepRolesForLevel: {
         build1: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         build2: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 24 }, { type: "move", count: 12 }] },
-        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 2 }] },
+        upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
     },
     7: {
         harv1: { role: "harvest", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },

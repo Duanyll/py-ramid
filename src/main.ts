@@ -1,6 +1,7 @@
-import { runLoop } from "loop";
-import * as consoleCommand from "./console";
+import _ from "lodash";
+global._ = _;
+console.log(`Custom lodash version: ${_.VERSION}, loading lodash take ${Game.cpu.getUsed()} CPU.`);
 
+import { runLoop } from "loop";
 export const loop = runLoop;
-export const roomDelay = consoleCommand.setRoomDelayTask;
-export const addRemoteSource = consoleCommand.addRemoteSource;
+
