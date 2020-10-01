@@ -11,8 +11,8 @@ interface CarrierMemory extends CreepMemory {
 function selectRefillTarget(creep: Creep, room: RoomInfo) {
     let target = "";
     let dis = Infinity;
-    for (const id in room.state.refillState) {
-        if (room.state.refillState[id] == 0) {
+    for (const id in room.refillTargets) {
+        if (room.refillTargets[id] == 0) {
             continue;
         }
         const cur = (Game.getObjectById(id) as RoomObject).pos.getRangeTo(creep);
@@ -26,7 +26,7 @@ function selectRefillTarget(creep: Creep, room: RoomInfo) {
 
 export function goRefill(creep: Creep, room: RoomInfo) {
     let target = creep.memory.target;
-    if (!room.state.refillState[target]) {
+    if (!room.refillTargets[target]) {
         target = creep.memory.target = selectRefillTarget(creep, room);
         if (target == "") return false;
     }
@@ -34,9 +34,9 @@ export function goRefill(creep: Creep, room: RoomInfo) {
     if (creep.pos.isNearTo(s)) {
         creep.transfer(s, RESOURCE_ENERGY);
         if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-            delete room.state.refillState[s.id];
+            delete room.refillTargets[s.id];
         } else {
-            room.state.refillState[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+            room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
         }
     } else {
         moveCreepTo(creep, s);

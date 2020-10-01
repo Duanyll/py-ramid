@@ -1,5 +1,5 @@
 import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
-import { helperCreepCount, emergencyCreepBody, creepRolesForLevel } from "creepCount";
+import { helperCreepCount, emergencyCreepBody } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sumBy(body, (p) => p.count) * 3;
@@ -17,47 +17,32 @@ function expandBodypart(body: BodyPartDescription) {
     return res;
 }
 
-function checkCreepHealth(room: RoomInfo) {
-    _.forIn(room.creepRoleDefs, (info, roleId) => {
-        if (room.state.roleSpawnStatus[roleId] == "disabled") return;
-        if (room.state.roleSpawnStatus[roleId] == "spawning") {
-            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 1000) {
-                room.state.roleSpawnStatus[roleId] = "ok";
+function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
+    let needSpawn = true;
+    if (room.creepForRole[roleId]) {
+        room.creepForRole[roleId].forEach(creep => {
+            if (!creep.ticksToLive || creep.ticksToLive > getCreepSpawnTime(body)) {
+                needSpawn = false;
+                return;
             }
-            return;
-        }
-        if (!room.creepForRole[roleId] || room.creepForRole[roleId].ticksToLive <= getCreepSpawnTime(info.body)) {
-            room.spawnQueue.push({
-                name: `${room.name}-${roleId}-${Game.time}`,
-                body: info.body,
-                memory: { role: info.role, roleId, room: room.name }
-            });
-            room.state.roleSpawnStatus[roleId] = "spawning";
-            return;
-        }
-    })
+        })
+    }
+    if (needSpawn) {
+        if (spawnRoom.spawnQueue.find(r => r.memory.roleId == roleId)) return;
+        spawnRoom.spawnQueue.push({
+            name: `${room.name}-${roleId}-${Game.time}`,
+            body: body,
+            memory: { role: role, room: room.name, roleId: roleId }
+        })
+    }
 }
 
 function checkHelpersHealth(room: RoomInfo) {
     let helperRoom = managedRooms[room.helperRoom];
-    let herperInfo = helperCreepCount[helperRoom.structRcl];
-    for (let i = 0; i < herperInfo.count; i++) {
+    let helperInfo = helperCreepCount[helperRoom.structRcl];
+    for (let i = 0; i < helperInfo.count; i++) {
         const roleId = `helper${i}`;
-        if (room.state.roleSpawnStatus[roleId] == "spawning") {
-            if (room.creepForRole[roleId] && room.creepForRole[roleId].ticksToLive > CREEP_LIFE_TIME - 1000) {
-                room.state.roleSpawnStatus[roleId] = "ok";
-            }
-            return;
-        }
-        if (!room.creepForRole[roleId] || room.creepForRole[roleId].ticksToLive <= getCreepSpawnTime(herperInfo.body)) {
-            helperRoom.spawnQueue.push({
-                name: `${room.name}-${roleId}-${Game.time}`,
-                body: herperInfo.body,
-                memory: { role: "work", roleId, room: room.name }
-            });
-            room.state.roleSpawnStatus[roleId] = "spawning";
-            return;
-        }
+        checkCreepHealth(room, roleId, helperInfo.body, "work", helperRoom);
     }
 }
 
@@ -66,7 +51,7 @@ export function tickSpawn(room: RoomInfo) {
         checkHelpersHealth(room);
         return;
     }
-    checkCreepHealth(room);
+    _.forIn(room.creepRoleDefs, (info, roleId) => checkCreepHealth(room, roleId, info.body, info.role));
 
     if (room.spawnQueue.length == 0) return;
     let req = room.spawnQueue[0];
@@ -76,7 +61,6 @@ export function tickSpawn(room: RoomInfo) {
         return;
     }
     if (!req.cost) req.cost = getCreepCost(req.body);
-    // console.log(`To spawn ${req.name} costs ${req.cost} energy. ${room.detail.energyAvailable} energy available`)
     if (req.cost > room.detail.energyCapacityAvailable) {
         console.log("Trying to spawn a creep which is too big.");
         room.spawnQueue.shift();
@@ -121,9 +105,9 @@ export function tickSpawn(room: RoomInfo) {
 function checkRefillState(room: RoomInfo) {
     function f(s: RefillableStructure) {
         if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-            delete room.state.refillState[s.id];
+            delete room.refillTargets[s.id];
         } else {
-            room.state.refillState[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+            room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
         }
     }
     room.structures.extensions.forEach(f);

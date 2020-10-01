@@ -44,43 +44,6 @@ interface RemoteHarvesterMemory extends CreepMemory {
     source: { id: string, room: string }
 }
 
-export function runClassicRemoteHarvester(creep: Creep, room: RoomInfo) {
-    let m = creep.memory as RemoteHarvesterMemory;
-    m.status = m.status || "harvest";
-    m.source = m.source || room.detail.memory.remoteSources[Number(_.last(m.roleId))];
-    if (m.status == "move" && creep.store.energy == 0) {
-        m.status = "harvest";
-    }
-    if (m.status == "harvest" && creep.store.getFreeCapacity() == 0) {
-        m.status = "move";
-    }
-
-    if (m.status == "harvest") {
-        const target = Game.getObjectById(m.source.id) as Source;
-        if (target) {
-            if (creep.pos.isNearTo(target)) {
-                creep.harvest(target);
-            } else {
-                moveCreepTo(creep, target);
-            }
-        } else {
-            moveCreepToRoom(creep, m.source.room);
-        }
-    } else {
-        if (creep.room.name == room.name) {
-            let target = room.structures.storage;
-            // 6 级房没有 centerLink, 不能传送, 必须直接送达
-            if (creep.pos.isNearTo(target)) {
-                creep.transfer(target, RESOURCE_ENERGY);
-            } else {
-                moveCreepTo(creep, target);
-            }
-        } else {
-            moveCreepToRoom(creep, room.name);
-        }
-    }
-}
-
 interface RemoteCarrierMemory extends CreepMemory {
     status: "carry" | "pickup"
 }

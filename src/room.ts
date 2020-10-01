@@ -33,7 +33,7 @@ registerCreepRole({
     manage: runManager
 });
 
-export function tickRoom(room: RoomInfo) {
+export function tickNormalRoom(room: RoomInfo) {
     room.loadStructures();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
         onRclUpgrade(room);

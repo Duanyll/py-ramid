@@ -19,7 +19,7 @@ export function runWorker(creep: Creep, room: RoomInfo) {
         m.status = "pickup";
     }
     if (m.status == "pickup" && creep.store.getFreeCapacity(RESOURCE_ENERGY) < 10) {
-        if (_.keys(room.state.refillState).length > 0) {
+        if (_.keys(room.refillTargets).length > 0) {
             m.status = "refill";
         } else {
             m.status = "build";

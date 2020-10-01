@@ -10,17 +10,17 @@ export function loadCreeps() {
     globalCreeps = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
-        if (creep.spawning)
-            continue;
         // console.log(`Processing creep: ${name}`)
         if (creep.memory.room) {
             let room = managedRooms[creep.memory.room];
             room.creeps.push(creep);
 
             if (creep.memory.roleId) {
-                room.creepForRole[creep.memory.roleId] = creep;
+                room.creepForRole[creep.memory.roleId] = room.creepForRole[creep.memory.roleId] || [];
+                room.creepForRole[creep.memory.roleId].push(creep);
             }
         } else {
+            if (creep.spawning) continue;
             globalCreeps[creep.memory.role] = globalCreeps[creep.memory.role] || [];
             globalCreeps[creep.memory.role].push(creep);
         }
@@ -38,6 +38,7 @@ export function registerCreepRole(drivers: {
 }
 
 export function runCreep(creep: Creep, room?: RoomInfo) {
+    if (creep.spawning) return;
     const role = creep.memory.role;
     if (!CreepRoleDrivers[role]) {
         console.log(`Unknown creep role: ${role} for ${creep.name}`);

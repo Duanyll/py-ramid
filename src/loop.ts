@@ -2,7 +2,7 @@
 
 import { ErrorMapper } from "utils/ErrorMapper";
 import { managedRooms, loadRooms } from "roomInfo";
-import { tickRoom } from "room";
+import { tickNormalRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { globalCreeps, loadCreeps } from "creep";
@@ -49,7 +49,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     loadCreeps();
     prepareMoveHelper();
     for (const name in managedRooms) {
-        ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
+        ErrorMapper.wrap(() => tickNormalRoom(managedRooms[name]))();
     }
     tickExpansion();
     tickMoveHelper();

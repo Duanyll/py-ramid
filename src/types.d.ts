@@ -59,10 +59,10 @@ type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 interface RoomState {
     status: "normal" | "energy-emergency";
     energyState: "store" | "take";
-    refillState: { [s: string]: number };
+    // refillState: { [s: string]: number };
     wallHits: number;
-    roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
-    roadToRepair: string[];
+    // roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
+    // roadToRepair: string[];
     refillFailTime?: number;
 }
 
@@ -128,10 +128,6 @@ interface RoomMemory {
         history: RoomStats[];
     };
     rcl: number;
-    remoteSources: {
-        id: string;
-        room: string;
-    }[];
     helperRoom?: string;
 }
 

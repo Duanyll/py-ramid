@@ -2,14 +2,14 @@ import { RoomInfo, registerCallback } from "roomInfo";
 import { PLAYER_WHITELIST } from "config";
 
 function checkRoads(room: RoomInfo) {
-    if (room.state.roadToRepair.length > 0) return;
+    if (room.roadToRepair.length > 0) return;
     let roads = room.detail.find(FIND_STRUCTURES, {
         filter: (s) => s.structureType == "road" && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
         room.delay("checkRoads", 500);
     } else {
-        roads.forEach((r) => room.state.roadToRepair.push(r.id));
+        roads.forEach((r) => room.roadToRepair.push(r.id));
     }
 }
 registerCallback("checkRoads", checkRoads)
@@ -38,13 +38,13 @@ export function tickTower(room: RoomInfo) {
     if (hostile) {
         room.structures.towers.forEach((tower) => {
             tower.attack(hostile);
-            room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+            room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
         });
         towerWorked = true;
-    } else if (room.state.roadToRepair.length > 0) {
-        let road = Game.getObjectById(room.state.roadToRepair[0]) as StructureRoad;
+    } else if (room.roadToRepair.length > 0) {
+        let road = Game.getObjectById(room.roadToRepair[0]) as StructureRoad;
         if (!road) {
-            room.state.roadToRepair = [];
+            room.roadToRepair = [];
             room.delay("checkRoads", 1);
             return;
         }
@@ -54,10 +54,10 @@ export function tickTower(room: RoomInfo) {
                 tower.repair(road);
                 remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
                 if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 200)
-                    room.state.refillState[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+                    room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
             }
         });
-        if (remainHits <= 0) room.state.roadToRepair.shift();
+        if (remainHits <= 0) room.roadToRepair.shift();
         towerWorked = true;
         room.delay("checkRoads", 10);
     }

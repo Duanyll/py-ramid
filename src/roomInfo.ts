@@ -45,7 +45,7 @@ class RoomStructures {
     centerSpawn: StructureSpawn;
 }
 
-// 管理每个 room 的主要对象
+// 结构化存储房间内缓存
 export class RoomInfo {
     name: string;
     detail: Room;
@@ -62,13 +62,17 @@ export class RoomInfo {
     public get spawnQueue(): SpawnRequest[] {
         return this.detail.memory.spawnQueue;
     }
+
+    refillTargets: { [id: string]: number } = {};
+    roadToRepair: string[] = [];
+
     public get state(): RoomState {
         return this.detail.memory.state;
     }
 
     // 必须每 tick 重建
     creeps: Creep[];
-    creepForRole: { [roleId: string]: Creep };
+    creepForRole: { [roleId: string]: Creep[] };
 
     creepRoleDefs: {
         [roleId: string]: {
@@ -104,6 +108,9 @@ export class RoomInfo {
         this.detail = Game.rooms[this.name];
         this.initMemory();
         this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
+
+        this.delay("fullCheckConstruction", 0);
+        this.delay("checkRoads", 0);
     }
 
     loadStructures() {
@@ -170,21 +177,14 @@ export class RoomInfo {
         m.tasks = m.tasks || {};
         m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];
-        m.remoteSources = m.remoteSources || [];
         if (!m.state) {
             m.state = {
                 status: "normal",
                 energyState: "take",
-                refillState: {},
                 wallHits: 0,
-                roleSpawnStatus: {},
-                roadToRepair: []
             }
-            // checkRefillState(this);
         }
         this.helperRoom = this.detail.memory.helperRoom;
-        this.delay("fullCheckConstruction", 1);
-        this.delay("checkRoads", 1);
     }
 
     public tickTasks(): void {
@@ -196,8 +196,7 @@ export class RoomInfo {
     public delay(type: CallbackType, time: number) {
         if (!this.tasks[type] || this.tasks[type] <= Game.time) {
             this.tasks[type] = Game.time + time;
-        }
-        else {
+        } else {
             this.tasks[type] = _.min([Game.time + time, this.tasks[type]]);
         }
     }
