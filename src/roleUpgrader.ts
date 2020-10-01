@@ -28,13 +28,12 @@ function runUpgrader(creep: Creep, room: RoomInfo) {
                 moveCreepTo(creep, target);
             }
         } else {
-            const source = room.detail.find(FIND_SOURCES_ACTIVE)[0];
-            if (source) {
-                if (creep.pos.isNearTo(source)) {
-                    creep.harvest(source);
-                } else {
-                    moveCreepTo(creep, source);
-                }
+            const sourceId = Number(_.last(m.roleId)) % 2;
+            const source = room.structures.sources[sourceId];
+            if (creep.pos.isNearTo(source)) {
+                creep.harvest(source);
+            } else {
+                moveCreepTo(creep, source);
             }
         }
     } else {
@@ -44,7 +43,7 @@ function runUpgrader(creep: Creep, room: RoomInfo) {
 
 export function goUpgrade(creep: Creep, room: RoomInfo) {
     const c = room.structures.controller;
-    if (creep.pos.inRangeTo(c, 3)) {
+    if (creep.pos.inRangeTo(c, 2)) {
         creep.upgradeController(c);
         if (!c.sign || c.sign.text != CONTROLLER_SIGN && c.sign.username != SYSTEM_USERNAME) {
             if (creep.pos.isNearTo(c))

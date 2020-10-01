@@ -103,6 +103,7 @@ export class RoomInfo {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
         this.initMemory();
+        this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
     }
 
     loadStructures() {
@@ -203,14 +204,14 @@ export class RoomInfo {
 
     public updateCreepCount() {
         this.creepRoleDefs = _.clone(creepRolesForLevel[this.structRcl]);
-        if (remoteHarvesterBody[this.structRcl]) {
-            for (const i in this.detail.memory.remoteSources) {
-                this.creepRoleDefs[`rharv${i}`] = {
-                    role: "remoteHarvest",
-                    body: remoteHarvesterBody[this.structRcl]
-                }
-            }
-        }
+        // if (remoteHarvesterBody[this.structRcl]) {
+        //     for (const i in this.detail.memory.remoteSources) {
+        //         this.creepRoleDefs[`rharv${i}`] = {
+        //             role: "remoteHarvest",
+        //             body: remoteHarvesterBody[this.structRcl]
+        //         }
+        //     }
+        // }
     }
 }
 

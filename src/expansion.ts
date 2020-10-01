@@ -6,7 +6,7 @@ function sendClaimer(room: RoomInfo, target: string) {
         name: `${target}-claim`, memory: {
             role: "claim", target: target
         },
-        body: [{ type: CLAIM, count: 1 }, { type: MOVE, count: 1 }]
+        body: [{ type: CLAIM, count: 1 }, { type: MOVE, count: 5 }]
     });
 }
 
@@ -20,7 +20,7 @@ function sendDismantler(roomName: string, target: string) {
         name: `${target}-creep`, memory: {
             role: "dismantle", target: target
         },
-        body: [{ type: WORK, count: 16 }, { type: MOVE, count: 16 }]
+        body: [{ type: ATTACK, count: 20 }, { type: MOVE, count: 20 }]
     });
 }
 
@@ -54,7 +54,7 @@ function runDismantler(creep: Creep) {
      } else {
         let s = target.pos.lookFor(LOOK_STRUCTURES)[0];
         if (s) {
-            creep.dismantle(s);
+            creep.attack(s);
         }
     }
 }

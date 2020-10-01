@@ -123,11 +123,17 @@ export function tickMoveHelper() {
         //     path = Room.deserializePath(creep.memory.moveData.path);
         // }
 
+        let sameRoom = false;
+        if (pos.roomName == creep.pos.roomName) {
+            sameRoom = true;
+        }
+
         creep.moveTo(pos, {
             reusePath: 10,
             ignoreCreeps: true,
             // @ts-ignore 7030
             costCallback: (room: string, matrix: CostMatrix) => {
+                if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
                 if (Game.rooms[room]) {
                     Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
                         if (!c.my || !creepMoveRequests[c.name]) {
@@ -148,9 +154,19 @@ export function moveCreepToRoom(creep: Creep, room: string) {
     let m = creep.memory as ExitingCreepMemory;
     if (!m._exitInfo || m._exitInfo.target != room || m._exitInfo.room != creep.room.name) {
         let route = Game.map.findRoute(creep.room, room, {
-            routeCallback: (name) => {
-                if (Memory.roomsToAvoid[name]) return Infinity;
-                return 1;
+            routeCallback: (roomName) => {
+                if (Memory.roomsToAvoid[roomName]) return Infinity;
+                let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+                let isHighway = (Number(parsed[1]) % 10 === 0) ||
+                    (Number(parsed[2]) % 10 === 0);
+                let isMyRoom = Game.rooms[roomName] &&
+                    Game.rooms[roomName].controller &&
+                    Game.rooms[roomName].controller.my;
+                if (isHighway || isMyRoom) {
+                    return 1;
+                } else {
+                    return 1.5;
+                }
             }
         }) as { exit: ExitConstant, room: string }[];
         const dir = route[0].exit;

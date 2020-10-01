@@ -6,9 +6,10 @@ export const ROOM_STORE_ENERGY = 120000;
 
 export const SPAWN_WAIT_TIME = 1000;
 
-export const CONTROLLER_SIGN = `🔺Py-Ramid🔺 is here! Too young too simple.`
+export const CONTROLLER_SIGN = `🔺Py-Ramid🔺`
 export const USER_NAME = "duanyll";
 
 export const PLAYER_WHITELIST: { [name: string]: boolean } = {
-    "Administrator-": true
+    "Administrator-": true,
+    "Asixa": true
 }
