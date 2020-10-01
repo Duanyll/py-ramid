@@ -3,6 +3,7 @@ import { ROOM_LEAST_STORE_ENERGY, ROOM_STORE_ENERGY } from "config";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
+import { registerCreepRole } from "creep";
 
 export function setConstruction(room: RoomInfo, full?: boolean) {
     let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
@@ -89,7 +90,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
     }
 }
 
-function runBuilder(creep: Creep, room: RoomInfo) {
+export function runBuilder(creep: Creep, room: RoomInfo) {
     let m = creep.memory as BuilderMemory;
     m.state = m.state || "pickup";
     if (m.state == "work" && creep.store.energy == 0) {
@@ -119,7 +120,7 @@ function runBuilder(creep: Creep, room: RoomInfo) {
             }
         }
     } else {
-        if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
+        if (!room.creepForRole["carry1"]) { if (goRefill(creep, room)) return; }
         if (room.state.energyState == "store") {
             const target = room.structures.storage;
             if (creep.pos.isNearTo(target)) {
@@ -132,11 +133,3 @@ function runBuilder(creep: Creep, room: RoomInfo) {
         if (!goBuild(creep, room)) goUpgrade(creep, room);
     }
 }
-
-export function tickBuilder(room: RoomInfo): void {
-    if (!room.creeps["build"]) return;
-    room.creeps["build"].forEach((creep) => {
-        runBuilder(creep, room);
-    })
-}
-

@@ -44,7 +44,7 @@ export function goRefill(creep: Creep, room: RoomInfo) {
     return true;
 }
 
-function runRefiller(creep: Creep, room: RoomInfo) {
+export function runRefiller(creep: Creep, room: RoomInfo) {
     if (creep.store.energy == 0) {
         let dropped = room.detail.find(FIND_DROPPED_RESOURCES)
             .filter(r => r.resourceType == RESOURCE_ENERGY && r.amount > 100)[0];
@@ -70,7 +70,7 @@ function runRefiller(creep: Creep, room: RoomInfo) {
     }
 }
 
-function runCarrier(creep: Creep, room: RoomInfo) {
+export function runCarrier(creep: Creep, room: RoomInfo) {
     let m = creep.memory as CarrierMemory;
     if (!m.from) m.from = [];
     if (!m.to) m.to = [];
@@ -122,11 +122,4 @@ function runCarrier(creep: Creep, room: RoomInfo) {
             moveCreepTo(creep, target);
         }
     }
-}
-
-export function tickCarrier(room: RoomInfo): void {
-    if (!room.creeps["carry"]) return;
-    room.creeps["carry"].forEach((creep) => {
-        runRefiller(creep, room); // XXX: 想好 MoveQueue 怎么写了，再改成 runCarrier
-    })
 }

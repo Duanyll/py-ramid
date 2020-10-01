@@ -6,7 +6,7 @@ interface UpgraderMemory extends CreepMemory {
     status: "pickup" | "upgrade"
 }
 
-function runUpgrader(creep: Creep, room: RoomInfo) {
+export function runUpgrader(creep: Creep, room: RoomInfo) {
     let m = creep.memory as UpgraderMemory;
     m.status = m.status || "pickup";
     if (m.status == "upgrade" && creep.store.energy == 0) {
@@ -56,11 +56,4 @@ export function goUpgrade(creep: Creep, room: RoomInfo) {
     else {
         moveCreepTo(creep, c);
     }
-}
-
-export function tickUpgrader(room: RoomInfo): void {
-    if (!room.creeps["upgrade"]) return;
-    room.creeps["upgrade"].forEach((creep) => {
-        runUpgrader(creep, room);
-    })
 }

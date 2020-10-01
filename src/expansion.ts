@@ -1,7 +1,13 @@
 import { RoomInfo, managedRooms } from "roomInfo";
 import { moveCreepToRoom, moveCreepTo } from "moveHelper";
+import { globalCreeps } from "creep";
 
-function sendClaimer(room: RoomInfo, target: string) {
+function sendClaimer(roomName: string, target: string) {
+    let room = managedRooms[roomName];
+    if (!room) {
+        console.log("unknown room.");
+        return;
+    }
     room.spawnQueue.push({
         name: `${target}-claim`, memory: {
             role: "claim", target: target
@@ -40,6 +46,7 @@ function sendAttaker(roomName: string, target: string) {
 
 global.sendDismantler = sendDismantler;
 global.sendAttacker = sendAttaker;
+global.sendClaimer = sendClaimer;
 
 function runClaimer(creep: Creep) {
     if (creep.room.name != creep.memory.target) {
@@ -89,16 +96,8 @@ function runAttacker(creep: Creep) {
     }
 }
 
-export function tickExpansion(claimers: Creep[], dismantlers: Creep[], attackers: Creep[]) {
-    if (claimers) claimers.forEach(creep => runClaimer(creep));
-    if (dismantlers) dismantlers.forEach(creep => runDismantler(creep));
-    if (attackers) attackers.forEach(creep => runAttacker(creep));
-
-    Memory.roomsToClaim = Memory.roomsToClaim || [];
-
-    let claimInfo = Memory.roomsToClaim.shift();
-    if (claimInfo) {
-        sendClaimer(managedRooms[claimInfo.from], claimInfo.to);
-        Memory.rooms[claimInfo.to] = { helperRoom: claimInfo.from } as RoomMemory;
-    }
+export function tickExpansion() {
+    _.forEach(globalCreeps["claim"], runClaimer);
+    _.forEach(globalCreeps["attack"], runAttacker);
+    _.forEach(globalCreeps["dismantle"], runDismantler)
 }

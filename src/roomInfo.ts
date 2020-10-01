@@ -67,7 +67,7 @@ export class RoomInfo {
     }
 
     // 必须每 tick 重建
-    creeps: { [role: string]: Creep[] };
+    creeps: Creep[];
     creepForRole: { [roleId: string]: Creep };
 
     creepRoleDefs: {
@@ -204,3 +204,12 @@ export class RoomInfo {
 }
 
 export let managedRooms: { [name: string]: RoomInfo } = {}
+
+export function loadRooms() {
+    for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        if (room.controller?.my) {
+            managedRooms[name] = new RoomInfo(name);
+        }
+    }
+}

@@ -8,7 +8,7 @@ interface WorkerMemory extends CreepMemory {
     status: "pickup" | "refill" | "build"
 }
 
-function runWorker(creep: Creep, room: RoomInfo) {
+export function runWorker(creep: Creep, room: RoomInfo) {
     if (creep.room.name != room.name) {
         moveCreepToRoom(creep, room.name);
         return;
@@ -55,7 +55,7 @@ function runWorker(creep: Creep, room: RoomInfo) {
     goUpgrade(creep, room);
 }
 
-function runEmergencyWorker(creep: Creep, room: RoomInfo) {
+export function runEmergencyWorker(creep: Creep, room: RoomInfo) {
     let m = creep.memory as WorkerMemory;
     if (!m.status) m.status = "pickup";
     if (m.status == "refill" && creep.store.energy == 0) {
@@ -92,19 +92,5 @@ function runEmergencyWorker(creep: Creep, room: RoomInfo) {
         goUpgrade(creep, room);
     } else {
         goRefill(creep, room);
-    }
-}
-
-export function tickWorker(room: RoomInfo): void {
-    if (room.creeps["work"]) {
-        room.creeps["work"].forEach((creep) => {
-            runWorker(creep, room);
-        })
-    }
-
-    if (room.creeps["emergency"]) {
-        room.creeps["emergency"].forEach((creep) => {
-            runEmergencyWorker(creep, room);
-        })
     }
 }

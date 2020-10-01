@@ -138,6 +138,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;
         sendAttacker: (roomName: string, target: string) => void;
         Game: Game;

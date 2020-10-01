@@ -1,12 +1,12 @@
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 
 import { ErrorMapper } from "utils/ErrorMapper";
-import { RoomInfo, managedRooms } from "roomInfo";
+import { managedRooms, loadRooms } from "roomInfo";
 import { tickRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
+import { globalCreeps, loadCreeps } from "creep";
 
-export let globalCreeps: { [role: string]: Creep[] } = {}
 function loadScript() {
     global.age = 0;
     console.log(`Restarting PY-RAMID ...`);
@@ -20,40 +20,6 @@ if (Game) {
     ErrorMapper.wrap(loadScript)();
 } else {
     console.log(`It seems that the code is running in wrong environment...`)
-}
-
-function loadRooms() {
-    for (const name in Game.rooms) {
-        const room = Game.rooms[name];
-        if (room.controller?.my) {
-            managedRooms[name] = new RoomInfo(name);
-        }
-    }
-}
-
-function loadCreeps() {
-    for (const name in managedRooms) {
-        managedRooms[name].creeps = {};
-        managedRooms[name].creepForRole = {};
-    }
-    globalCreeps = {};
-    for (const name in Game.creeps) {
-        const creep = Game.creeps[name];
-        if (creep.spawning) continue;
-        // console.log(`Processing creep: ${name}`)
-        if (creep.memory.room) {
-            let room = managedRooms[creep.memory.room];
-            room.creeps[creep.memory.role] = room.creeps[creep.memory.role] || [];
-            room.creeps[creep.memory.role].push(creep);
-
-            if (creep.memory.roleId) {
-                room.creepForRole[creep.memory.roleId] = creep;
-            }
-        } else {
-            globalCreeps[creep.memory.role] = globalCreeps[creep.memory.role] || [];
-            globalCreeps[creep.memory.role].push(creep);
-        }
-    }
 }
 
 function clearMemory() {
@@ -85,7 +51,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
-    tickExpansion(globalCreeps["claim"], globalCreeps["dismantle"], globalCreeps["attack"]);
+    tickExpansion();
     tickMoveHelper();
     clearMemory();
 

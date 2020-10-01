@@ -8,7 +8,7 @@ interface HarvesterMemory extends CreepMemory {
     status: "harvest" | "move"
 }
 
-function runHarvester(creep: Creep, room: RoomInfo) {
+export function runHarvester(creep: Creep, room: RoomInfo) {
     let m = creep.memory as HarvesterMemory;
     m.status = m.status || "harvest";
     if (m.status == "move" && creep.store.energy == 0) {
@@ -27,7 +27,7 @@ function runHarvester(creep: Creep, room: RoomInfo) {
             moveCreepTo(creep, target);
         }
     } else {
-        if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
+        if (!room.creepForRole["carry1"]) { if (goRefill(creep, room)) return; }
         let target = room.structures.sourceLink[sourceId] || room.structures.storage;
         // 6 级房没有 centerLink, 不能传送, 必须直接送达
         if (room.structRcl == 6 && sourceId == 1) target = room.structures.storage;
@@ -44,7 +44,7 @@ interface RemoteHarvesterMemory extends CreepMemory {
     source: { id: string, room: string }
 }
 
-function runClassicRemoteHarvester(creep: Creep, room: RoomInfo) {
+export function runClassicRemoteHarvester(creep: Creep, room: RoomInfo) {
     let m = creep.memory as RemoteHarvesterMemory;
     m.status = m.status || "harvest";
     m.source = m.source || room.detail.memory.remoteSources[Number(_.last(m.roleId))];
@@ -68,7 +68,6 @@ function runClassicRemoteHarvester(creep: Creep, room: RoomInfo) {
         }
     } else {
         if (creep.room.name == room.name) {
-            if (!room.creeps["carry"]) { if (goRefill(creep, room)) return; }
             let target = room.structures.storage;
             // 6 级房没有 centerLink, 不能传送, 必须直接送达
             if (creep.pos.isNearTo(target)) {
@@ -86,7 +85,7 @@ interface RemoteCarrierMemory extends CreepMemory {
     status: "carry" | "pickup"
 }
 
-function runRemoteCarrier(creep: Creep, room: RoomInfo) {
+export function runRemoteCarrier(creep: Creep, room: RoomInfo) {
     let m = creep.memory as RemoteCarrierMemory;
     m.status = m.status || "pickup";
     if (m.status == "carry" && creep.store.energy == 0) {
@@ -125,7 +124,7 @@ function runRemoteCarrier(creep: Creep, room: RoomInfo) {
     }
 }
 
-function runRemoteHarvester(creep: Creep, room: RoomInfo) {
+export function runRemoteHarvester(creep: Creep, room: RoomInfo) {
     let m = creep.memory as RemoteHarvesterMemory;
     m.status = m.status || "harvest";
     if (m.status == "move" && creep.store.energy == 0) {
@@ -179,7 +178,7 @@ function runRemoteHarvester(creep: Creep, room: RoomInfo) {
     }
 }
 
-function runRemoteReserver(creep: Creep) {
+export function runRemoteReserver(creep: Creep) {
     if (creep.room.name != creep.memory.target) {
         moveCreepToRoom(creep, creep.memory.target);
     } else {
@@ -197,7 +196,7 @@ function runRemoteReserver(creep: Creep) {
 interface RemoteBuilderMemory extends CreepMemory {
     status: "pickup" | "work"
 }
-function runRemoteBuilder(creep: Creep) {
+export function runRemoteBuilder(creep: Creep) {
     if (creep.room.name != creep.memory.target) {
         moveCreepToRoom(creep, creep.memory.target);
     } else {
@@ -229,32 +228,5 @@ function runRemoteBuilder(creep: Creep) {
                 }
             }
         }
-    }
-}
-
-export function tickHarvester(room: RoomInfo): void {
-    if (room.creeps["harvest"]) {
-        room.creeps["harvest"].forEach((creep) => {
-            runHarvester(creep, room);
-        });
-    }
-
-    if (room.creeps["remoteHarvest"]) {
-        room.creeps["remoteHarvest"].forEach((creep) => {
-            runClassicRemoteHarvester(creep, room);
-        });
-    }
-
-    if (room.creeps["rhHarv"]) {
-        room.creeps["rhHarv"].forEach(c => runRemoteHarvester(c, room));
-    }
-    if (room.creeps["rhCarry"]) {
-        room.creeps["rhCarry"].forEach(c => runRemoteCarrier(c, room));
-    }
-    if (room.creeps["rhReserve"]) {
-        room.creeps["rhReserve"].forEach(c => runRemoteReserver(c));
-    }
-    if (room.creeps["rhBuild"]) {
-        room.creeps["rhBuild"].forEach(c => runRemoteBuilder(c));
     }
 }

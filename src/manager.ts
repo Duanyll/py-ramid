@@ -1,7 +1,6 @@
 import { RoomInfo } from "roomInfo";
 
-export function tickManager(room: RoomInfo) {
-    let creep = room.creepForRole["center"];
+export function runManager(creep: Creep, room: RoomInfo) {
     if (!creep) return;
     let m = creep.memory;
     if (m.target) {
