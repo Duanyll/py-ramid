@@ -9,15 +9,21 @@ import { tickTower } from "tower";
 import { tickLink } from "link";
 import { tickManager } from "manager";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
+import { creepRolesForLevel, remoteHarvesterBody } from "creepCount";
+
+function updateRoomCreepCount(room: RoomInfo) {
+    room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
+    if (room.structRcl >= 7 && room.state.energyState == "store") {
+        room.creepRoleDefs["build1"] = undefined;
+    }
+}
 
 export function tickRoom(room: RoomInfo) {
     room.loadStructures();
-    room.updateCreepCount();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
         onRclUpgrade(room);
     }
     room.detail.memory.rcl = room.detail.controller.level;
-
 
     if (room.structures.storage) {
         if (room.state.energyState == "store" && room.structures.storage.store.energy > ROOM_STORE_ENERGY) {
@@ -27,6 +33,7 @@ export function tickRoom(room: RoomInfo) {
             room.state.energyState = "store";
         }
     }
+    updateRoomCreepCount(room);
 
     room.tickTasks();
 

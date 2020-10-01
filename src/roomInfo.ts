@@ -201,18 +201,6 @@ export class RoomInfo {
             this.tasks[type] = _.min([Game.time + time, this.tasks[type]]);
         }
     }
-
-    public updateCreepCount() {
-        this.creepRoleDefs = _.clone(creepRolesForLevel[this.structRcl]);
-        // if (remoteHarvesterBody[this.structRcl]) {
-        //     for (const i in this.detail.memory.remoteSources) {
-        //         this.creepRoleDefs[`rharv${i}`] = {
-        //             role: "remoteHarvest",
-        //             body: remoteHarvesterBody[this.structRcl]
-        //         }
-        //     }
-        // }
-    }
 }
 
 export let managedRooms: { [name: string]: RoomInfo } = {}

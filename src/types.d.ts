@@ -7,7 +7,9 @@ declare namespace _ {
 }
 
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "remoteHarvest" | "claim" | "emergency" | "dismantle";
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage"
+    | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "remoteHarvest"
+    | "claim" | "emergency" | "dismantle" | "attack";
 
 interface CreepMemory {
     _move?: {
@@ -137,6 +139,7 @@ interface RoomMemory {
 declare namespace NodeJS {
     interface Global {
         sendDismantler: (roomName: string, target: string) => void;
+        sendAttacker: (roomName: string, target: string) => void;
         Game: Game;
         age: number;
         log: any;

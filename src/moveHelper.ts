@@ -102,31 +102,8 @@ export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPositio
 export function tickMoveHelper() {
     _.forIn(creepMoveRequests, (pos, name) => {
         const creep = Game.creeps[name];
-        // if (creep.fatigue) return;
-        // let path: PathStep[];
-        // function doFindPath() {
-        //     path = creep.pos.findPathTo(pos, {
-        //         range: 1,
-        //         costCallback: getRoomCostMatrix
-        //     })
-        //     creep.memory.moveData = {
-        //         target: { x: pos.x, y: pos.y, roomName: pos.roomName },
-        //         path: Room.serializePath(path),
-        //         pathRoom: creep.room.name
-        //     };
-        // }
-        // if (!creep.memory.moveData
-        //     || !isEqualPosition(creep.memory.moveData.target, pos)
-        //     || creep.room.name != creep.memory.moveData.pathRoom) {
-        //     doFindPath();
-        // } else {
-        //     path = Room.deserializePath(creep.memory.moveData.path);
-        // }
 
-        let sameRoom = false;
-        if (pos.roomName == creep.pos.roomName) {
-            sameRoom = true;
-        }
+        const sameRoom = (creep.room.name == pos.roomName);
 
         creep.moveTo(pos, {
             reusePath: 10,

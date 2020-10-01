@@ -1,6 +1,8 @@
 import { RoomInfo } from "roomInfo";
 import { moveCreepTo, moveCreepToRoom } from "moveHelper";
 import { goRefill } from "roleCarrier";
+import { objToPos } from "utils/utils";
+import { USER_NAME } from "config";
 
 interface HarvesterMemory extends CreepMemory {
     status: "harvest" | "move"
@@ -42,7 +44,7 @@ interface RemoteHarvesterMemory extends CreepMemory {
     source: { id: string, room: string }
 }
 
-function runRemoteHarvester(creep: Creep, room: RoomInfo) {
+function runClassicRemoteHarvester(creep: Creep, room: RoomInfo) {
     let m = creep.memory as RemoteHarvesterMemory;
     m.status = m.status || "harvest";
     m.source = m.source || room.detail.memory.remoteSources[Number(_.last(m.roleId))];
@@ -80,6 +82,156 @@ function runRemoteHarvester(creep: Creep, room: RoomInfo) {
     }
 }
 
+interface RemoteCarrierMemory extends CreepMemory {
+    status: "carry" | "pickup"
+}
+
+function runRemoteCarrier(creep: Creep, room: RoomInfo) {
+    let m = creep.memory as RemoteCarrierMemory;
+    m.status = m.status || "pickup";
+    if (m.status == "carry" && creep.store.energy == 0) {
+        m.status = "pickup";
+    }
+    if (m.status == "pickup" && creep.store.getFreeCapacity() == 0) {
+        m.status = "carry";
+    }
+
+    if (m.status == "pickup") {
+        let tarpos = objToPos(room.design.remoteSources.containers[Number(creep.memory.target)]);
+        if (!tarpos) return;
+        if (tarpos.roomName != creep.room.name) {
+            moveCreepToRoom(creep, tarpos.roomName);
+        } else {
+            let container = tarpos.lookFor(LOOK_STRUCTURES)
+                .filter(s => s.structureType == STRUCTURE_CONTAINER)[0] as StructureContainer;
+            if (container.store.energy >= creep.store.getCapacity()) {
+                if (creep.pos.isNearTo(container)) {
+                    creep.withdraw(container, RESOURCE_ENERGY);
+                } else {
+                    moveCreepTo(creep, container);
+                }
+            }
+        }
+    } else {
+        let target = room.structures.storage;
+        if (creep.pos.isNearTo(target)) {
+            creep.transfer(target, RESOURCE_ENERGY);
+        } else {
+            moveCreepTo(creep, target);
+            let road = creep.pos.lookFor(LOOK_STRUCTURES)
+                .filter(s => s.structureType == STRUCTURE_ROAD)[0] as StructureRoad;
+            if (road && road.hitsMax - road.hits >= 100) creep.repair(road);
+        }
+    }
+}
+
+function runRemoteHarvester(creep: Creep, room: RoomInfo) {
+    let m = creep.memory as RemoteHarvesterMemory;
+    m.status = m.status || "harvest";
+    if (m.status == "move" && creep.store.energy == 0) {
+        m.status = "harvest";
+    }
+    if (m.status == "harvest" && creep.store.getFreeCapacity() == 0) {
+        m.status = "move";
+    }
+
+    if (m.status == "harvest") {
+        let tarpos = objToPos(room.design.remoteSources.sources[Number(creep.memory.target)]);
+        if (!tarpos) return;
+        if (tarpos.roomName != creep.room.name) {
+            moveCreepToRoom(creep, tarpos.roomName);
+        } else {
+            let source = tarpos.lookFor(LOOK_SOURCES)[0];
+            if (source) {
+                if (creep.pos.isNearTo(source)) {
+                    creep.harvest(source);
+                } else {
+                    moveCreepTo(creep, source);
+                }
+            }
+        }
+    } else {
+        let tarpos = objToPos(room.design.remoteSources.containers[Number(creep.memory.target)]);
+        if (!tarpos) return;
+        if (tarpos.roomName != creep.room.name) {
+            moveCreepToRoom(creep, tarpos.roomName);
+        } else {
+            let container = tarpos.lookFor(LOOK_STRUCTURES)
+                .filter(s => s.structureType == STRUCTURE_CONTAINER)[0] as StructureContainer;
+            if (container) {
+                if (creep.pos.isNearTo(container)) {
+                    if (container.hitsMax - container.hits >= 5000) creep.repair(container);
+                    creep.transfer(container, RESOURCE_ENERGY);
+                } else {
+                    moveCreepTo(creep, container);
+                }
+            } else {
+                let site = tarpos.lookFor(LOOK_CONSTRUCTION_SITES)[0];
+                if (site) {
+                    if (creep.pos.inRangeTo(site, 3)) {
+                        creep.build(site);
+                    } else {
+                        moveCreepTo(creep, site);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function runRemoteReserver(creep: Creep) {
+    if (creep.room.name != creep.memory.target) {
+        moveCreepToRoom(creep, creep.memory.target);
+    } else {
+        let controller = creep.room.controller;
+        if (!controller.reservation|| controller.reservation.username == USER_NAME && controller.reservation.ticksToEnd <= 4500) {
+            if (creep.pos.isNearTo(controller)) {
+                creep.reserveController(controller);
+            } else {
+                moveCreepTo(creep, controller);
+            }
+        }
+    }
+}
+
+interface RemoteBuilderMemory extends CreepMemory {
+    status: "pickup" | "work"
+}
+function runRemoteBuilder(creep: Creep) {
+    if (creep.room.name != creep.memory.target) {
+        moveCreepToRoom(creep, creep.memory.target);
+    } else {
+        let m = creep.memory as RemoteBuilderMemory;
+        m.status = m.status || "pickup";
+        if (m.status == "work" && creep.store.energy == 0) {
+            m.status = "pickup";
+        }
+        if (m.status == "pickup" && creep.store.getFreeCapacity() == 0) {
+            m.status = "work";
+        }
+
+        if (m.status == "pickup") {
+            let source = creep.room.find(FIND_SOURCES_ACTIVE)[0];
+            if (source) {
+                if (creep.pos.isNearTo(source)) {
+                    creep.harvest(source);
+                } else {
+                    moveCreepTo(creep, source);
+                }
+            }
+        } else {
+            let site = creep.room.find(FIND_MY_CONSTRUCTION_SITES)[0];
+            if (site) {
+                if (creep.pos.inRangeTo(site, 3)) {
+                    creep.build(site);
+                } else {
+                    moveCreepTo(creep, site);
+                }
+            }
+        }
+    }
+}
+
 export function tickHarvester(room: RoomInfo): void {
     if (room.creeps["harvest"]) {
         room.creeps["harvest"].forEach((creep) => {
@@ -89,8 +241,20 @@ export function tickHarvester(room: RoomInfo): void {
 
     if (room.creeps["remoteHarvest"]) {
         room.creeps["remoteHarvest"].forEach((creep) => {
-            runRemoteHarvester(creep, room);
+            runClassicRemoteHarvester(creep, room);
         });
     }
-}
 
+    if (room.creeps["rhHarv"]) {
+        room.creeps["rhHarv"].forEach(c => runRemoteHarvester(c, room));
+    }
+    if (room.creeps["rhCarry"]) {
+        room.creeps["rhCarry"].forEach(c => runRemoteCarrier(c, room));
+    }
+    if (room.creeps["rhReserve"]) {
+        room.creeps["rhReserve"].forEach(c => runRemoteReserver(c));
+    }
+    if (room.creeps["rhBuild"]) {
+        room.creeps["rhBuild"].forEach(c => runRemoteBuilder(c));
+    }
+}

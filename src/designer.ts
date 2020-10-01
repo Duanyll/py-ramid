@@ -462,5 +462,13 @@ export function designRemoteHarvest(roomName: string, design: RoomDesign, remote
             x: containerPos.x, y: containerPos.y, room: containerPos.roomName
         });
     });
-    
+    routes = _.uniqWith(routes, (a, b) => a.isEqualTo(b));
+    routes.forEach(p => {
+        if (p.x <= 0 || p.x >= 49 || p.y <= 0 || p.y >= 49) return;
+        if (p.roomName == roomName) {
+            if (design.matrix[p.x][p.y] == 'r') return;
+        }
+        if (!design.remoteSources.route[p.roomName]) design.remoteSources.route[p.roomName] = [];
+        design.remoteSources.route[p.roomName].push({ x: p.x, y: p.y });
+    })
 }

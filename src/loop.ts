@@ -85,7 +85,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickRoom(managedRooms[name]))();
     }
-    tickExpansion(globalCreeps["claim"], globalCreeps["dismantle"]);
+    tickExpansion(globalCreeps["claim"], globalCreeps["dismantle"], globalCreeps["attack"]);
     tickMoveHelper();
     clearMemory();
 

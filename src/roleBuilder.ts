@@ -7,7 +7,7 @@ import { goUpgrade } from "roleUpgrader";
 export function setConstruction(room: RoomInfo, full?: boolean) {
     let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
     if (avalSites <= 0) {
-        room.delay("setConstruction", 500);
+        room.delay("setConstruction", 1000);
         return;
     }
     const stage = room.design.currentStage;
@@ -47,17 +47,16 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
     });
     if (nextStage) {
         console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`)
-        room.updateCreepCount();
         room.design.currentStage++;
         setConstruction(room);
     } else {
-        room.delay("setConstruction", 500);
+        room.delay("setConstruction", 1000);
     }
 }
 registerCallback("setConstruction", setConstruction);
 registerCallback("fullCheckConstruction", (room) => {
     setConstruction(room, true);
-    room.delay("fullCheckConstruction", 3000);
+    room.delay("fullCheckConstruction", 5000);
 })
 
 interface BuilderMemory extends CreepMemory {
