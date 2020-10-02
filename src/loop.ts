@@ -5,7 +5,9 @@ import { managedRooms, loadRooms } from "roomInfo";
 import { tickNormalRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
-import { globalCreeps, loadCreeps } from "creep";
+import { loadCreeps } from "creep";
+import { tickSegmentRequest, wrapSegmentRequest } from "rawMemory";
+import { summaryStats } from "stats";
 
 function loadScript() {
     global.age = 0;
@@ -53,6 +55,9 @@ export const runLoop = ErrorMapper.wrap(() => {
     }
     tickExpansion();
     tickMoveHelper();
+    summaryStats();
+
+    tickSegmentRequest();
     clearMemory();
 
     if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {

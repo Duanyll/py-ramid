@@ -15,7 +15,7 @@ import { runEmergencyWorker, runWorker } from "roleWorker";
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
     if (room.structRcl >= 7 && room.state.energyState == "store") {
-        room.creepRoleDefs["build1"] = undefined;
+        delete room.creepRoleDefs["build1"];
     }
 }
 

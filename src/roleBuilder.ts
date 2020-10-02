@@ -1,9 +1,7 @@
 import { RoomInfo, registerCallback } from "roomInfo";
-import { ROOM_LEAST_STORE_ENERGY, ROOM_STORE_ENERGY } from "config";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
-import { registerCreepRole } from "creep";
 
 export function setConstruction(room: RoomInfo, full?: boolean) {
     let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
@@ -82,7 +80,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
             m.lastBuildPos = { x: target.pos.x, y: target.pos.y }
         } else {
             moveCreepTo(creep, target);
-            m.lastBuildPos = undefined;
+            delete m.lastBuildPos;
         }
         return true;
     } else {

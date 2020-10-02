@@ -1,5 +1,5 @@
-export const STATS_SUMMARY_TIME = 10000;
-export const STATS_HISTORY_LIMIT = 20;
+export const STATS_SUMMARY_TIME = 20;
+export const STATS_SEGMENT = 50;
 
 export const ROOM_LEAST_STORE_ENERGY = 100000;
 export const ROOM_STORE_ENERGY = 120000;

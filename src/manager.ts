@@ -8,7 +8,7 @@ export function runManager(creep: Creep, room: RoomInfo) {
         for (const res in creep.store) {
             creep.transfer(target, res as ResourceConstant);
         }
-        m.target = undefined;
+        delete m.target;
     } else {
         if (room.structures.centerLink.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
             m.target = room.structures.storage.id;

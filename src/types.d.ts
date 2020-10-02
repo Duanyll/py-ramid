@@ -96,15 +96,24 @@ interface RoomDesign {
 }
 
 interface RoomStats {
-    energy: {
-        spawnCost: number;
-        buildStructureCost: number;
-        repairCost: number;
-        towerCost: number;
+    rcl: number,
+    rclProgress: number,
+    rclTotal: number,
+    energyStore: number,
+    creepCount: number
+}
 
-        localHarvestIncome: number;
-        remoteHarvestIncome: number;
-    }
+interface Stats {
+    gcl: {
+        level: number,
+        progress: number,
+        progressTotal: number,
+    },
+    cpu: {
+        current: number,
+        bucket: number
+    },
+    rooms: { [name: string]: RoomStats }
 }
 
 interface MoveRequest {
