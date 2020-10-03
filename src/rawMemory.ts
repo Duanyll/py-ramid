@@ -18,7 +18,7 @@ export function tickSegmentRequest() {
     RawMemory.setActiveSegments(request);
 }
 
-export function wrapSegmentRequest(segment: number, callback: () => void) {
+export function onSegment(segment: number, callback: () => void) {
     segmentRequests[segment] = segmentRequests[segment] || [];
     segmentRequests[segment].push(callback);
 }

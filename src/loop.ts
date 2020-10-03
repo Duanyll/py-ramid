@@ -6,8 +6,9 @@ import { tickNormalRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { loadCreeps } from "creep";
-import { tickSegmentRequest, wrapSegmentRequest } from "rawMemory";
+import { tickSegmentRequest } from "rawMemory";
 import { summaryStats } from "stats";
+import { tickObserver } from "observer";
 
 function loadScript() {
     global.age = 0;
@@ -50,10 +51,12 @@ export const runLoop = ErrorMapper.wrap(() => {
 
     loadCreeps();
     prepareMoveHelper();
+    global.remainConstructionCount = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
     for (const name in managedRooms) {
         ErrorMapper.wrap(() => tickNormalRoom(managedRooms[name]))();
     }
     tickExpansion();
+    tickObserver();
     tickMoveHelper();
     summaryStats();
 

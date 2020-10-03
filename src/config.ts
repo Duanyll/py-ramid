@@ -13,3 +13,5 @@ export const PLAYER_WHITELIST: { [name: string]: boolean } = {
     "Administrator-": true,
     "Asixa": true
 }
+
+export const DEFAULT_RAMPART_HITS = 2e5;

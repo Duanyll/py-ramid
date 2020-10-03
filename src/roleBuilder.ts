@@ -4,8 +4,7 @@ import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
 
 export function setConstruction(room: RoomInfo, full?: boolean) {
-    let avalSites = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
-    if (avalSites <= 0) {
+    if (global.remainConstructionCount <= 0) {
         room.delay("setConstruction", 1000);
         return;
     }
@@ -14,22 +13,22 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         for (let i = 1; i < stage; i++) {
             const list = room.design.stages[i].list;
             list.forEach(s => {
-                if (avalSites < 0) return;
+                if (global.remainConstructionCount < 0) return;
                 if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
                     || _.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type))) {
                     // @ts-expect-error 2345
                     room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
-                    avalSites--;
+                    global.remainConstructionCount--;
                 }
             })
-            if (avalSites <= 0) return;
+            if (global.remainConstructionCount <= 0) return;
         }
     }
     let nextStage = true;
     if (!room.design.stages[stage]) return;
     if (room.design.stages[stage].rcl > room.structures.controller.level) return;
     room.design.stages[stage].list.forEach(s => {
-        if (avalSites < 0) return;
+        if (global.remainConstructionCount < 0) return;
         if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
             nextStage = false;
             if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
@@ -40,7 +39,7 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
                 }
                 // @ts-expect-error 2345
                 room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
-                avalSites--;
+                global.remainConstructionCount--;
             }
         }
     });
@@ -67,10 +66,16 @@ export function goBuild(creep: Creep, room: RoomInfo) {
     let m = creep.memory as BuilderMemory;
     if (m.lastBuildPos) {
         let rampart = room.detail.lookForAt(LOOK_STRUCTURES, m.lastBuildPos.x, m.lastBuildPos.y)
-            .find(s => s.structureType == "rampart" && s.hits < 100) as StructureRampart;
+            .find(s => s.structureType == "rampart" && s.hits < 30000) as StructureRampart;
         if (rampart) {
-            creep.repair(rampart);
+            if (creep.pos.inRangeTo(rampart, 3)) {
+                creep.repair(rampart);
+            } else {
+                moveCreepTo(creep, rampart);
+            }
             return true;
+        } else {
+            delete m.lastBuildPos;
         }
     }
     const target = _.first(room.detail.find(FIND_MY_CONSTRUCTION_SITES));
@@ -84,7 +89,17 @@ export function goBuild(creep: Creep, room: RoomInfo) {
         }
         return true;
     } else {
-        return false;
+        delete m.lastBuildPos;
+        if (room.rampartToRepair) {
+            const ram = room.rampartToRepair;
+            if (creep.pos.inRangeTo(ram, 3)) {
+                creep.repair(ram);
+            } else {
+                moveCreepTo(creep, ram);
+            }
+            return true;
+        } else
+            return false;
     }
 }
 

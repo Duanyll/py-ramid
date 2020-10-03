@@ -1,8 +1,10 @@
-import { RoomInfo } from "roomInfo";
+import { registerCallback, RoomInfo } from "roomInfo";
 import { moveCreepTo, moveCreepToRoom } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { objToPos } from "utils/utils";
 import { USER_NAME } from "config";
+import { registerCreepRole } from "creep";
+import { remoteBuilderBody, remoteCarrierBody, remoteGuardBody, remoteHarvesterBody, remoteReserverBody } from "creepCount";
 
 interface HarvesterMemory extends CreepMemory {
     status: "harvest" | "move"
@@ -146,7 +148,7 @@ export function runRemoteReserver(creep: Creep) {
         moveCreepToRoom(creep, creep.memory.target);
     } else {
         let controller = creep.room.controller;
-        if (!controller.reservation|| controller.reservation.username == USER_NAME && controller.reservation.ticksToEnd <= 4500) {
+        if (!controller.reservation || controller.reservation.username == USER_NAME && controller.reservation.ticksToEnd <= 4500) {
             if (creep.pos.isNearTo(controller)) {
                 creep.reserveController(controller);
             } else {
@@ -193,3 +195,59 @@ export function runRemoteBuilder(creep: Creep) {
         }
     }
 }
+
+function tickRemoteHarvest(room: RoomInfo) {
+    let rhInfo = room.detail.memory.remoteHarvest;
+    if (rhInfo && room.structRcl >= 7) {
+        _.forIn(rhInfo, (info, roomName) => {
+            if (info.status == "disabled") return;
+            if (Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
+                room.creepRoleDefs[`rhGuard-${roomName}`] = {
+                    role: "rhGuard",
+                    body: remoteGuardBody,
+                    target: roomName
+                };
+            }
+            switch (info.status) {
+                case "waiting":
+                    if (global.remainConstructionCount > 0) {
+                        info.status = "building";
+                    }
+                    break;
+                case "building":
+                    room.creepRoleDefs[`rhBuild-${roomName}`] = {
+                        role: "rhBuild",
+                        body: remoteBuilderBody,
+                        target: roomName
+                    };
+                    break;
+                case "working":
+                    _.keys(info.sources).forEach((i) => {
+                        room.creepRoleDefs[`rhHarv-${roomName}-${i}`] = {
+                            role: "rhHarv",
+                            body: remoteHarvesterBody,
+                            target: i
+                        };
+                        room.creepRoleDefs[`rhBuild-${roomName}-${i}`] = {
+                            role: "rhCarry",
+                            body: remoteCarrierBody,
+                            target: i
+                        };
+                    })
+                    let reservation = Game.rooms[roomName]?.controller.reservation;
+                    if (!reservation || reservation.username == USER_NAME && reservation.ticksToEnd < 1000) {
+                        room.creepRoleDefs[`rhReserve-${roomName}`] = {
+                            role: "rhReserve",
+                            body: remoteReserverBody,
+                            target: roomName
+                        };
+                    }
+            }
+        })
+    }
+}
+
+// function checkRHConstruction(room: RoomInfo) {
+
+// }
+// registerCallback("checkRHConstruction", checkRHConstruction);

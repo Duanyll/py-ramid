@@ -85,15 +85,16 @@ export const creepRolesForLevel: {
     link: sourceLink[0] => controllerLink, sourceLink[1] => centerLink
 */
 
-export const remoteHarvesterBody: {
-    [rcl: number]: BodyPartDescription
-} = {
-    4: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }],
-    5: [{ type: "work", count: 6 }, { type: "carry", count: 10 }, { type: "move", count: 8 }],
-    6: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }],
-    7: [{ type: "work", count: 12 }, { type: "carry", count: 12 }, { type: "move", count: 12 }],
-    8: [{ type: "work", count: 16 }, { type: "carry", count: 16 }, { type: "move", count: 16 }]
-}
+export const remoteHarvesterBody: BodyPartDescription =
+    [{ type: "work", count: 10 }, { type: "carry", count: 4 }, { type: "move", count: 5 }];
+export const remoteCarrierBody: BodyPartDescription =
+    [{ type: "work", count: 1 }, { type: "carry", count: 31 }, { type: "move", count: 16 }];
+export const remoteReserverBody: BodyPartDescription =
+    [{ type: "claim", count: 5 }, { type: "move", count: 5 }];
+export const remoteGuardBody: BodyPartDescription =
+    [{ type: "tough", count: 2 }, { type: "ranged_attack", count: 2 }, { type: "move", count: 8 }, { type: "heal", count: 4 }];
+export const remoteBuilderBody: BodyPartDescription =
+    [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }];
 
 export const helperCreepCount: {
     [rcl: number]: {

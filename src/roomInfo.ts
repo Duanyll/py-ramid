@@ -1,5 +1,6 @@
 import { designRoom } from "designer";
 import { creepRolesForLevel, remoteHarvesterBody } from "creepCount";
+import { DEFAULT_RAMPART_HITS } from "config";
 
 let CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -65,6 +66,7 @@ export class RoomInfo {
 
     refillTargets: { [id: string]: number } = {};
     roadToRepair: string[] = [];
+    rampartToRepair: StructureRampart;
 
     public get state(): RoomState {
         return this.detail.memory.state;
@@ -78,6 +80,7 @@ export class RoomInfo {
         [roleId: string]: {
             role: CreepRole,
             body: BodyPartDescription,
+            target?: string
         };
     }
 
@@ -93,10 +96,6 @@ export class RoomInfo {
 
     public get design() {
         return this.detail.memory.design;
-    }
-
-    public get stats() {
-        return this.detail.memory.stats;
     }
 
     public get structRcl() {
@@ -168,6 +167,16 @@ export class RoomInfo {
         strobj.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
         strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
             .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
+
+        this.rampartToRepair = undefined;
+        if (this.state.rampartHitsTarget && this.structures.ramparts.length > 0) {
+            this.state.rampartHits = this.state.rampartHits || 20000;
+            this.rampartToRepair = this.structures.ramparts.find(r => r.hits < this.state.rampartHits);
+            if (!this.rampartToRepair && this.state.rampartHits < this.state.rampartHitsTarget) {
+                this.state.rampartHits += 20000;
+                this.rampartToRepair = this.structures.ramparts.find(r => r.hits < this.state.rampartHits);
+            }
+        }
     }
 
     initMemory() {
@@ -182,6 +191,8 @@ export class RoomInfo {
                 status: "normal",
                 energyState: "take",
                 wallHits: 0,
+                rampartHits: 10000,
+                rampartHitsTarget: DEFAULT_RAMPART_HITS
             }
         }
         this.helperRoom = this.detail.memory.helperRoom;
@@ -211,4 +222,8 @@ export function loadRooms() {
             managedRooms[name] = new RoomInfo(name);
         }
     }
+}
+
+global.enableRampartBuilding = (room: string, strength: number = DEFAULT_RAMPART_HITS) => {
+    managedRooms[room].state.rampartHitsTarget = strength;
 }

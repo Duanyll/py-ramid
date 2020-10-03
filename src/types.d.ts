@@ -8,8 +8,8 @@ declare namespace _ {
 
 // 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage"
-    | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "remoteHarvest"
-    | "claim" | "emergency" | "dismantle" | "attack";
+    | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
+    | "claim" | "emergency" | "dismantle" | "attack" | "scout";
 
 interface CreepMemory {
     _move?: {
@@ -37,9 +37,9 @@ interface Memory {
     roomsToAvoid: { [name: string]: boolean };
 }
 
-type LoopCallback = "checkCreepHealth" | "summatyStats";
-type DelayCallback = "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction";
-type CallbackType = LoopCallback | DelayCallback;
+type CallbackType = "checkCreepHealth" | "summatyStats" |
+    "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
+    "checkRHConstruction";
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -61,6 +61,8 @@ interface RoomState {
     energyState: "store" | "take";
     // refillState: { [s: string]: number };
     wallHits: number;
+    rampartHits: number;
+    rampartHitsTarget: number;
     // roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
     // roadToRepair: string[];
     refillFailTime?: number;
@@ -95,27 +97,6 @@ interface RoomDesign {
     }
 }
 
-interface RoomStats {
-    rcl: number,
-    rclProgress: number,
-    rclTotal: number,
-    energyStore: number,
-    creepCount: number
-}
-
-interface Stats {
-    gcl: {
-        level: number,
-        progress: number,
-        progressTotal: number,
-    },
-    cpu: {
-        current: number,
-        bucket: number
-    },
-    rooms: { [name: string]: RoomStats }
-}
-
 interface MoveRequest {
     from: Id<AnyStoreStructure>;
     to: Id<AnyStoreStructure>;
@@ -132,17 +113,21 @@ interface RoomMemory {
     spawnQueue: SpawnRequest[];
     design: RoomDesign;
     state: RoomState;
-    stats: {
-        current: RoomStats;
-        history: RoomStats[];
-    };
     rcl: number;
     helperRoom?: string;
+    remoteHarvest: {
+        [room: string]: {
+            sources: [number, number][];
+            status: "disabled" | "waiting" | "building" | "working"
+        }
+    }
 }
 
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        enableRampartBuilding: (room: string, strength?: number) => void;
+        remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;
         sendAttacker: (roomName: string, target: string) => void;
