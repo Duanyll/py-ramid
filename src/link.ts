@@ -1,10 +1,10 @@
-import { RoomInfo, registerCallback } from "roomInfo";
+import { RoomInfo } from "roomInfo";
 
 export function tickLink(room: RoomInfo) {
     function trySend(from: StructureLink, to: StructureLink) {
         if (!from || !to) return false;
         if (from.cooldown) return false;
-        if (to.store.energy <= 200 || from.store.getFreeCapacity(RESOURCE_ENERGY) <= 200) {
+        if (to.store.energy <= 200 || from.store.getFreeCapacity(RESOURCE_ENERGY) <= 200 && to.store.energy <= 590) {
             from.transferEnergy(to);
             return true;
         }

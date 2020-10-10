@@ -10,7 +10,7 @@ export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...p
 }
 
 export function runCallback(c: RoomCallback, room: RoomInfo) {
-    console.log(`Running callback ${c.type}.`)
+    // console.log(`Running callback ${c.type}.`)
     if (c.param) {
         CallbackStore[c.type](room, ...c.param);
     } else {

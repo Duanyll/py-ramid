@@ -104,9 +104,10 @@ export function tickMoveHelper() {
         const creep = Game.creeps[name];
 
         const sameRoom = (creep.room.name == pos.roomName);
+        const pathReuse = (creep.pos.inRangeTo(pos, 5)) ? 5 : 15;
 
         creep.moveTo(pos, {
-            reusePath: 10,
+            reusePath: pathReuse,
             ignoreCreeps: true,
             // @ts-ignore 7030
             costCallback: (room: string, matrix: CostMatrix) => {

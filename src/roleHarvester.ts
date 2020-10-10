@@ -32,7 +32,7 @@ export function runHarvester(creep: Creep, room: RoomInfo) {
         if (!room.creepForRole["carry1"]) { if (goRefill(creep, room)) return; }
         let target = room.structures.sourceLink[sourceId] || room.structures.storage;
         // 6 级房没有 centerLink, 不能传送, 必须直接送达
-        if (room.structRcl == 6 && sourceId == 1) target = room.structures.storage;
+        if (room.structRcl < 5 || (room.structRcl <= 6 && sourceId == 1)) target = room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.transfer(target, RESOURCE_ENERGY);
         } else {

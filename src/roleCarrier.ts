@@ -46,16 +46,6 @@ export function goRefill(creep: Creep, room: RoomInfo) {
 
 export function runRefiller(creep: Creep, room: RoomInfo) {
     if (creep.store.energy == 0) {
-        let dropped = room.detail.find(FIND_DROPPED_RESOURCES)
-            .filter(r => r.resourceType == RESOURCE_ENERGY && r.amount > 100)[0];
-        if (dropped) {
-            if (creep.pos.isNearTo(dropped)) {
-                creep.pickup(dropped)
-            } else {
-                moveCreepTo(creep, dropped);
-            }
-            return;
-        }
         let target = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100 && t.creep.my)[0]
             || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0]
             || room.structures.storage;
