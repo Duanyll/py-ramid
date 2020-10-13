@@ -1,4 +1,4 @@
-import { designRoom } from "designer";
+import { appendLabDesignInfo, designRoom } from "designer";
 import { creepRolesForLevel, remoteHarvesterBody } from "creepCount";
 import { DEFAULT_RAMPART_HITS } from "config";
 
@@ -57,9 +57,7 @@ export class RoomInfo {
     public get tasks() {
         return this.detail.memory.tasks;
     };
-    public get moveQueue(): MoveRequest[] {
-        return this.detail.memory.moveQueue;
-    }
+
     public get spawnQueue(): SpawnRequest[] {
         return this.detail.memory.spawnQueue;
     }
@@ -67,6 +65,20 @@ export class RoomInfo {
     refillTargets: { [id: string]: number } = {};
     roadToRepair: string[] = [];
     rampartToRepair: StructureRampart;
+    moveRequests: {
+        in: {
+            [id: string]: {
+                type: ResourceConstant,
+                amount: number
+            }
+        },
+        out: {
+            [id: string]: {
+                type?: ResourceConstant,
+                amount?: number
+            }
+        }
+    } = { in: {}, out: {} }
 
     public get state(): RoomState {
         return this.detail.memory.state;
@@ -129,9 +141,6 @@ export class RoomInfo {
                 case STRUCTURE_FACTORY:
                     strobj.factory = s;
                     break;
-                case STRUCTURE_LAB:
-                    strobj.labs.push(s);
-                    break;
                 case STRUCTURE_LINK:
                     strobj.links.push(s);
                     break;
@@ -165,6 +174,9 @@ export class RoomInfo {
         strobj.controllerLink = this.getLink(this.design.links.controllerLink);
         strobj.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
         strobj.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
+        strobj.labs = this.design.labs.map(
+            p => this.detail.lookForAt(LOOK_STRUCTURES, p[0], p[1])
+                .find(s => s.structureType == "lab")) as StructureLab[];
         strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
             .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
 
@@ -183,18 +195,19 @@ export class RoomInfo {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
         m.design = m.design || designRoom(this.detail);
+        if (!m.design.labs) appendLabDesignInfo(m.design);
         m.tasks = m.tasks || {};
-        m.moveQueue = m.moveQueue || [];
         m.spawnQueue = m.spawnQueue || [];
-        if (!m.state) {
-            m.state = {
-                status: "normal",
-                energyState: "take",
-                wallHits: 0,
-                rampartHits: 10000,
-                rampartHitsTarget: DEFAULT_RAMPART_HITS
-            }
-        }
+        m.state = m.state || {} as RoomState;
+        _.defaults(m.state, {
+            status: "normal",
+            energyState: "store",
+            wallHits: 0,
+            rampartHits: 0,
+            rampartHitsTarget: 0,
+            labMode: "disabled",
+            labContent: []
+        } as RoomState)
         this.helperRoom = this.detail.memory.helperRoom;
     }
 

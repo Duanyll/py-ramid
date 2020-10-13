@@ -39,7 +39,7 @@ interface Memory {
 
 type CallbackType = "checkCreepHealth" | "summatyStats" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
-    "checkRHConstruction";
+    "checkRHConstruction" | "runLabs";
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -66,6 +66,8 @@ interface RoomState {
     // roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
     // roadToRepair: string[];
     refillFailTime?: number;
+    labMode: "disabled" | "boost" | "reaction",
+    labContent: ResourceConstant[]
 }
 
 interface RoomDesign {
@@ -94,22 +96,14 @@ interface RoomDesign {
         route: {
             [room: string]: { x: number, y: number }[];
         }
-    }
-}
-
-interface MoveRequest {
-    from: Id<AnyStoreStructure>;
-    to: Id<AnyStoreStructure>;
-    type: ResourceConstant;
-    amount: number;
-    callback?: RoomCallback;
+    },
+    labs: [number, number][]
 }
 
 interface RoomMemory {
     tasks: {
         [name: string]: number;
     }
-    moveQueue: MoveRequest[];
     spawnQueue: SpawnRequest[];
     design: RoomDesign;
     state: RoomState;
@@ -126,6 +120,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        setLabs: (room: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => void;
         enableRampartBuilding: (room: string, strength?: number) => void;
         remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;

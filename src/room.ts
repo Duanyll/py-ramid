@@ -7,10 +7,11 @@ import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
 import { creepRolesForLevel } from "creepCount";
 import { registerCreepRole, runCreep } from "creep";
 import { runBuilder } from "roleBuilder";
-import { runRefiller } from "roleCarrier";
+import { runCarrier, runRefiller } from "roleCarrier";
 import { runHarvester, runRemoteBuilder, runRemoteCarrier, runRemoteHarvester, runRemoteReserver } from "roleHarvester";
 import { runUpgrader } from "roleUpgrader";
 import { runEmergencyWorker, runWorker } from "roleWorker";
+import "labs"
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
@@ -21,7 +22,7 @@ function updateRoomCreepCount(room: RoomInfo) {
 
 registerCreepRole({
     build: runBuilder,
-    carry: runRefiller,
+    carry: runCarrier,
     harvest: runHarvester,
     rhHarv: runRemoteHarvester,
     rhCarry: runRemoteCarrier,

@@ -28,6 +28,7 @@
     "one-variable-per-declaration":false,
     "array-type": false,
     "no-bitwise": false,
-    "object-literal-shorthand": false
+    "object-literal-shorthand": false,
+    "prefer-for-of": false
   }
 }

@@ -1,5 +1,4 @@
 import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
-import { RoomInfo } from "roomInfo";
 
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
@@ -299,19 +298,19 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         ], take("tower", 1))
     });
     design.stages.push({ rcl: 5, list: take("road", structPos["road"].length) });
-    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("lab", 3), take("terminal", 1)) });
+    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("terminal", 1), take("lab", 3), ) });
     if (design.links.sourceLink[1])
         _.last(design.stages).list.push(
             { type: "link", x: design.links.sourceLink[1][0], y: design.links.sourceLink[1][1] });
     let mineral = room.find(FIND_MINERALS)[0].pos;
     _.last(design.stages).list.push({ type: "extractor", x: mineral.x, y: mineral.y });
     design.stages.push({
-        rcl: 7, list: take("extension", 10).concat(take("lab", 3), take("tower", 1), take("spawn", 1), [
+        rcl: 7, list: take("extension", 10).concat(take("tower", 1), take("spawn", 1), [
             { type: "link", x: design.links.centerLink[0], y: design.links.centerLink[1] }
-        ])
+        ], take("lab", 3), take("factory", 1))
     });
-    design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("lab", 4), take("tower", 3), take("observer", 1), take("spawn", 1)) });
-    design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("factory", 1), take("powerSpawn", 1)) });
+    design.stages.push({ rcl: 8, list: take("extension", 10).concat(take("tower", 3), take("observer", 1), take("spawn", 1)) });
+    design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("lab", 4), take("powerSpawn", 1)) });
 }
 
 export function designRoom(room: Room): RoomDesign {
@@ -471,4 +470,11 @@ export function designRemoteHarvest(roomName: string, design: RoomDesign, remote
         if (!design.remoteSources.route[p.roomName]) design.remoteSources.route[p.roomName] = [];
         design.remoteSources.route[p.roomName].push({ x: p.x, y: p.y });
     })
+}
+
+export function appendLabDesignInfo(design: RoomDesign) {
+    design.labs = [];
+    design.stages.forEach(
+        s => s.list.forEach(
+            i => (i.type == "lab") ? design.labs.push([i.x, i.y]) : undefined));
 }

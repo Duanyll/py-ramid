@@ -1,13 +1,6 @@
 import { RoomInfo, runCallback } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
 
-interface CarrierMemory extends CreepMemory {
-    // 分配时保证在 creep 容量范围内
-    from: [string, number][];
-    to: [string, number, RoomCallback?][];
-    type: ResourceConstant;
-}
-
 function selectRefillTarget(creep: Creep, room: RoomInfo) {
     let target = "";
     let dis = Infinity;
@@ -60,56 +53,132 @@ export function runRefiller(creep: Creep, room: RoomInfo) {
     }
 }
 
+interface CarrierMemory extends CreepMemory {
+    state: "pick" | "fill" | "idle",
+    // 没有 type 表示取走所有资源
+    type?: ResourceConstant,
+    amount?: number
+}
+
 export function runCarrier(creep: Creep, room: RoomInfo) {
     let m = creep.memory as CarrierMemory;
-    if (!m.from) m.from = [];
-    if (!m.to) m.to = [];
-    if (m.from.length == 0 && m.to.length == 0) {
-        if (room.moveQueue.length) {
-            if (creep.store.getUsedCapacity() > 0) {
-                m.to[0] = [room.structures.storage.id, creep.store.energy];
-            }
-            let request = room.moveQueue.shift() as MoveRequest;
-            const amount = Math.min(creep.store.getFreeCapacity(), request.amount);
-            m.from[0] = [request.from, request.amount];
-            m.type = request.type;
-            if (amount < request.amount) {
-                request.amount -= amount;
-                room.moveQueue.push(request);
-                m.to[0] = [request.to, request.amount];
-            } else {
-                m.to[0] = [request.to, request.amount, request.callback];
-            }
-        } else {
+    m.state = m.state || "idle";
+    if (m.state == "idle") {
+        let needRefill = _.size(room.refillTargets) > 0;
+        // 优先填 spawn
+        if (needRefill) {
             runRefiller(creep, room);
-        }
-    }
-    if (m.from.length) {
-        const target = Game.getObjectById(m.from[0][0]) as AnyStoreStructure;
-        if (!target) {
-            console.log(`Creep ${creep.name} warning: invalid target ${m.from[0][0]}`);
-            m.from.shift();
-            return;
-        }
-        if (creep.pos.isNearTo(target)) {
-            creep.withdraw(target, m.type, m.from[0][1]);
-            m.from.shift();
+        } else if (creep.store.getUsedCapacity()) {
+            // 返还身上多余能量
+            let storage = room.structures.storage;
+            if (creep.pos.isNearTo(storage)) {
+                for (const resourceType in creep.store) {
+                    creep.transfer(storage, resourceType as ResourceConstant);
+                }
+            } else {
+                moveCreepTo(creep, storage);
+            }
         } else {
-            moveCreepTo(creep, target);
+            // 先看看有没有需要取出的
+            let pickTarget = _.findKey(room.moveRequests.out);
+            if (pickTarget) {
+                m.state = "pick";
+                m.target = pickTarget;
+                m.type = room.moveRequests.out[pickTarget].type;
+                m.amount = room.moveRequests.out[pickTarget].amount;
+            } else {
+                // 再根据放入的需求去仓库拿
+                let fillTarget = _.findKey(room.moveRequests.in, (info) => {
+                    return room.structures.storage.store[info.type] >= info.amount;
+                });
+                if (fillTarget) {
+                    m.state = "pick";
+                    m.target = room.structures.storage.id;
+                    m.type = room.moveRequests.in[fillTarget].type;
+                    m.amount = room.moveRequests.in[fillTarget].amount;
+                }
+            }
         }
-    } else if (m.to.length) {
-        const target = Game.getObjectById(m.to[0][0]) as AnyStoreStructure;
-        if (!target) {
-            console.log(`Creep ${creep.name} warning: invalid target ${m.to[0][0]}`);
-            m.to.shift();
+    } else if (m.state == "pick") {
+        let target = Game.getObjectById(m.target) as AnyStoreStructure;
+        // 判断 target 丢失的情况
+        if (!target || (m.target != room.structures.storage.id && !room.moveRequests.out[m.target])) {
+            m.state = "idle";
             return;
+        } else {
+            if (creep.pos.isNearTo(target)) {
+                let actualAmount = 0;
+                if (m.type) {
+                    actualAmount = Math.min(m.amount, creep.store.getFreeCapacity(), target.store[m.type]);
+                    creep.withdraw(target, m.type, actualAmount);
+                    if (room.moveRequests.out[m.target]) {
+                        room.moveRequests.out[m.target].amount -= actualAmount;
+                        if (room.moveRequests.out[m.target].amount <= 0) {
+                            delete room.moveRequests.out[m.target];
+                        }
+                    }
+                } else {
+                    for (const type in target.store) {
+                        creep.withdraw(target, type as ResourceConstant);
+                    }
+                    if (_.sum(_.values(target.store)) <= creep.store.getFreeCapacity())
+                        delete room.moveRequests.out[m.target];
+                }
+
+                // 找一个需要该资源的建筑，没有就放进仓库
+                let fillTarget = room.structures.storage.id as string;
+                if (m.type) {
+                    let directfill = _.findKey(room.moveRequests.in, (info) => {
+                        return info.type == m.type;
+                    });
+                    if (directfill) fillTarget = directfill;
+                }
+                m.target = fillTarget;
+                m.state = "fill";
+                m.amount = actualAmount;
+                return;
+            } else {
+                moveCreepTo(creep, target);
+            }
         }
+    } else {
+        let target = Game.getObjectById(m.target) as AnyStoreStructure;
+        // 如果目标丢失就放进仓库
+        if (!target || (m.target != room.structures.storage.id && !room.moveRequests.in[m.target])) {
+            m.target = room.structures.storage.id;
+            target = room.structures.storage;
+        }
+
         if (creep.pos.isNearTo(target)) {
-            creep.transfer(target, m.type, m.to[0][1]);
-            if (m.to[0][2]) runCallback(m.to[0][2], room);
-            m.to.shift();
+            let actualAmount = 0;
+            if (m.type) {
+                actualAmount = room.moveRequests.in[m.target] ?
+                    Math.min(room.moveRequests.in[m.target].amount, creep.store[m.type]) :
+                    creep.store[m.type];
+                creep.transfer(target, m.type, actualAmount);
+                if (room.moveRequests.in[m.target]) {
+                    room.moveRequests.in[m.target].amount -= actualAmount;
+                    if (room.moveRequests.in[m.target].amount <= 0) {
+                        delete room.moveRequests.in[m.target];
+                    }
+                }
+            } else {
+                for (const type in creep.store) {
+                    creep.transfer(target, type as ResourceConstant);
+                }
+                delete room.moveRequests.in[m.target];
+            }
+            // 取到的太多的也要放回仓库
+            if (m.type && actualAmount < creep.store[m.type]) {
+                m.target = room.structures.storage.id;
+                delete m.type;
+            } else {
+                m.state = "idle";
+            }
+            return;
         } else {
             moveCreepTo(creep, target);
         }
     }
 }
+
