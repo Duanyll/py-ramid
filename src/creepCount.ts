@@ -111,3 +111,5 @@ export const helperCreepCount: {
 }
 
 export const emergencyCreepBody: BodyPartDescription = [{ type: "work", count: 1 }, { type: "carry", count: 2 }, { type: "move", count: 2 }];
+
+export const minerBody: BodyPartDescription = [{ type: "work", count: 12 }, { type: "move", count: 6 }];

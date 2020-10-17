@@ -1,6 +1,6 @@
 import { STATS_SEGMENT, STATS_SUMMARY_TIME } from "config";
 import { onSegment } from "rawMemory";
-import { managedRooms, RoomInfo } from "roomInfo";
+import { myRooms, RoomInfo } from "roomInfo";
 
 interface RoomStats {
     rcl: number,
@@ -49,7 +49,7 @@ export function summaryStats() {
                 current: Game.cpu.getUsed(),
                 bucket: Game.cpu.bucket
             },
-            rooms: _.mapValues(managedRooms, summaryRoom)
+            rooms: _.mapValues(myRooms, summaryRoom)
         }
         RawMemory.segments[STATS_SEGMENT] = JSON.stringify(obj);
     });

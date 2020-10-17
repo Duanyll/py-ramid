@@ -1,7 +1,7 @@
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 
 import { ErrorMapper } from "utils/ErrorMapper";
-import { managedRooms, loadRooms } from "roomInfo";
+import { myRooms, loadRooms } from "roomInfo";
 import { tickNormalRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
@@ -9,6 +9,7 @@ import { loadCreeps } from "creep";
 import { tickSegmentRequest } from "rawMemory";
 import { summaryStats } from "stats";
 import { tickObserver } from "observer";
+import { runTerminals } from "terminal";
 
 function loadScript() {
     global.age = 0;
@@ -52,12 +53,13 @@ export const runLoop = ErrorMapper.wrap(() => {
     loadCreeps();
     prepareMoveHelper();
     global.remainConstructionCount = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
-    for (const name in managedRooms) {
-        ErrorMapper.wrap(() => tickNormalRoom(managedRooms[name]))();
+    for (const name in myRooms) {
+        ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]))();
     }
     tickExpansion();
     tickObserver();
     tickMoveHelper();
+    if (Game.time % 20) runTerminals();
     summaryStats();
 
     tickSegmentRequest();

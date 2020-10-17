@@ -4,7 +4,7 @@ import { tickTower } from "tower";
 import { tickLink } from "link";
 import { runManager } from "manager";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
-import { creepRolesForLevel } from "creepCount";
+import { creepRolesForLevel, minerBody } from "creepCount";
 import { registerCreepRole, runCreep } from "creep";
 import { runBuilder } from "roleBuilder";
 import { runCarrier, runRefiller } from "roleCarrier";
@@ -12,11 +12,18 @@ import { runHarvester, runRemoteBuilder, runRemoteCarrier, runRemoteHarvester, r
 import { runUpgrader } from "roleUpgrader";
 import { runEmergencyWorker, runWorker } from "roleWorker";
 import "labs"
+import { runMiner } from "roleMiner";
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
-    if (room.structRcl >= 7 && room.state.energyState == "store") {
+    if (room.structRcl >= 7 && (room.state.energyState == "store" && room.state.energyMode != "wall")) {
         delete room.creepRoleDefs["build1"];
+    }
+    if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount) {
+        room.creepRoleDefs["mine1"] = {
+            body: minerBody,
+            role: "mine"
+        }
     }
 }
 
@@ -31,7 +38,8 @@ registerCreepRole({
     upgrade: runUpgrader,
     work: runWorker,
     emergency: runEmergencyWorker,
-    manage: runManager
+    manage: runManager,
+    mine: runMiner
 });
 
 export function tickNormalRoom(room: RoomInfo) {

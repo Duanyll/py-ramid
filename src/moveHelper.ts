@@ -1,4 +1,4 @@
-import { managedRooms } from "roomInfo";
+import { myRooms } from "roomInfo";
 
 let creepMoveRequests: {
     [name: string]: RoomPosition
@@ -15,8 +15,8 @@ let matrixWithCreepsCache: { [room: string]: CostMatrix };
 
 function getRoomCostMatrix(room: string): CostMatrix {
     if (!matrixWithCreepsCache[room]) {
-        matrixWithCreepsCache[room] = (managedRooms[room])
-            ? managedRooms[room].matrixCache.clone() : new PathFinder.CostMatrix();
+        matrixWithCreepsCache[room] = (myRooms[room])
+            ? myRooms[room].matrixCache.clone() : new PathFinder.CostMatrix();
         if (Game.rooms[room]) {
             Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
                 if (!c.my || !creepMoveRequests[c.name]) {

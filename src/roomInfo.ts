@@ -1,4 +1,4 @@
-import { appendLabDesignInfo, designRoom } from "designer";
+import { designRoom, upgradeDesign } from "designer";
 import { creepRolesForLevel, remoteHarvesterBody } from "creepCount";
 import { DEFAULT_RAMPART_HITS } from "config";
 
@@ -42,6 +42,8 @@ class RoomStructures {
     controllerLink: StructureLink;
 
     sources: Source[];
+    mineral: Mineral;
+    mineralContainer: StructureContainer;
 
     centerSpawn: StructureSpawn;
 }
@@ -79,6 +81,7 @@ export class RoomInfo {
             }
         }
     } = { in: {}, out: {} }
+    tombstones: Tombstone[];
 
     public get state(): RoomState {
         return this.detail.memory.state;
@@ -110,6 +113,10 @@ export class RoomInfo {
         return this.detail.memory.design;
     }
 
+    public get resource() {
+        return this.detail.memory.resource;
+    }
+
     public get structRcl() {
         return this.design.stages[Math.max(this.design.currentStage - 1, 0)].rcl;
     }
@@ -122,6 +129,7 @@ export class RoomInfo {
 
         this.delay("fullCheckConstruction", 0);
         this.delay("checkRoads", 0);
+        this.delay("runLabs", 1);
     }
 
     loadStructures() {
@@ -179,35 +187,53 @@ export class RoomInfo {
                 .find(s => s.structureType == "lab")) as StructureLab[];
         strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
             .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
+        strobj.mineral = this.detail.find(FIND_MINERALS)[0];
+        strobj.mineralContainer = this.detail.lookForAt(LOOK_STRUCTURES, this.design.mineralContainer[0], this.design.mineralContainer[1])
+            .find(s => s.structureType == STRUCTURE_CONTAINER) as StructureContainer;
 
         this.rampartToRepair = undefined;
         if (this.state.rampartHitsTarget && this.structures.ramparts.length > 0) {
             this.state.rampartHits = this.state.rampartHits || 20000;
             this.rampartToRepair = this.structures.ramparts.find(r => r.hits < this.state.rampartHits);
-            if (!this.rampartToRepair && this.state.rampartHits < this.state.rampartHitsTarget) {
+            if (!this.rampartToRepair &&
+                (this.state.energyMode == "wall" || this.state.rampartHits < this.state.rampartHitsTarget)) {
                 this.state.rampartHits += 20000;
                 this.rampartToRepair = this.structures.ramparts.find(r => r.hits < this.state.rampartHits);
             }
         }
+
+        this.tombstones = this.detail.find(FIND_TOMBSTONES);
+        this.tombstones.forEach(t => {
+            if (t.creep.my && _.sum(_.values(t.store)) - (t.store.energy || 0)) {
+                this.moveRequests.out[t.id] = {};
+            }
+        })
     }
 
     initMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
         m.design = m.design || designRoom(this.detail);
-        if (!m.design.labs) appendLabDesignInfo(m.design);
+        upgradeDesign(this.detail, m.design);
         m.tasks = m.tasks || {};
         m.spawnQueue = m.spawnQueue || [];
         m.state = m.state || {} as RoomState;
         _.defaults(m.state, {
             status: "normal",
             energyState: "store",
+            energyMode: "upgrade",
             wallHits: 0,
             rampartHits: 0,
             rampartHitsTarget: 0,
             labMode: "disabled",
             labContent: []
-        } as RoomState)
+        } as RoomState);
+        m.resource = m.resource || {} as RoomResource;
+        _.defaults(m.resource, {
+            reserve: {},
+            import: {},
+            export: {}
+        });
         this.helperRoom = this.detail.memory.helperRoom;
     }
 
@@ -226,17 +252,19 @@ export class RoomInfo {
     }
 }
 
-export let managedRooms: { [name: string]: RoomInfo } = {}
+export let myRooms: { [name: string]: RoomInfo } = {}
+global.myRooms = myRooms;
 
 export function loadRooms() {
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
         if (room.controller?.my) {
-            managedRooms[name] = new RoomInfo(name);
+            myRooms[name] = new RoomInfo(name);
         }
     }
 }
 
-global.enableRampartBuilding = (room: string, strength: number = DEFAULT_RAMPART_HITS) => {
-    managedRooms[room].state.rampartHitsTarget = strength;
+global.rampart = (room: string, strength: number = DEFAULT_RAMPART_HITS) => {
+    myRooms[room].state.rampartHitsTarget = strength;
+    myRooms[room].state.rampartHits = _.minBy(myRooms[room].structures.ramparts, r => r.hits)?.hits || 0;
 }

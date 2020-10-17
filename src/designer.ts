@@ -423,6 +423,12 @@ export function designRoom(room: Room): RoomDesign {
     design.matrix = mat;
     design.sources = room.find(FIND_SOURCES).map(s => [s.pos.x, s.pos.y]);
 
+    design.labs = [];
+    design.stages.forEach(
+        s => s.list.forEach(
+            i => (i.type == "lab") ? design.labs.push([i.x, i.y]) : undefined));
+    appendMineralContainer(room, design);
+
     console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;
 }
@@ -472,9 +478,34 @@ export function designRemoteHarvest(roomName: string, design: RoomDesign, remote
     })
 }
 
-export function appendLabDesignInfo(design: RoomDesign) {
+function appendLabDesignInfo(design: RoomDesign) {
     design.labs = [];
     design.stages.forEach(
         s => s.list.forEach(
             i => (i.type == "lab") ? design.labs.push([i.x, i.y]) : undefined));
+}
+
+function appendMineralContainer(room: Room, design: RoomDesign) {
+    let mpos = room.find(FIND_MINERALS)[0].pos;
+    let x = mpos.x, y = mpos.y;
+    let res: [number, number];
+    for (let i = 0; i < 8; i++) {
+        let creepx = x + dx[i];
+        let creepy = y + dy[i];
+        if (creepx < 0 || creepx >= 50 || creepy < 0 || creepy >= 50) continue;
+        if (design.matrix[creepx][creepy] != ".") {
+            res = [creepx, creepy];
+        }
+    }
+    design.mineralContainer = res;
+    design.stages[10].list.push({ type: "container", x: res[0], y: res[1] });
+}
+
+export function upgradeDesign(room: Room, design: RoomDesign) {
+    design.version = design.version || 0;
+    if (design.version <= 0) {
+        appendLabDesignInfo(design);
+        appendMineralContainer(room, design);
+    }
+    design.version = 1;
 }

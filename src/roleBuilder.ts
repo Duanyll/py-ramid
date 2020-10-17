@@ -66,7 +66,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
     let m = creep.memory as BuilderMemory;
     if (m.lastBuildPos) {
         let rampart = room.detail.lookForAt(LOOK_STRUCTURES, m.lastBuildPos.x, m.lastBuildPos.y)
-            .find(s => s.structureType == "rampart" && s.hits < 30000) as StructureRampart;
+            .find(s => s.structureType == "rampart" && s.hits < 20000) as StructureRampart;
         if (rampart) {
             if (creep.pos.inRangeTo(rampart, 3)) {
                 creep.repair(rampart);

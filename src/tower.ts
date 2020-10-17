@@ -4,7 +4,7 @@ import { PLAYER_WHITELIST } from "config";
 function checkRoads(room: RoomInfo) {
     if (room.roadToRepair.length > 0) return;
     let roads = room.detail.find(FIND_STRUCTURES, {
-        filter: (s) => s.structureType == "road" && s.hitsMax - s.hits >= 200
+        filter: (s) => (s.structureType == "road" || s.structureType == "container" ) && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
         room.delay("checkRoads", 500);

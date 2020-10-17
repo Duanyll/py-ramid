@@ -3,6 +3,7 @@ export const STATS_SEGMENT = 50;
 
 export const ROOM_LEAST_STORE_ENERGY = 100000;
 export const ROOM_STORE_ENERGY = 120000;
+export const TERMINAL_STORE_ENERGY = 20000;
 
 export const SPAWN_WAIT_TIME = 1000;
 

@@ -7,7 +7,7 @@ declare namespace _ {
 }
 
 // 命名规范：都用动词
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage"
+type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
     | "claim" | "emergency" | "dismantle" | "attack" | "scout";
 
@@ -59,18 +59,18 @@ type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 interface RoomState {
     status: "normal" | "energy-emergency";
     energyState: "store" | "take";
-    // refillState: { [s: string]: number };
+    energyMode: "upgrade" | "power" | "battery" | "wall",
+    enableMining: boolean;
     wallHits: number;
     rampartHits: number;
     rampartHitsTarget: number;
-    // roleSpawnStatus: { [roleId: string]: "ok" | "spawning" | "disabled" }
-    // roadToRepair: string[];
     refillFailTime?: number;
     labMode: "disabled" | "boost" | "reaction",
     labContent: ResourceConstant[]
 }
 
 interface RoomDesign {
+    version: number;
     matrix: string[];
     center: [number, number];
     currentStage: number;
@@ -97,7 +97,14 @@ interface RoomDesign {
             [room: string]: { x: number, y: number }[];
         }
     },
-    labs: [number, number][]
+    labs: [number, number][],
+    mineralContainer: [number, number]
+}
+
+interface RoomResource {
+    reserve: { [type: string]: number },
+    import: { [type: string]: boolean },
+    export: { [type: string]: boolean }
 }
 
 interface RoomMemory {
@@ -114,14 +121,16 @@ interface RoomMemory {
             sources: [number, number][];
             status: "disabled" | "waiting" | "building" | "working"
         }
-    }
+    },
+    resource: RoomResource
 }
 
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
-        setLabs: (room: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => void;
-        enableRampartBuilding: (room: string, strength?: number) => void;
+        myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
+        labs: (room: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => void;
+        rampart: (room: string, strength?: number) => void;
         remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;

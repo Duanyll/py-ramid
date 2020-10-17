@@ -1,4 +1,4 @@
-import { RoomInfo, registerCallback, managedRooms } from "roomInfo";
+import { RoomInfo, registerCallback, myRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody } from "creepCount";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
@@ -38,7 +38,7 @@ function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescript
 }
 
 function checkHelpersHealth(room: RoomInfo) {
-    let helperRoom = managedRooms[room.helperRoom];
+    let helperRoom = myRooms[room.helperRoom];
     let helperInfo = helperCreepCount[helperRoom.structRcl];
     for (let i = 0; i < helperInfo.count; i++) {
         const roleId = `helper${i}`;

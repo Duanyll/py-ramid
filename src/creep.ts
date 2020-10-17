@@ -1,18 +1,18 @@
-import { managedRooms, RoomInfo } from "roomInfo";
+import { myRooms, RoomInfo } from "roomInfo";
 
 export let globalCreeps: { [role: string]: Creep[] } = {}
 
 export function loadCreeps() {
-    for (const name in managedRooms) {
-        managedRooms[name].creeps = [];
-        managedRooms[name].creepForRole = {};
+    for (const name in myRooms) {
+        myRooms[name].creeps = [];
+        myRooms[name].creepForRole = {};
     }
     globalCreeps = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         // console.log(`Processing creep: ${name}`)
         if (creep.memory.room) {
-            let room = managedRooms[creep.memory.room];
+            let room = myRooms[creep.memory.room];
             room.creeps.push(creep);
 
             if (creep.memory.roleId) {

@@ -1,9 +1,9 @@
-import { RoomInfo, managedRooms } from "roomInfo";
+import { RoomInfo, myRooms } from "roomInfo";
 import { moveCreepToRoom, moveCreepTo } from "moveHelper";
 import { globalCreeps } from "creep";
 
 function sendClaimer(roomName: string, target: string) {
-    let room = managedRooms[roomName];
+    let room = myRooms[roomName];
     if (!room) {
         console.log("unknown room.");
         return;
@@ -17,7 +17,7 @@ function sendClaimer(roomName: string, target: string) {
 }
 
 function sendDismantler(roomName: string, target: string) {
-    let room = managedRooms[roomName];
+    let room = myRooms[roomName];
     if (!room) {
         console.log("unknown room.");
         return;
@@ -31,7 +31,7 @@ function sendDismantler(roomName: string, target: string) {
 }
 
 function sendAttaker(roomName: string, target: string) {
-    let room = managedRooms[roomName];
+    let room = myRooms[roomName];
     if (!room) {
         console.log("unknown room.");
         return;
