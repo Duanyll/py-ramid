@@ -128,6 +128,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        mining: (roomName: string, enable: boolean) => void;
         myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
         labs: (room: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => void;
         rampart: (room: string, strength?: number) => void;

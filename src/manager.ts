@@ -46,9 +46,10 @@ export function runManager(creep: Creep, room: RoomInfo) {
             return;
         } else if (!lastStorageScannedTime[room.name] || Game.time - lastStorageScannedTime[room.name] > 20) {
             for (const res in room.structures.terminal.store) {
-                if (room.structures.storage.store[res as ResourceConstant] < room.resource.reserve[res]) {
+                if (room.structures.storage.store.getUsedCapacity(res as ResourceConstant) < room.resource.reserve[res]) {
                     creep.withdraw(room.structures.terminal, res as ResourceConstant, Math.min(creep.store.getCapacity(),
-                        room.resource.reserve[res] - room.structures.storage.store[res as ResourceConstant]
+                        room.resource.reserve[res] - room.structures.storage.store.getUsedCapacity(res as ResourceConstant),
+                        room.structures.terminal.store.getUsedCapacity(res as ResourceConstant)
                     ));
                     m.target = room.structures.storage.id;
                     return;
@@ -56,9 +57,9 @@ export function runManager(creep: Creep, room: RoomInfo) {
             }
 
             for (const res in room.structures.storage.store) {
-                if (room.structures.storage.store[res as ResourceConstant] > room.resource.reserve[res]) {
+                if (room.structures.storage.store.getUsedCapacity(res as ResourceConstant) > room.resource.reserve[res]) {
                     creep.withdraw(room.structures.storage, res as ResourceConstant, Math.min(creep.store.getCapacity(),
-                        room.structures.storage.store[res as ResourceConstant] - room.resource.reserve[res]
+                        room.structures.storage.store.getUsedCapacity(res as ResourceConstant) - room.resource.reserve[res]
                     ));
                     m.target = room.structures.terminal.id;
                     return;

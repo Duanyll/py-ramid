@@ -59,7 +59,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     tickExpansion();
     tickObserver();
     tickMoveHelper();
-    if (Game.time % 20) runTerminals();
+    if (Game.time % 20 == 0) runTerminals();
     summaryStats();
 
     tickSegmentRequest();

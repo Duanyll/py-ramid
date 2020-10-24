@@ -89,7 +89,7 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
             } else {
                 // 再根据放入的需求去仓库拿
                 let fillTarget = _.findKey(room.moveRequests.in, (info) => {
-                    return room.structures.storage.store[info.type] >= info.amount;
+                    return room.structures.storage.store[info.type] > 0;
                 });
                 if (fillTarget) {
                     m.state = "pick";

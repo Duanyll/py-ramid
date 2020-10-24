@@ -3,7 +3,7 @@ import { tickSpawn } from "spawn";
 import { tickTower } from "tower";
 import { tickLink } from "link";
 import { runManager } from "manager";
-import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY } from "config";
+import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY, TERMINAL_MINERAL } from "config";
 import { creepRolesForLevel, minerBody } from "creepCount";
 import { registerCreepRole, runCreep } from "creep";
 import { runBuilder } from "roleBuilder";
@@ -19,7 +19,8 @@ function updateRoomCreepCount(room: RoomInfo) {
     if (room.structRcl >= 7 && (room.state.energyState == "store" && room.state.energyMode != "wall")) {
         delete room.creepRoleDefs["build1"];
     }
-    if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount) {
+    if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
+        && room.structures.terminal.store.getUsedCapacity(room.structures.mineral.mineralType) < TERMINAL_MINERAL) {
         room.creepRoleDefs["mine1"] = {
             body: minerBody,
             role: "mine"

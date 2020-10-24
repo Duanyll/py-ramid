@@ -1,9 +1,5 @@
 import { moveCreepTo } from "moveHelper";
-import { RoomInfo } from "roomInfo";
-
-interface HarvesterMemory extends CreepMemory {
-    status: "harvest" | "move"
-}
+import { myRooms, RoomInfo } from "roomInfo";
 
 export function runMiner(creep: Creep, room: RoomInfo) {
     let mineral = room.structures.mineral;
@@ -15,5 +11,14 @@ export function runMiner(creep: Creep, room: RoomInfo) {
         if (container.store[mineral.mineralType] > 1000) {
             room.moveRequests.out[container.id] = {};
         }
+    }
+}
+
+global.mining = (roomName: string, enable: boolean) => {
+    let room = myRooms[roomName];
+    room.state.enableMining = enable;
+    if (enable) {
+        room.resource.reserve[room.structures.mineral.mineralType] =
+            Math.min(0, room.resource.reserve[room.structures.mineral.mineralType]);
     }
 }

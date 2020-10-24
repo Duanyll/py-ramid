@@ -8,7 +8,7 @@ class LabInfo {
     constructor(room: RoomInfo) {
         this.level = room.structRcl;
         room.structures.labs.forEach(a => {
-            if (this.in.length > 2)
+            if (this.in.length >= 2)
                 this.out.push(a.id);
             else {
                 let canBeIn = true;
@@ -19,8 +19,8 @@ class LabInfo {
             }
         })
 
-        console.log(`Input labs for ${room.name}:`);
-        this.in.forEach(console.log);
+        // console.log(`Input labs for ${room.name}:`);
+        // this.in.forEach(console.log);
     }
 }
 
@@ -119,5 +119,10 @@ global.labs = (roomName: string, mode: "disabled" | "boost" | "reaction", conten
         content.forEach(r => room.resource.reserve[r] = 3000);
     }
     room.state.labContent = content;
+    if (mode == "reaction") {
+        // @ts-ignore
+        let product: ResourceConstant = REACTIONS[room.state.labContent[0]][room.state.labContent[1]];
+        if (!room.resource.reserve[product]) room.resource.reserve[product] = 0;
+    }
     room.delay("runLabs", 1);
 }

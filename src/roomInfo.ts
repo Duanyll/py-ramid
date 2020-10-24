@@ -182,9 +182,9 @@ export class RoomInfo {
         strobj.controllerLink = this.getLink(this.design.links.controllerLink);
         strobj.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
         strobj.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
-        strobj.labs = this.design.labs.map(
+        strobj.labs = _.compact(this.design.labs.map(
             p => this.detail.lookForAt(LOOK_STRUCTURES, p[0], p[1])
-                .find(s => s.structureType == "lab")) as StructureLab[];
+                .find(s => s.structureType == "lab")) as StructureLab[]);
         strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
             .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
         strobj.mineral = this.detail.find(FIND_MINERALS)[0];
