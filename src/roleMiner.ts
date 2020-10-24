@@ -21,4 +21,5 @@ global.mining = (roomName: string, enable: boolean) => {
         room.resource.reserve[room.structures.mineral.mineralType] =
             Math.min(0, room.resource.reserve[room.structures.mineral.mineralType]);
     }
+    room.delay("updateCreepCount", 1);
 }

@@ -129,6 +129,7 @@ export class RoomInfo {
 
         this.delay("fullCheckConstruction", 0);
         this.delay("checkRoads", 0);
+        this.delay("updateCreepCount", 0);
         this.delay("runLabs", 1);
     }
 

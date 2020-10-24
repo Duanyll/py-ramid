@@ -35,6 +35,7 @@ export function runHarvester(creep: Creep, room: RoomInfo) {
         if (room.structRcl < 5 || (room.structRcl <= 6 && sourceId == 1)) target = room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.transfer(target, RESOURCE_ENERGY);
+            if (target instanceof StructureLink) room.delay("runLinks", 1);
         } else {
             moveCreepTo(creep, target);
         }

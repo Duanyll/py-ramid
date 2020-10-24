@@ -1,23 +1,23 @@
-import { RoomInfo } from "roomInfo";
+import { registerCallback, RoomInfo } from "roomInfo";
 
-export function tickLink(room: RoomInfo) {
-    function trySend(from: StructureLink, to: StructureLink) {
-        if (!from || !to) return false;
-        if (from.cooldown) return false;
-        if (to.store.energy <= 200 || from.store.getFreeCapacity(RESOURCE_ENERGY) <= 200 && to.store.energy <= 590) {
-            from.transferEnergy(to);
-            return true;
+function runLinks(room: RoomInfo) {
+    if (room.structRcl < 5) return;
+    room.structures.sourceLink.forEach(link => {
+        if (!link) return;
+        if (link.cooldown) {
+            room.delay("runLinks", link.cooldown);
+            return;
         }
-        return false;
-    }
-    if (room.structures.sourceLink[0]) {
-        if (!trySend(room.structures.sourceLink[0], room.structures.controllerLink)) {
-            trySend(room.structures.sourceLink[0], room.structures.centerLink)
+        if (link.store.energy > 200) {
+            if (!room.structures.centerLink
+                || (!room.state.lastLinkToController && room.structures.controllerLink.store.energy < 400)) {
+                link.transferEnergy(room.structures.controllerLink);
+                room.state.lastLinkToController = true;
+            } else {
+                link.transferEnergy(room.structures.centerLink);
+                room.state.lastLinkToController = false;
+            }
         }
-    }
-    if (room.structures.sourceLink[1]) {
-        if (!trySend(room.structures.sourceLink[1], room.structures.centerLink)) {
-            trySend(room.structures.sourceLink[1], room.structures.controllerLink)
-        }
-    }
+    });
 }
+registerCallback("runLinks", runLinks)

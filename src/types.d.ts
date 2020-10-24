@@ -39,7 +39,7 @@ interface Memory {
 
 type CallbackType = "checkCreepHealth" | "summatyStats" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
-    "checkRHConstruction" | "runLabs";
+    "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount";
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -60,6 +60,7 @@ interface RoomState {
     status: "normal" | "energy-emergency";
     energyState: "store" | "take";
     energyMode: "upgrade" | "power" | "battery" | "wall",
+    lastLinkToController: boolean,
     enableMining: boolean;
     wallHits: number;
     rampartHits: number;

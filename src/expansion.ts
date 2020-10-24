@@ -8,6 +8,7 @@ function sendClaimer(roomName: string, target: string) {
         console.log("unknown room.");
         return;
     }
+    Memory.rooms[target] = { helperRoom: roomName } as RoomMemory;
     room.spawnQueue.push({
         name: `${target}-claim`, memory: {
             role: "claim", target: target

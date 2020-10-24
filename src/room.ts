@@ -1,7 +1,6 @@
-import { RoomInfo } from "roomInfo";
+import { registerCallback, RoomInfo } from "roomInfo";
 import { tickSpawn } from "spawn";
 import { tickTower } from "tower";
-import { tickLink } from "link";
 import { runManager } from "manager";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY, TERMINAL_MINERAL } from "config";
 import { creepRolesForLevel, minerBody } from "creepCount";
@@ -12,11 +11,12 @@ import { runHarvester, runRemoteBuilder, runRemoteCarrier, runRemoteHarvester, r
 import { runUpgrader } from "roleUpgrader";
 import { runEmergencyWorker, runWorker } from "roleWorker";
 import "labs"
+import "link"
 import { runMiner } from "roleMiner";
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
-    if (room.structRcl >= 7 && (room.state.energyState == "store" && room.state.energyMode != "wall")) {
+    if (room.structRcl >= 7 && (room.state.energyState == "store")) {
         delete room.creepRoleDefs["build1"];
     }
     if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
@@ -26,7 +26,9 @@ function updateRoomCreepCount(room: RoomInfo) {
             role: "mine"
         }
     }
+    room.delay("updateCreepCount", 100);
 }
+registerCallback("updateCreepCount", updateRoomCreepCount);
 
 registerCreepRole({
     build: runBuilder,
@@ -58,7 +60,6 @@ export function tickNormalRoom(room: RoomInfo) {
             room.state.energyState = "store";
         }
     }
-    updateRoomCreepCount(room);
 
     room.tickTasks();
 
@@ -68,7 +69,6 @@ export function tickNormalRoom(room: RoomInfo) {
 
     tickSpawn(room);
     tickTower(room);
-    tickLink(room);
 }
 
 function onRclUpgrade(room: RoomInfo) {
@@ -76,4 +76,5 @@ function onRclUpgrade(room: RoomInfo) {
     room.delay("setConstruction", 1);
     room.delay("checkRoads", 1);
     room.delay("checkRefill", 1);
+    if (room.structures.controller.level >= 8) room.state.energyMode = "wall";
 }

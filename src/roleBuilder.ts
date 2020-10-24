@@ -3,6 +3,11 @@ import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
 
+export function onSRCLUpgrade(room: RoomInfo) {
+    if (room.structRcl >= 5) room.delay("runLinks", 1);
+    if (room.structRcl >= 6) global.mining(room.name, true);
+}
+
 export function setConstruction(room: RoomInfo, full?: boolean) {
     if (global.remainConstructionCount <= 0) {
         room.delay("setConstruction", 1000);
@@ -44,8 +49,9 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         }
     });
     if (nextStage) {
-        console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`)
+        console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
         room.design.currentStage++;
+        onSRCLUpgrade(room);
         setConstruction(room);
     } else {
         room.delay("setConstruction", 1000);
