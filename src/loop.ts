@@ -16,6 +16,8 @@ function loadScript() {
     console.log(`Restarting PY-RAMID ...`);
     console.log(`Current game tick is ${Game.time}`);
     console.log(`Last load lasted for ${Memory.age} ticks.`);
+    Memory.roomsToAvoid = Memory.roomsToAvoid || {};
+    Memory.labQueue = Memory.labQueue || [];
     loadRooms();
     console.log(`It took ${Game.cpu.getUsed()} CPU to restart.`)
 }

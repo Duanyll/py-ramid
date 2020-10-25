@@ -35,11 +35,16 @@ interface Memory {
     age: number;
     roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
+    labQueue: {
+        recipe: ResourceConstant[],
+        amount: number
+    }[]
 }
 
 type CallbackType = "checkCreepHealth" | "summatyStats" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
-    "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount";
+    "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
+    "fetchLabWork";
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -67,7 +72,8 @@ interface RoomState {
     rampartHitsTarget: number;
     refillFailTime?: number;
     labMode: "disabled" | "boost" | "reaction",
-    labContent: ResourceConstant[]
+    labContent: ResourceConstant[],
+    labRemainAmount: number
 }
 
 interface RoomDesign {
@@ -129,9 +135,11 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        produceG: (amount: number) => void;
+        produceT3: (a: "U" | "L" | "K" | "Z" | "G", b: "O" | "H", amount: number) => void;
         mining: (roomName: string, enable: boolean) => void;
         myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
-        labs: (room: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => void;
+        labs: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
         remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;

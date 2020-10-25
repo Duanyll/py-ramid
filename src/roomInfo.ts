@@ -131,6 +131,7 @@ export class RoomInfo {
         this.delay("checkRoads", 0);
         this.delay("updateCreepCount", 0);
         this.delay("runLabs", 1);
+        this.delay("fetchLabWork", 1);
     }
 
     loadStructures() {

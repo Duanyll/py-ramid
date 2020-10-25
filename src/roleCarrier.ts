@@ -26,7 +26,7 @@ export function goRefill(creep: Creep, room: RoomInfo) {
     let s = Game.getObjectById(target) as RefillableStructure;
     if (creep.pos.isNearTo(s)) {
         creep.transfer(s, RESOURCE_ENERGY);
-        if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+        if (s.store.getFreeCapacity(RESOURCE_ENERGY) <= 10) {
             delete room.refillTargets[s.id];
         } else {
             room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);

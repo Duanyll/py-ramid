@@ -98,8 +98,16 @@ function runLabs(room: RoomInfo) {
                         amount: lab.store[lab.mineralType]
                     }
                 }
-                if (inputReady)
-                    lab.runReaction(input0, input1);
+                if (inputReady) {
+                    if (lab.runReaction(input0, input1) == OK) {
+                        room.state.labRemainAmount -= LAB_REACTION_AMOUNT;
+                        if (room.state.labRemainAmount <= 0) {
+                            room.state.labMode = "disabled";
+                            room.delay("fetchLabWork", 1);
+                            return;
+                        }
+                    }
+                }
             }
             // @ts-ignore
             let cooldown: number = REACTION_TIME[product];
@@ -109,7 +117,7 @@ function runLabs(room: RoomInfo) {
 }
 registerCallback("runLabs", runLabs);
 
-global.labs = (roomName: string, mode: "disabled" | "boost" | "reaction", content: ResourceConstant[]) => {
+global.labs = (roomName: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => {
     let room = myRooms[roomName];
     if (!room || room.structRcl < 6) {
         console.log(`Can't use labs in the room.`);
@@ -123,6 +131,39 @@ global.labs = (roomName: string, mode: "disabled" | "boost" | "reaction", conten
         // @ts-ignore
         let product: ResourceConstant = REACTIONS[room.state.labContent[0]][room.state.labContent[1]];
         if (!room.resource.reserve[product]) room.resource.reserve[product] = 0;
+        room.state.labRemainAmount = amount;
     }
     room.delay("runLabs", 1);
+}
+
+function fetchLabWork(room: RoomInfo) {
+    if (room.structRcl < 7) { room.delay("fetchLabWork", 10000); return; }
+    if (room.state.labRemainAmount > 0) { room.delay("fetchLabWork", 10000); return; }
+    room.state.labContent.forEach(r => room.resource.reserve[r] = 0);
+    let task = Memory.labQueue.shift();
+    if (task) {
+        global.labs(room.name, "reaction", task.recipe, task.amount);
+    } else {
+        global.labs(room.name, "disabled");
+    }
+}
+registerCallback("fetchLabWork", fetchLabWork);
+
+global.produceT3 = (a: "Z" | "K" | "U" | "L" | "G", b: "O" | "H", amount: number) => {
+    let t1 = [a, b];
+    let t2 = [a + b, "OH"] as ResourceConstant[];
+    let t3 = ["X", a + (b == "O") ? "HO2" : "H2O"] as ResourceConstant[];
+    Memory.labQueue.push(
+        { recipe: t1, amount },
+        { recipe: t2, amount },
+        { recipe: t3, amount: _.floor(amount / 3) },
+        { recipe: t3, amount: _.floor(amount / 3) },
+        { recipe: t3, amount: _.floor(amount / 3) }
+    );
+    for (const room in myRooms) myRooms[room].delay("fetchLabWork", 1);
+}
+
+global.produceG = (amount: number) => {
+    Memory.labQueue.push({ recipe: ["Z", "K"], amount }, { recipe: ["U", "L"], amount }, { recipe: ["ZK", "UL"], amount });
+    for (const room in myRooms) myRooms[room].delay("fetchLabWork", 1);
 }

@@ -16,7 +16,7 @@ export function runHarvester(creep: Creep, room: RoomInfo) {
     if (m.status == "move" && creep.store.energy == 0) {
         m.status = "harvest";
     }
-    if (m.status == "harvest" && creep.store.getFreeCapacity() == 0) {
+    if (m.status == "harvest" && creep.store.getFreeCapacity() < creep.getActiveBodyparts(WORK) * 2){
         m.status = "move";
     }
 
@@ -29,7 +29,7 @@ export function runHarvester(creep: Creep, room: RoomInfo) {
             moveCreepTo(creep, target);
         }
     } else {
-        if (!room.creepForRole["carry1"]) { if (goRefill(creep, room)) return; }
+        if (_.isEmpty(room.creepForRole["carry1"])) { if (goRefill(creep, room)) return; }
         let target = room.structures.sourceLink[sourceId] || room.structures.storage;
         // 6 级房没有 centerLink, 不能传送, 必须直接送达
         if (room.structRcl < 5 || (room.structRcl <= 6 && sourceId == 1)) target = room.structures.storage;
