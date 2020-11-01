@@ -10,6 +10,7 @@ import { tickSegmentRequest } from "rawMemory";
 import { summaryStats } from "stats";
 import { tickObserver } from "observer";
 import { runTerminals } from "terminal";
+import "compounds";
 
 function loadScript() {
     global.age = 0;

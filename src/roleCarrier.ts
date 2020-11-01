@@ -63,6 +63,8 @@ interface CarrierMemory extends CreepMemory {
 export function runCarrier(creep: Creep, room: RoomInfo) {
     let m = creep.memory as CarrierMemory;
     m.state = m.state || "idle";
+    const storage = room.structures.storage;
+    const terminal = room.structures.terminal;
     if (m.state == "idle") {
         let needRefill = _.size(room.refillTargets) > 0;
         // 优先填 spawn
@@ -70,7 +72,6 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
             runRefiller(creep, room);
         } else if (creep.store.getUsedCapacity()) {
             // 返还身上多余能量
-            let storage = room.structures.storage;
             if (creep.pos.isNearTo(storage)) {
                 for (const resourceType in creep.store) {
                     creep.transfer(storage, resourceType as ResourceConstant);
@@ -89,12 +90,12 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
             } else {
                 // 再根据放入的需求去仓库拿
                 let fillTarget = _.findKey(room.moveRequests.in, (info) => {
-                    return room.structures.storage.store[info.type] > 0;
+                    return storage.store[info.type] > 0 || terminal.store[info.type] > 0;
                 });
                 if (fillTarget) {
                     m.state = "pick";
-                    m.target = room.structures.storage.id;
                     m.type = room.moveRequests.in[fillTarget].type;
+                    m.target = (terminal.store[m.type] > 0) ? terminal.id : storage.id;
                     m.amount = room.moveRequests.in[fillTarget].amount;
                 }
             }
@@ -102,7 +103,7 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
     } else if (m.state == "pick") {
         let target = Game.getObjectById(m.target) as AnyStoreStructure;
         // 判断 target 丢失的情况
-        if (!target || (m.target != room.structures.storage.id && !room.moveRequests.out[m.target])) {
+        if (!target || (m.target != storage.id && m.target != terminal.id && !room.moveRequests.out[m.target])) {
             m.state = "idle";
             return;
         } else {
@@ -126,7 +127,7 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
                 }
 
                 // 找一个需要该资源的建筑，没有就放进仓库
-                let fillTarget = room.structures.storage.id as string;
+                let fillTarget = storage.id as string;
                 if (m.type) {
                     let directfill = _.findKey(room.moveRequests.in, (info) => {
                         return info.type == m.type;
@@ -144,9 +145,9 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
     } else {
         let target = Game.getObjectById(m.target) as AnyStoreStructure;
         // 如果目标丢失就放进仓库
-        if (!target || (m.target != room.structures.storage.id && !room.moveRequests.in[m.target])) {
-            m.target = room.structures.storage.id;
-            target = room.structures.storage;
+        if (!target || (m.target != storage.id && !room.moveRequests.in[m.target])) {
+            m.target = storage.id;
+            target = storage;
         }
 
         if (creep.pos.isNearTo(target)) {
@@ -170,7 +171,7 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
             }
             // 取到的太多的也要放回仓库
             if (m.type && actualAmount < creep.store[m.type]) {
-                m.target = room.structures.storage.id;
+                m.target = storage.id;
                 delete m.type;
             } else {
                 m.state = "idle";

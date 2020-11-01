@@ -38,7 +38,7 @@ interface Memory {
     labQueue: {
         recipe: ResourceConstant[],
         amount: number
-    }[]
+    }[],
 }
 
 type CallbackType = "checkCreepHealth" | "summatyStats" |
@@ -73,7 +73,8 @@ interface RoomState {
     refillFailTime?: number;
     labMode: "disabled" | "boost" | "reaction",
     labContent: ResourceConstant[],
-    labRemainAmount: number
+    labRemainAmount: number,
+    chargeNuker: boolean
 }
 
 interface RoomDesign {
@@ -109,9 +110,15 @@ interface RoomDesign {
 }
 
 interface RoomResource {
+    // 在 storage 里长期储备垫底的资源
     reserve: { [type: string]: number },
-    import: { [type: string]: boolean },
-    export: { [type: string]: boolean }
+    // 需要传送到当前房间的资源
+    import: { [type: string]: number },
+    // 在 terminal 里面放置相应数量资源以供出口
+    export: { [type: string]: number },
+    // 这些资源已经被房间内的需求预定，不要出口
+    lock: { [type: string]: number },
+    produce: { [type: string]: boolean }
 }
 
 interface RoomMemory {
@@ -135,11 +142,15 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        logMoveRequest: (roomName: string) => void;
+        bookForReserve: () => void;
+        resetResource: () => void;
+        cancelAllLabs: () => void;
         produceG: (amount: number) => void;
         produceT3: (a: "U" | "L" | "K" | "Z" | "G", b: "O" | "H", amount: number) => void;
         mining: (roomName: string, enable: boolean) => void;
         myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
-        labs: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
+        reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
         remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;

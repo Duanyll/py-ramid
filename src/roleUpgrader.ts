@@ -37,7 +37,9 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
             }
         }
     } else {
-        if (room.state.energyMode == "upgrade" || Game.time % 50 == 0) goUpgrade(creep, room);
+        if (room.state.energyMode == "upgrade" || Game.time % 50 == 0
+            || room.structures.controller.ticksToDowngrade < CONTROLLER_DOWNGRADE[room.structures.controller.level] - 10000)
+            goUpgrade(creep, room);
     }
 }
 

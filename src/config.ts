@@ -5,6 +5,7 @@ export const ROOM_LEAST_STORE_ENERGY = 100000;
 export const ROOM_STORE_ENERGY = 120000;
 export const TERMINAL_STORE_ENERGY = 20000;
 export const TERMINAL_MINERAL = 150000;
+export const ROOM_RESERVE_T3 = 10000;
 
 export const SPAWN_WAIT_TIME = 1000;
 

@@ -99,6 +99,12 @@ export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPositio
     creepMoveRequests[creep.name] = pos;
 }
 
+const highPosPriorityRoles: { [role in CreepRole]?: boolean } = {
+    manage: true,
+    harvest: true,
+    upgrade: true
+}
+
 export function tickMoveHelper() {
     _.forIn(creepMoveRequests, (pos, name) => {
         const creep = Game.creeps[name];
@@ -114,7 +120,7 @@ export function tickMoveHelper() {
                 if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
                 if (Game.rooms[room]) {
                     Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
-                        if (c.my && !creepMoveRequests[c.name]) {
+                        if (c.my && (highPosPriorityRoles[creep.memory.role] && creepMoveRequests[c.id])) {
                             matrix.set(c.pos.x, c.pos.y, 0xff);
                         }
                     });

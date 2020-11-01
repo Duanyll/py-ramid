@@ -10,25 +10,14 @@ const CENTER_STRUCTURES: { [type: string]: boolean } = {
     [STRUCTURE_LINK]: true
 };
 
-function whereToPutEnergy(room: RoomInfo) {
-    if (room.state.energyState == "store") {
-        return room.structures.storage.id;
-    } else if (room.structures.terminal.store.energy < TERMINAL_STORE_ENERGY) {
-        return room.structures.terminal.id;
-    } else if (room.structures.nuker?.store.getFreeCapacity(RESOURCE_ENERGY)) {
-        return room.structures.nuker.id;
-    } else if (room.structures.powerSpawn?.store.energy <= 4200) {
-        return room.structures.powerSpawn.id;
-    } else {
-        return room.structures.storage.id;
-    }
-}
-
 let lastStorageScannedTime: { [room: string]: number } = {};
 
 export function runManager(creep: Creep, room: RoomInfo) {
     if (!creep) return;
     let m = creep.memory;
+    const storage = room.structures.storage;
+    const terminal = room.structures.terminal;
+    let resInfo = room.resource;
     if (m.target) {
         let target = Game.getObjectById(m.target) as AnyStoreStructure;
         if (!CENTER_STRUCTURES[target.structureType]) {
@@ -41,31 +30,63 @@ export function runManager(creep: Creep, room: RoomInfo) {
         delete m.target;
     } else {
         if (room.structures.centerLink.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
-            m.target = whereToPutEnergy(room);
+            m.target = storage.id;
             creep.withdraw(room.structures.centerLink, RESOURCE_ENERGY);
             return;
         } else if (!lastStorageScannedTime[room.name] || Game.time - lastStorageScannedTime[room.name] > 20) {
-            for (const res in room.structures.terminal.store) {
-                if (room.structures.storage.store.getUsedCapacity(res as ResourceConstant) < room.resource.reserve[res]) {
-                    creep.withdraw(room.structures.terminal, res as ResourceConstant, Math.min(creep.store.getCapacity(),
-                        room.resource.reserve[res] - room.structures.storage.store.getUsedCapacity(res as ResourceConstant),
-                        room.structures.terminal.store.getUsedCapacity(res as ResourceConstant)
-                    ));
-                    m.target = room.structures.storage.id;
+            // 先把资源从 terminal 放进 storage 里(reserve 或超过了 export 的量)
+            const storageAmount = (res: ResourceConstant) => Math.min(
+                creep.store.getCapacity(),
+                terminal.store.getUsedCapacity(res),
+                Math.max(
+                    (resInfo.reserve[res] || 0) - storage.store.getUsedCapacity(res),
+                    (resInfo.export[res]) ? (terminal.store.getUsedCapacity(res) - resInfo.export[res]) : 0
+                )
+            )
+            for (const res in terminal.store) {
+                if (res == RESOURCE_ENERGY) continue;
+                let amount = storageAmount(res as ResourceConstant);
+                if (amount > 0) {
+                    creep.withdraw(terminal, res as ResourceConstant, amount);
+                    m.target = storage.id;
                     return;
                 }
             }
 
-            for (const res in room.structures.storage.store) {
-                if (room.structures.storage.store.getUsedCapacity(res as ResourceConstant) > room.resource.reserve[res]) {
-                    creep.withdraw(room.structures.storage, res as ResourceConstant, Math.min(creep.store.getCapacity(),
-                        room.structures.storage.store.getUsedCapacity(res as ResourceConstant) - room.resource.reserve[res]
-                    ));
-                    m.target = room.structures.terminal.id;
+            // 再从 storage 给 terminal 补货
+            const terminalAmount = (res: ResourceConstant) => Math.min(
+                creep.store.getCapacity(),
+                storage.store.getUsedCapacity(res) - (resInfo.reserve[res] || 0),
+                (resInfo.export[res] || 0) - terminal.store[res],
+            );
+            for (const res in storage.store) {
+                if (res == RESOURCE_ENERGY) continue;
+                let amount = terminalAmount(res as ResourceConstant);
+                if (amount > 0) {
+                    creep.withdraw(storage, res as ResourceConstant, amount);
+                    m.target = terminal.id;
                     return;
                 }
             }
             lastStorageScannedTime[room.name] = Game.time;
-        }
+        } else if (room.state.energyState == "take") {
+            if (terminal.store.getUsedCapacity(RESOURCE_ENERGY) < TERMINAL_STORE_ENERGY) {
+                creep.withdraw(storage, RESOURCE_ENERGY);
+                m.target = terminal.id;
+                return;
+            } else if (room.structures.nuker?.store.getFreeCapacity(RESOURCE_ENERGY) && room.state.chargeNuker) {
+                creep.withdraw(storage, RESOURCE_ENERGY);
+                m.target = room.structures.nuker.id;
+                return;
+            }
+        } else if (room.structures.nuker?.store.getFreeCapacity(RESOURCE_GHODIUM) > 0
+            && storage.store.getUsedCapacity(RESOURCE_GHODIUM) > 0) {
+            let amount = Math.min(
+                room.structures.nuker?.store.getFreeCapacity(RESOURCE_GHODIUM),
+                storage.store.getUsedCapacity(RESOURCE_GHODIUM),
+                creep.store.getCapacity());
+            creep.withdraw(storage, RESOURCE_GHODIUM, amount);
+            m.target = room.structures.nuker.id;
+        };
     }
 }

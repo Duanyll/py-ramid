@@ -234,8 +234,10 @@ export class RoomInfo {
         _.defaults(m.resource, {
             reserve: {},
             import: {},
-            export: {}
-        });
+            export: {},
+            lock: {},
+            produce: {}
+        } as RoomResource);
         this.helperRoom = this.detail.memory.helperRoom;
     }
 
@@ -251,6 +253,20 @@ export class RoomInfo {
         } else {
             this.tasks[type] = _.min([Game.time + time, this.tasks[type]]);
         }
+    }
+
+    public requestResource(type: ResourceConstant, amount: number) {
+        this.resource.lock[type] = (this.resource.lock[type] + amount) || amount;
+        if (!this.resource.produce[type]) {
+            let required = (this.resource.reserve[type] ?? 0) + (this.resource.lock[type] ?? 0)
+                - this.countResource(type as ResourceConstant);
+            if (required > 0) this.resource.import[type] = required;
+        }
+    }
+
+    public countResource(type: ResourceConstant): number {
+        return _.sumBy([this.structures.terminal, this.structures.storage, ...this.creepForRole["center"]],
+            s => s.store.getUsedCapacity(type));
     }
 }
 
@@ -269,4 +285,11 @@ export function loadRooms() {
 global.rampart = (room: string, strength: number = DEFAULT_RAMPART_HITS) => {
     myRooms[room].state.rampartHitsTarget = strength;
     myRooms[room].state.rampartHits = _.minBy(myRooms[room].structures.ramparts, r => r.hits)?.hits || 0;
+}
+
+global.logMoveRequest = (roomName: string) => {
+    const room = myRooms[roomName];
+    _.forIn(room.moveRequests, (info, id) => {
+        console.log(`${id}: ${JSON.stringify(info)}`);
+    })
 }

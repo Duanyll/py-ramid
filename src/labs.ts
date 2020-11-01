@@ -69,20 +69,25 @@ function runLabs(room: RoomInfo) {
             break;
         case "reaction":
             let info = getLabInfo(room);
-            let inputReady = true;
+            let inputAmount = Infinity;
             for (let i = 0; i < 2; i++) {
+                let resType = room.state.labContent[i];
                 let lab = Game.getObjectById(info.in[i]) as StructureLab;
-                if (lab.mineralType && lab.mineralType != room.state.labContent[i]) {
+                if (lab.mineralType && lab.mineralType != resType) {
                     room.moveRequests.out[lab.id] = {
                         type: lab.mineralType,
                         amount: lab.store[lab.mineralType]
                     };
-                    inputReady = false;
-                } else if (lab.store.getFreeCapacity(room.state.labContent[i]) > 1000) {
-                    room.moveRequests.in[lab.id] = {
-                        type: room.state.labContent[i],
-                        amount: lab.store.getFreeCapacity(room.state.labContent[i])
-                    };
+                    inputAmount = 0;
+                } else if (lab.store.getFreeCapacity(resType) >= 1000) {
+                    let requiredAmount = Math.min(lab.store.getFreeCapacity(resType),
+                        room.state.labRemainAmount - lab.store.getUsedCapacity(resType));
+                    if (requiredAmount > 0)
+                        room.moveRequests.in[lab.id] = {
+                            type: resType,
+                            amount: requiredAmount
+                        };
+                    inputAmount = Math.min(inputAmount, lab.store.getUsedCapacity(resType));
                 }
             }
             // @ts-ignore
@@ -98,10 +103,14 @@ function runLabs(room: RoomInfo) {
                         amount: lab.store[lab.mineralType]
                     }
                 }
-                if (inputReady) {
+                if (inputAmount > 0) {
                     if (lab.runReaction(input0, input1) == OK) {
+                        inputAmount -= LAB_REACTION_AMOUNT;
+                        room.resource.lock[input0.mineralType] -= LAB_REACTION_AMOUNT;
+                        room.resource.lock[input0.mineralType] -= LAB_REACTION_AMOUNT;
                         room.state.labRemainAmount -= LAB_REACTION_AMOUNT;
                         if (room.state.labRemainAmount <= 0) {
+                            console.log(`${room.name} reaction done. `)
                             room.state.labMode = "disabled";
                             room.delay("fetchLabWork", 1);
                             return;
@@ -117,53 +126,21 @@ function runLabs(room: RoomInfo) {
 }
 registerCallback("runLabs", runLabs);
 
-global.labs = (roomName: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => {
-    let room = myRooms[roomName];
-    if (!room || room.structRcl < 6) {
-        console.log(`Can't use labs in the room.`);
-    }
-    room.state.labMode = mode;
-    if (mode != "disabled") {
-        content.forEach(r => room.resource.reserve[r] = 3000);
-    }
-    room.state.labContent = content;
-    if (mode == "reaction") {
-        // @ts-ignore
-        let product: ResourceConstant = REACTIONS[room.state.labContent[0]][room.state.labContent[1]];
-        if (!room.resource.reserve[product]) room.resource.reserve[product] = 0;
-        room.state.labRemainAmount = amount;
-    }
-    room.delay("runLabs", 1);
-}
-
 function fetchLabWork(room: RoomInfo) {
-    if (room.structRcl < 7) { room.delay("fetchLabWork", 10000); return; }
-    if (room.state.labRemainAmount > 0) { room.delay("fetchLabWork", 10000); return; }
-    room.state.labContent.forEach(r => room.resource.reserve[r] = 0);
+    if (room.structRcl < 7 || room.state.labMode == "boost") {
+        room.delay("fetchLabWork", 1000);
+        return;
+    }
+    if (room.state.labMode == "reaction" && room.state.labRemainAmount > 0) {
+        room.delay("fetchLabWork", 1000);
+        return;
+    }
+    room.state.labContent?.forEach(r => room.resource.reserve[r] = 0);
     let task = Memory.labQueue.shift();
     if (task) {
-        global.labs(room.name, "reaction", task.recipe, task.amount);
+        global.reaction(room.name, "reaction", task.recipe, task.amount);
     } else {
-        global.labs(room.name, "disabled");
+        global.reaction(room.name, "disabled");
     }
 }
 registerCallback("fetchLabWork", fetchLabWork);
-
-global.produceT3 = (a: "Z" | "K" | "U" | "L" | "G", b: "O" | "H", amount: number) => {
-    let t1 = [a, b];
-    let t2 = [a + b, "OH"] as ResourceConstant[];
-    let t3 = ["X", a + (b == "O") ? "HO2" : "H2O"] as ResourceConstant[];
-    Memory.labQueue.push(
-        { recipe: t1, amount },
-        { recipe: t2, amount },
-        { recipe: t3, amount: _.floor(amount / 3) },
-        { recipe: t3, amount: _.floor(amount / 3) },
-        { recipe: t3, amount: _.floor(amount / 3) }
-    );
-    for (const room in myRooms) myRooms[room].delay("fetchLabWork", 1);
-}
-
-global.produceG = (amount: number) => {
-    Memory.labQueue.push({ recipe: ["Z", "K"], amount }, { recipe: ["U", "L"], amount }, { recipe: ["ZK", "UL"], amount });
-    for (const room in myRooms) myRooms[room].delay("fetchLabWork", 1);
-}
