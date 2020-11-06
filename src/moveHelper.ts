@@ -120,7 +120,7 @@ export function tickMoveHelper() {
                 if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
                 if (Game.rooms[room]) {
                     Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
-                        if (c.my && (highPosPriorityRoles[creep.memory.role] && creepMoveRequests[c.id])) {
+                        if (c.my && (highPosPriorityRoles[creep.memory.role] && !creepMoveRequests[c.id])) {
                             matrix.set(c.pos.x, c.pos.y, 0xff);
                         }
                     });

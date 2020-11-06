@@ -19,7 +19,9 @@ function updateRoomCreepCount(room: RoomInfo) {
     if (room.structRcl >= 7 && (room.state.energyState == "store")) {
         delete room.creepRoleDefs["build1"];
     }
-    if (room.structRcl == 8 && room.state.energyMode != "wall") delete room.creepForRole["build1"];
+    if (room.structRcl == 8 && room.state.energyMode != "wall") {
+        delete room.creepRoleDefs["build1"];
+    }
     if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
         && room.countResource(room.structures.mineral.mineralType) < TERMINAL_MINERAL) {
         room.creepRoleDefs["mine1"] = {

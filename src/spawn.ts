@@ -20,6 +20,7 @@ function expandBodypart(body: BodyPartDescription) {
 function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
     let needSpawn = true;
     if (room.creepForRole[roleId]) {
+        if (room.creepForRole[roleId].length >= 2) needSpawn = false;
         room.creepForRole[roleId].forEach(creep => {
             if (!creep.ticksToLive || creep.ticksToLive > getCreepSpawnTime(body)) {
                 needSpawn = false;
@@ -82,7 +83,6 @@ export function tickSpawn(room: RoomInfo) {
         });
         console.log(`Spawning creep ${req.name}`);
         delete room.state.refillFailTime;
-        // room.stats.current.energy.spawnCost += req.cost;
         room.spawnQueue.shift();
         room.delay("checkRefill", 1);
     } else {

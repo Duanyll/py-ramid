@@ -6,6 +6,7 @@ import { goUpgrade } from "roleUpgrader";
 export function onSRCLUpgrade(room: RoomInfo) {
     if (room.structRcl >= 5) room.delay("runLinks", 1);
     if (room.structRcl >= 6) global.mining(room.name, true);
+    if (room.structures.nuker) room.state.chargeNuker = true;
 }
 
 export function setConstruction(room: RoomInfo, full?: boolean) {

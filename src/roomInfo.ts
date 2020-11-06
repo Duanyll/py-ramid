@@ -265,7 +265,7 @@ export class RoomInfo {
     }
 
     public countResource(type: ResourceConstant): number {
-        return _.sumBy([this.structures.terminal, this.structures.storage, ...this.creepForRole["center"]],
+        return _.sumBy([this.structures.terminal, this.structures.storage, ...(this.creepForRole["center"] || [])],
             s => s.store.getUsedCapacity(type));
     }
 }

@@ -70,13 +70,14 @@ global.reaction = (roomName: string, mode: "disabled" | "boost" | "reaction", co
 }
 
 global.produceT3 = (a: "Z" | "K" | "U" | "L" | "G", b: "O" | "H", amount: number) => {
-    amount = _.ceil(amount / 3) * 3;
+    amount = _.ceil(amount / 15) * 15;
     let t1 = [a, b];
     let t2 = [a + b, "OH"] as ResourceConstant[];
     let t3 = ["X", a + ((b == "O") ? "HO2" : "H2O")] as ResourceConstant[];
     if (a == "G") global.produceG(amount);
     Memory.labQueue.push(
         { recipe: t1, amount },
+        { recipe: ['O', 'H'], amount },
         { recipe: t2, amount },
         { recipe: t3, amount: _.floor(amount / 3) },
         { recipe: t3, amount: _.floor(amount / 3) },

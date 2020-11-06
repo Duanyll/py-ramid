@@ -103,11 +103,11 @@ function runLabs(room: RoomInfo) {
                         amount: lab.store[lab.mineralType]
                     }
                 }
-                if (inputAmount > 0) {
+                if (inputAmount >= LAB_REACTION_AMOUNT) {
                     if (lab.runReaction(input0, input1) == OK) {
                         inputAmount -= LAB_REACTION_AMOUNT;
                         room.resource.lock[input0.mineralType] -= LAB_REACTION_AMOUNT;
-                        room.resource.lock[input0.mineralType] -= LAB_REACTION_AMOUNT;
+                        room.resource.lock[input1.mineralType] -= LAB_REACTION_AMOUNT;
                         room.state.labRemainAmount -= LAB_REACTION_AMOUNT;
                         if (room.state.labRemainAmount <= 0) {
                             console.log(`${room.name} reaction done. `)
