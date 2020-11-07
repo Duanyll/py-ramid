@@ -211,9 +211,9 @@ function tickRemoteHarvest(room: RoomInfo) {
             }
             switch (info.status) {
                 case "waiting":
-                    if (global.remainConstructionCount > 0) {
-                        info.status = "building";
-                    }
+                    // if (global.remainConstructionCount > 0) {
+                    //     info.status = "building";
+                    // }
                     break;
                 case "building":
                     room.creepRoleDefs[`rhBuild-${roomName}`] = {

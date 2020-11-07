@@ -44,7 +44,7 @@ interface Memory {
 type CallbackType = "checkCreepHealth" | "summatyStats" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork";
+    "fetchLabWork" | "fetchWall";
 interface RoomCallback {
     type: CallbackType;
     param?: any[];
@@ -67,9 +67,9 @@ interface RoomState {
     energyMode: "upgrade" | "power" | "battery" | "wall",
     lastLinkToController: boolean,
     enableMining: boolean;
-    wallHits: number;
-    rampartHits: number;
-    rampartHitsTarget: number;
+    // wallHits: number;
+    // rampartHits: number;
+    // rampartHitsTarget: number;
     refillFailTime?: number;
     labMode: "disabled" | "boost" | "reaction",
     labContent: ResourceConstant[],
@@ -106,7 +106,9 @@ interface RoomDesign {
         }
     },
     labs: [number, number][],
-    mineralContainer: [number, number]
+    mineralContainer: [number, number],
+    walls: { x: number, y: number }[],
+    ramparts: { x: number, y: number }[]
 }
 
 interface RoomResource {
@@ -142,6 +144,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
         logMoveRequest: (roomName: string) => void;
         bookForReserve: () => void;
         resetResource: () => void;
@@ -152,7 +155,6 @@ declare namespace NodeJS {
         myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
         reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
-        remainConstructionCount: number;
         sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;
         sendAttacker: (roomName: string, target: string) => void;

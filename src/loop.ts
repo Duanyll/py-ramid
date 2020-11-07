@@ -11,6 +11,7 @@ import { summaryStats } from "stats";
 import { tickObserver } from "observer";
 import { runTerminals } from "terminal";
 import "compounds";
+import { tickConstruction } from "construction";
 
 function loadScript() {
     global.age = 0;
@@ -55,13 +56,13 @@ export const runLoop = ErrorMapper.wrap(() => {
 
     loadCreeps();
     prepareMoveHelper();
-    global.remainConstructionCount = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
     for (const name in myRooms) {
         ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]))();
     }
     tickExpansion();
     tickObserver();
     tickMoveHelper();
+    tickConstruction();
     if (Game.time % 20 == 0) runTerminals();
     summaryStats();
 

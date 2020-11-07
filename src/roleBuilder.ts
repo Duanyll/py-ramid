@@ -2,67 +2,7 @@ import { RoomInfo, registerCallback } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roleCarrier";
 import { goUpgrade } from "roleUpgrader";
-
-export function onSRCLUpgrade(room: RoomInfo) {
-    if (room.structRcl >= 5) room.delay("runLinks", 1);
-    if (room.structRcl >= 6) global.mining(room.name, true);
-    if (room.structures.nuker) room.state.chargeNuker = true;
-}
-
-export function setConstruction(room: RoomInfo, full?: boolean) {
-    if (global.remainConstructionCount <= 0) {
-        room.delay("setConstruction", 1000);
-        return;
-    }
-    const stage = room.design.currentStage;
-    if (full) {
-        for (let i = 1; i < stage; i++) {
-            const list = room.design.stages[i].list;
-            list.forEach(s => {
-                if (global.remainConstructionCount < 0) return;
-                if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
-                    || _.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type))) {
-                    // @ts-expect-error 2345
-                    room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
-                    global.remainConstructionCount--;
-                }
-            })
-            if (global.remainConstructionCount <= 0) return;
-        }
-    }
-    let nextStage = true;
-    if (!room.design.stages[stage]) return;
-    if (room.design.stages[stage].rcl > room.structures.controller.level) return;
-    room.design.stages[stage].list.forEach(s => {
-        if (global.remainConstructionCount < 0) return;
-        if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
-            nextStage = false;
-            if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
-                if (s.type != STRUCTURE_WALL) {
-                    let wall = _.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y),
-                        st => st.structureType == STRUCTURE_WALL) as StructureWall;
-                    if (wall) wall.destroy();
-                }
-                // @ts-expect-error 2345
-                room.detail.createConstructionSite(s.x, s.y, s.type, s.name);
-                global.remainConstructionCount--;
-            }
-        }
-    });
-    if (nextStage) {
-        console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
-        room.design.currentStage++;
-        onSRCLUpgrade(room);
-        setConstruction(room);
-    } else {
-        room.delay("setConstruction", 1000);
-    }
-}
-registerCallback("setConstruction", setConstruction);
-registerCallback("fullCheckConstruction", (room) => {
-    setConstruction(room, true);
-    room.delay("fullCheckConstruction", 5000);
-})
+import { WALL_BUILD_STEP } from "config";
 
 interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work",
@@ -73,7 +13,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
     let m = creep.memory as BuilderMemory;
     if (m.lastBuildPos) {
         let rampart = room.detail.lookForAt(LOOK_STRUCTURES, m.lastBuildPos.x, m.lastBuildPos.y)
-            .find(s => s.structureType == "rampart" && s.hits < 20000) as StructureRampart;
+            .find(s => s.structureType == "rampart" && s.hits < WALL_BUILD_STEP) as StructureRampart;
         if (rampart) {
             if (creep.pos.inRangeTo(rampart, 3)) {
                 creep.repair(rampart);
@@ -97,12 +37,21 @@ export function goBuild(creep: Creep, room: RoomInfo) {
         return true;
     } else {
         delete m.lastBuildPos;
-        if (room.rampartToRepair) {
-            const ram = room.rampartToRepair;
-            if (creep.pos.inRangeTo(ram, 3)) {
-                creep.repair(ram);
+        if (room.wallBuildQueue.length > 0) {
+            const req = room.wallBuildQueue[0];
+            let st = Game.getObjectById(req.id) as (StructureRampart | StructureWall);
+            if (creep.pos.inRangeTo(st, 3)) {
+                if (creep.repair(st) == OK) {
+                    req.hitsRemain -= creep.getActiveBodyparts(WORK) * 100;
+                    if (req.hitsRemain <= 0) {
+                        room.wallBuildQueue.shift();
+                        if (room.wallBuildQueue.length == 0 && room.state.energyMode == "wall") {
+                            room.delay("fetchWall", 1);
+                        }
+                    }
+                }
             } else {
-                moveCreepTo(creep, ram);
+                moveCreepTo(creep, st);
             }
             return true;
         } else

@@ -12,6 +12,7 @@ import { runUpgrader } from "roleUpgrader";
 import { runEmergencyWorker, runWorker } from "roleWorker";
 import "labs"
 import "link"
+import "defense"
 import { runMiner } from "roleMiner";
 
 function updateRoomCreepCount(room: RoomInfo) {
@@ -58,9 +59,12 @@ export function tickNormalRoom(room: RoomInfo) {
     if (room.structures.storage) {
         if (room.state.energyState == "store" && room.structures.storage.store.energy > ROOM_STORE_ENERGY) {
             room.state.energyState = "take";
+            room.delay("updateCreepCount", 0);
         }
         if (room.state.energyState == "take" && room.structures.storage.store.energy < ROOM_LEAST_STORE_ENERGY) {
             room.state.energyState = "store";
+            room.delay("updateCreepCount", 0);
+
         }
     }
 
