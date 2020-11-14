@@ -1,5 +1,6 @@
 import { ROOM_RESERVE_T3 } from "config";
 import { myRooms, RoomInfo } from "roomInfo";
+import Logger from "utils/Logger";
 
 export function runTerminals() {
     let sourceTerminals: { [type: string]: { terminal: StructureTerminal, amount: number }[] } = {};
@@ -29,7 +30,7 @@ export function runTerminals() {
                 if (source.terminal.id == room.structures.terminal.id) continue;
                 let transAmount = Math.min(5000, amount, source.amount);
                 if (source.terminal.send(res as ResourceConstant, transAmount, room.name) == OK) {
-                    console.log(`Send ${transAmount} * ${res} from ${source.terminal.room.name} to ${room.name}`);
+                    Logger.silly(`Send ${transAmount} * ${res} from ${source.terminal.room.name} to ${room.name}`);
                     room.resource.import[res] -= transAmount;
                     terminalWorked[source.terminal.id] = true;
                     if (room.resource.import[res] <= 0) {

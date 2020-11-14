@@ -1,5 +1,6 @@
 import { ROOM_RESERVE_T3 } from "config";
 import { myRooms } from "roomInfo";
+import Logger from "utils/Logger";
 
 global.resetResource = () => {
     _.forIn(myRooms, (room) => {
@@ -39,7 +40,7 @@ global.bookForReserve = (dryRun?: boolean) => {
     });
     _.forIn(current, (amount, type) => {
         if (amount <= 0) return;
-        console.log(`Request for ${type}: ${amount}`);
+        Logger.report(`Request for ${type}: ${amount}`);
         if (!dryRun)
             if (type == RESOURCE_GHODIUM) {
                 global.produceG(amount);
@@ -53,14 +54,14 @@ global.bookForReserve = (dryRun?: boolean) => {
 global.reaction = (roomName: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => {
     let room = myRooms[roomName];
     if (!room || room.structRcl < 6) {
-        console.log(`Can't use labs in the room.`);
+        Logger.error(`Can't use labs in the room.`);
     }
     room.state.labMode = mode;
     room.state.labContent = content;
     if (mode == "reaction") {
         // @ts-ignore
         let product: ResourceConstant = REACTIONS[content[0]][content[1]];
-        console.log(`Room ${roomName} takes reaction task ${content[0]} + ${content[1]} = ${product} * ${amount}`)
+        Logger.info(`Room ${roomName} takes reaction task ${content[0]} + ${content[1]} = ${product} * ${amount}`)
         room.requestResource(content[0], amount);
         room.requestResource(content[1], amount);
         room.state.labRemainAmount = amount;
@@ -105,15 +106,15 @@ global.logLabs = () => {
         const content = room.state.labContent;
         switch (room.state.labMode) {
             case "disabled":
-                console.log(`${name}: Empty`);
+                Logger.report(`${name}: Empty`);
                 break;
             case "reaction":
                 // @ts-ignore
                 let product: ResourceConstant = REACTIONS[content[0]][content[1]];
-                console.log(`${name}: ${content[0]} + ${content[1]} = ${product} * ${room.state.labRemainAmount}`);
+                Logger.report(`${name}: ${content[0]} + ${content[1]} = ${product} * ${room.state.labRemainAmount}`);
                 break;
             case "boost":
-                console.log(`${name}: ${content.toString()}`);
+                Logger.report(`${name}: ${content.toString()}`);
                 break;
         }
     }

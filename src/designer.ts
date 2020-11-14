@@ -1,4 +1,5 @@
 import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
+import Logger from "utils/Logger";
 
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
@@ -336,7 +337,7 @@ export function designRoom(room: Room): RoomDesign {
     let spawn = room.find(FIND_MY_SPAWNS)[0]
         || room.find(FIND_MY_CONSTRUCTION_SITES).filter(s => s.structureType == STRUCTURE_SPAWN)[0];
     if (spawn) {
-        console.log("Designing room with spawn at specific position.");
+        Logger.debug("Designing room with spawn at specific position.");
         fixedCenter = true;
         center = new RoomPosition(spawn.pos.x, spawn.pos.y - 1, room.name);
     } else {
@@ -396,7 +397,7 @@ export function designRoom(room: Room): RoomDesign {
         } else {
             const smallRes = findSquare(6);
             if (smallRes[2] == INF) {
-                console.log(`Can't design room ${room.name}.`);
+                Logger.error(`Can't design room ${room.name}.`);
                 return {} as RoomDesign;
             }
             isSmall = true;
@@ -429,7 +430,7 @@ export function designRoom(room: Room): RoomDesign {
             i => (i.type == "lab") ? design.labs.push([i.x, i.y]) : undefined));
     appendMineralContainer(room, design);
 
-    console.log(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
+    Logger.report(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return design;
 }
 

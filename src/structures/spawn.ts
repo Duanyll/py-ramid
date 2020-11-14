@@ -1,5 +1,6 @@
 import { RoomInfo, registerCallback, myRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody } from "creepCount";
+import Logger from "utils/Logger";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sumBy(body, (p) => p.count) * 3;
@@ -57,13 +58,13 @@ export function tickSpawn(room: RoomInfo) {
     if (room.spawnQueue.length == 0) return;
     let req = room.spawnQueue[0];
     if (Game.creeps[req.name]) {
-        console.log(`Room ${room.name}: Trying to spawn a existing creep.`);
+        Logger.error(`Room ${room.name}: Trying to spawn a existing creep.`);
         room.spawnQueue.shift();
         return;
     }
     if (!req.cost) req.cost = getCreepCost(req.body);
     if (req.cost > room.detail.energyCapacityAvailable) {
-        console.log("Trying to spawn a creep which is too big.");
+        Logger.error("Trying to spawn a creep which is too big.");
         room.spawnQueue.shift();
     }
     if (req.cost <= room.detail.energyAvailable) {
@@ -81,7 +82,7 @@ export function tickSpawn(room: RoomInfo) {
             memory: req.memory,
             directions: dir ? [dir] : undefined
         });
-        console.log(`Spawning creep ${req.name}`);
+        Logger.silly(`Spawning creep ${req.name}`);
         delete room.state.refillFailTime;
         room.spawnQueue.shift();
         room.delay("checkRefill", 1);

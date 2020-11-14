@@ -1,5 +1,6 @@
 import { TERMINAL_STORE_ENERGY } from "config";
 import { RoomInfo } from "roomInfo";
+import Logger from "utils/Logger";
 
 const CENTER_STRUCTURES: { [type: string]: boolean } = {
     [STRUCTURE_STORAGE]: true,
@@ -21,7 +22,7 @@ export function runManager(creep: Creep, room: RoomInfo) {
     if (m.target) {
         let target = Game.getObjectById(m.target) as AnyStoreStructure;
         if (!CENTER_STRUCTURES[target.structureType]) {
-            console.log(`${room.name}: Manager error.`);
+            Logger.error(`${room.name}: Manager error.`);
             target = room.structures.storage;
         }
         for (const res in creep.store) {

@@ -1,4 +1,5 @@
 import { myRooms, registerCallback, RoomInfo } from "roomInfo";
+import Logger from "utils/Logger";
 
 class LabInfo {
     in: string[] = [];
@@ -110,7 +111,7 @@ function runLabs(room: RoomInfo) {
                         room.resource.lock[input1.mineralType] -= LAB_REACTION_AMOUNT;
                         room.state.labRemainAmount -= LAB_REACTION_AMOUNT;
                         if (room.state.labRemainAmount <= 0) {
-                            console.log(`${room.name} reaction done. `)
+                            Logger.info(`${room.name} reaction done. `)
                             room.state.labMode = "disabled";
                             room.delay("fetchLabWork", 1);
                             return;

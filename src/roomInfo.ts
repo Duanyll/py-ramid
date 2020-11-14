@@ -1,4 +1,5 @@
 import { designRoom, upgradeDesign } from "designer";
+import Logger from "utils/Logger";
 
 let CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
 export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
@@ -270,6 +271,6 @@ export function loadRooms() {
 global.logMoveRequest = (roomName: string) => {
     const room = myRooms[roomName];
     _.forIn(room.moveRequests, (info, id) => {
-        console.log(`${id}: ${JSON.stringify(info)}`);
+        Logger.report(`${id}: ${JSON.stringify(info)}`);
     })
 }

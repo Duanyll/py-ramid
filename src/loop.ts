@@ -10,22 +10,23 @@ import { tickObserver } from "structures/observer";
 import { runTerminals } from "structures/terminal";
 import "compounds";
 import { tickConstruction } from "construction";
+import Logger from "utils/Logger";
 
 function loadScript() {
     global.age = 0;
-    console.log(`Restarting PY-RAMID ...`);
-    console.log(`Current game tick is ${Game.time}`);
-    console.log(`Last load lasted for ${Memory.age} ticks.`);
+    Logger.prompt(`Restarting PY-RAMID ...`);
+    Logger.info(`Current game tick is ${Game.time}`);
+    Logger.info(`Last load lasted for ${Memory.age} ticks.`);
     Memory.roomsToAvoid = Memory.roomsToAvoid || {};
     Memory.labQueue = Memory.labQueue || [];
     loadRooms();
-    console.log(`It took ${Game.cpu.getUsed()} CPU to restart.`)
+    Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`)
 }
 
 if (Game) {
     ErrorMapper.wrap(loadScript)();
 } else {
-    console.log(`It seems that the code is running in wrong environment...`)
+    Logger.error(`It seems that the code is running in wrong environment...`)
 }
 
 function clearMemory() {
@@ -48,7 +49,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
     if (global.reloadRoomsNextTick) {
-        console.log("Reloading rooms ...");
+        Logger.info("Reloading rooms ...");
         loadRooms();
         delete global.reloadRoomsNextTick;
     }
@@ -70,6 +71,6 @@ export const runLoop = ErrorMapper.wrap(() => {
 
     if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
         Game.cpu.generatePixel();
-        console.log(`Used CPU in bucket to generate 1 pixel.`);
+        Logger.info(`Used CPU in bucket to generate 1 pixel.`);
     }
 });

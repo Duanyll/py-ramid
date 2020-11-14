@@ -1,4 +1,5 @@
 import { RoomInfo, registerCallback } from "roomInfo";
+import Logger from "utils/Logger";
 
 interface ConstructionRequest {
     pos: RoomPosition;
@@ -54,7 +55,7 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         }
     });
     if (nextStage) {
-        console.log(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
+        Logger.report(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
         room.design.currentStage++;
         onSRCLUpgrade(room);
         setConstruction(room);

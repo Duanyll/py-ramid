@@ -31,7 +31,10 @@ interface PowerCreepMemory {
     }
 }
 
+type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
+
 interface Memory {
+    logLevel: LogLevel;
     age: number;
     roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
@@ -144,6 +147,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        logLevel: (level: LogLevel) => LogLevel;
         logLabs: () => void;
         recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
         logMoveRequest: (roomName: string) => void;

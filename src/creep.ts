@@ -1,4 +1,5 @@
 import { myRooms, RoomInfo } from "roomInfo";
+import Logger from "utils/Logger";
 
 export let globalCreeps: { [role: string]: Creep[] } = {}
 
@@ -41,7 +42,7 @@ export function runCreep(creep: Creep, room?: RoomInfo) {
     if (creep.spawning) return;
     const role = creep.memory.role;
     if (!CreepRoleDrivers[role]) {
-        console.log(`Unknown creep role: ${role} for ${creep.name}`);
+        Logger.error(`Unknown creep role: ${role} for ${creep.name}`);
         return;
     }
     CreepRoleDrivers[role](creep, room);
