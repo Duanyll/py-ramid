@@ -144,6 +144,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        logLabs: () => void;
         recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
         logMoveRequest: (roomName: string) => void;
         bookForReserve: () => void;

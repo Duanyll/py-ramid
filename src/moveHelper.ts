@@ -1,6 +1,7 @@
 import { myRooms } from "roomInfo";
+import { objToPos } from "utils/utils";
 
-let creepMoveRequests: {
+let movingCreeps: {
     [name: string]: RoomPosition
 }
 
@@ -19,7 +20,7 @@ function getRoomCostMatrix(room: string): CostMatrix {
             ? myRooms[room].matrixCache.clone() : new PathFinder.CostMatrix();
         if (Game.rooms[room]) {
             Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
-                if (!c.my || !creepMoveRequests[c.name]) {
+                if (!c.my || !movingCreeps[c.name]) {
                     matrixWithCreepsCache[room].set(c.pos.x, c.pos.y, 0xff);
                 }
             });
@@ -29,12 +30,52 @@ function getRoomCostMatrix(room: string): CostMatrix {
 }
 
 export function prepareMoveHelper() {
-    creepMoveRequests = {}
+    movingCreeps = {}
     matrixWithCreepsCache = {};
+    creepPostionLock = {};
 }
 
 function isEqualPosition(a: { x: number, y: number, roomName: string }, b: { x: number, y: number, roomName: string }) {
     return a.x == b.x && a.y == b.y && a.roomName == b.roomName;
+}
+
+function canBypassCreep(creep: AnyCreep) {
+    if (!creep.my) return true;
+    // @ts-ignore
+    if (creep.memory.role == "manage") return false;
+    if (movingCreeps[creep.name]) return true;
+    if (creepPostionLock[creep.name]) return false;
+    return true;
+}
+
+function shouldDoBypassCreep(creep: AnyCreep) {
+    if (!creep.my) return false;
+    // @ts-ignore
+    if (creep.memory.role == "manage") return false;
+    if (movingCreeps[creep.name] || creepPostionLock[creep.name]) return false;
+    return true;
+}
+
+function getCreepFindPathOpts(creep: AnyCreep, target: RoomPosition): FindPathOpts {
+    const sameRoom = (creep.room.name == target.roomName);
+    const pathReuse = (creep.pos.inRangeTo(target, 5)) ? 5 : 15;
+
+    return {
+        // @ts-ignore
+        reusePath: pathReuse,
+        ignoreCreeps: true,
+        // @ts-ignore 7030
+        costCallback: (room: string, matrix: CostMatrix) => {
+            if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
+            if (Game.rooms[room]) {
+                Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
+                    if (!canBypassCreep(c)) {
+                        matrix.set(c.pos.x, c.pos.y, 0xff);
+                    }
+                });
+            }
+        }
+    };
 }
 
 const offsetsByDirection = {
@@ -60,16 +101,14 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
         if (tarpos) {
             let targetCreep = tarpos.lookFor(LOOK_CREEPS)[0] || tarpos.lookFor(LOOK_POWER_CREEPS)[0];
             if (targetCreep) {
-                if (targetCreep.my && (targetCreep.memory as CreepMemory).role != "manage") {
-                    if (!creepMoveRequests[targetCreep.name]) {
-                        // @ts-ignore 2345
-                        defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
-                    }
+                if (shouldDoBypassCreep(targetCreep)) {
+                    // @ts-ignore 2345
+                    defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
                 } else if (Game.time & 1 && this.memory._move && this.memory._move.dest) {
                     let dest = this.memory._move.dest;
                     let pos = new RoomPosition(dest.x, dest.y, dest.room);
                     if (pos.x != tarpos.x || pos.y != tarpos.y || pos.roomName != tarpos.roomName) {
-                        let path = this.pos.findPathTo(pos);
+                        let path = this.pos.findPathTo(pos, getCreepFindPathOpts(this, objToPos(dest)));
                         if (path.length) {
                             this.memory._move.time = Game.time;
                             this.memory._move.path = Room.serializePath(path);
@@ -90,43 +129,37 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
 Creep.prototype.move = moveBypass;
 // @ts-ignore 2322
 PowerCreep.prototype.move = function (this: PowerCreep, target: DirectionConstant | Creep) {
-    if (this.room) return ERR_BUSY;
+    if (!this.room) return ERR_BUSY;
     return moveBypass.call(this, target);
 }
 
 export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPosition }) {
     if (!(pos instanceof RoomPosition)) pos = pos.pos;
-    creepMoveRequests[creep.name] = pos;
+    movingCreeps[creep.name] = pos;
 }
 
-const highPosPriorityRoles: { [role in CreepRole]?: boolean } = {
-    manage: true,
-    harvest: true,
-    upgrade: true
+let creepPostionLock: { [name: string]: boolean } = {};
+function wrapPositionLockFunc(funcName: keyof Creep["prototype"]) {
+    const func = Creep.prototype[funcName] as (this: Creep, ...param: any) => ScreepsReturnCode;
+    // @ts-expect-error 2540
+    Creep.prototype[funcName] = function (this: Creep, ...param) {
+        let res = func.call(this, ...param);
+        if (res == OK) {
+            creepPostionLock[this.name] = true;
+        }
+        return res;
+    }
 }
+wrapPositionLockFunc("build");
+wrapPositionLockFunc("repair");
+wrapPositionLockFunc("upgradeController");
+wrapPositionLockFunc("harvest");
+wrapPositionLockFunc("reserveController")
 
 export function tickMoveHelper() {
-    _.forIn(creepMoveRequests, (pos, name) => {
+    _.forIn(movingCreeps, (pos, name) => {
         const creep = Game.creeps[name];
-
-        const sameRoom = (creep.room.name == pos.roomName);
-        const pathReuse = (creep.pos.inRangeTo(pos, 5)) ? 5 : 15;
-
-        creep.moveTo(pos, {
-            reusePath: pathReuse,
-            ignoreCreeps: true,
-            // @ts-ignore 7030
-            costCallback: (room: string, matrix: CostMatrix) => {
-                if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
-                if (Game.rooms[room]) {
-                    Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
-                        if (c.my && (highPosPriorityRoles[creep.memory.role] && !creepMoveRequests[c.id])) {
-                            matrix.set(c.pos.x, c.pos.y, 0xff);
-                        }
-                    });
-                }
-            }
-        });
+        creep.moveTo(pos, getCreepFindPathOpts(creep, pos));
     })
 }
 

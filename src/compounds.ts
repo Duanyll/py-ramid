@@ -70,7 +70,7 @@ global.reaction = (roomName: string, mode: "disabled" | "boost" | "reaction", co
 }
 
 global.produceT3 = (a: "Z" | "K" | "U" | "L" | "G", b: "O" | "H", amount: number) => {
-    amount = _.ceil(amount / 15) * 15;
+    amount = _.ceil(amount / 5) * 5;
     let t1 = [a, b];
     let t2 = [a + b, "OH"] as ResourceConstant[];
     let t3 = ["X", a + ((b == "O") ? "HO2" : "H2O")] as ResourceConstant[];
@@ -79,9 +79,7 @@ global.produceT3 = (a: "Z" | "K" | "U" | "L" | "G", b: "O" | "H", amount: number
         { recipe: t1, amount },
         { recipe: ['O', 'H'], amount },
         { recipe: t2, amount },
-        { recipe: t3, amount: _.floor(amount / 3) },
-        { recipe: t3, amount: _.floor(amount / 3) },
-        { recipe: t3, amount: _.floor(amount / 3) }
+        { recipe: t3, amount }
     );
     for (const room in myRooms) myRooms[room].delay("fetchLabWork", 1);
 }
@@ -101,4 +99,22 @@ global.cancelAllLabs = () => {
     Memory.labQueue = [];
 }
 
-
+global.logLabs = () => {
+    for (const name in myRooms) {
+        let room = myRooms[name];
+        const content = room.state.labContent;
+        switch (room.state.labMode) {
+            case "disabled":
+                console.log(`${name}: Empty`);
+                break;
+            case "reaction":
+                // @ts-ignore
+                let product: ResourceConstant = REACTIONS[content[0]][content[1]];
+                console.log(`${name}: ${content[0]} + ${content[1]} = ${product} * ${room.state.labRemainAmount}`);
+                break;
+            case "boost":
+                console.log(`${name}: ${content.toString()}`);
+                break;
+        }
+    }
+}

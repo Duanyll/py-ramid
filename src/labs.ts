@@ -135,10 +135,12 @@ function fetchLabWork(room: RoomInfo) {
         room.delay("fetchLabWork", 1000);
         return;
     }
-    room.state.labContent?.forEach(r => room.resource.reserve[r] = 0);
     let task = Memory.labQueue.shift();
     if (task) {
-        global.reaction(room.name, "reaction", task.recipe, task.amount);
+        let amount = (room.structRcl == 8) ? task.amount : Math.min(task.amount, 10000);
+        task.amount -= amount;
+        if (task.amount > 0) Memory.labQueue.unshift(task);
+        global.reaction(room.name, "reaction", task.recipe, amount);
     } else {
         global.reaction(room.name, "disabled");
     }
