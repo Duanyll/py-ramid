@@ -1,4 +1,4 @@
-import { RoomInfo, registerCallback } from "roomInfo";
+import { RoomInfo } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
 import { goRefill } from "roles/carrier";
 import { goUpgrade } from "roles/upgrader";

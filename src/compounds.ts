@@ -1,5 +1,6 @@
 import { ROOM_RESERVE_T3 } from "config";
 import { myRooms } from "roomInfo";
+import { globalDelay } from "scheduler";
 import Logger from "utils/Logger";
 
 global.resetResource = () => {
@@ -34,6 +35,7 @@ global.bookForReserve = (dryRun?: boolean) => {
             let roomRequest = room.countResource(type as ResourceConstant) - amount - (room.resource.lock[type] || 0);
             if (roomRequest < 0 && !dryRun) {
                 room.resource.import[type] = (room.resource.import[type] - roomRequest) || -roomRequest;
+                globalDelay("runTerminal", 1);
             }
             current[type] -= roomRequest;
         })

@@ -1,20 +1,11 @@
 import { designRoom, upgradeDesign } from "designer";
+import { globalDelay } from "scheduler";
 import Logger from "utils/Logger";
 
-let CallbackStore: { [type: string]: (room: RoomInfo, ...param: any) => void };
-export function registerCallback(type: CallbackType, func: (room: RoomInfo, ...param: any) => void) {
+let roomRoutineStore: { [type in RoomRoutine]?: (room: RoomInfo, ...param: any) => void } = {};
+export function registerRoomRoutine(type: RoomRoutine, func: (room: RoomInfo, ...param: any) => void) {
     // console.log(`Registering callback ${type}`)
-    if (!CallbackStore) CallbackStore = {};
-    CallbackStore[type] = func;
-}
-
-export function runCallback(c: RoomCallback, room: RoomInfo) {
-    // console.log(`Running callback ${c.type}.`)
-    if (c.param) {
-        CallbackStore[c.type](room, ...c.param);
-    } else {
-        CallbackStore[c.type](room);
-    }
+    roomRoutineStore[type] = func;
 }
 
 class RoomStructures {
@@ -229,11 +220,11 @@ export class RoomInfo {
 
     public tickTasks(): void {
         _.forIn(this.tasks, (next, name) => {
-            if (next == Game.time) runCallback({ type: name as CallbackType }, this);
+            if (next == Game.time) roomRoutineStore[name as RoomRoutine](this);
         })
     }
 
-    public delay(type: CallbackType, time: number) {
+    public delay(type: RoomRoutine, time: number) {
         if (!this.tasks[type] || this.tasks[type] <= Game.time) {
             this.tasks[type] = Game.time + time;
         } else {
@@ -246,7 +237,10 @@ export class RoomInfo {
         if (!this.resource.produce[type]) {
             let required = (this.resource.reserve[type] ?? 0) + (this.resource.lock[type] ?? 0)
                 - this.countResource(type as ResourceConstant);
-            if (required > 0) this.resource.import[type] = required;
+            if (required > 0) {
+                this.resource.import[type] = required;
+                globalDelay("runTerminal", 1);
+            }
         }
     }
 

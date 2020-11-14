@@ -1,6 +1,6 @@
 import { WALL_BUILD_STEP } from "config";
 import { pushConstructQueue } from "construction";
-import { myRooms, registerCallback, RoomInfo } from "roomInfo";
+import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
 
 function fetchWallTask(room: RoomInfo) {
     if (room.wallBuildQueue.length > 0) {
@@ -45,7 +45,7 @@ function fetchWallTask(room: RoomInfo) {
 
     room.delay("fetchWall", 5000);
 }
-registerCallback("fetchWall", fetchWallTask);
+registerRoomRoutine("fetchWall", fetchWallTask);
 
 global.recordWallDesign = (roomName: string, x1 = 0, y1 = 0, x2 = 49, y2 = 49) => {
     let room = myRooms[roomName];

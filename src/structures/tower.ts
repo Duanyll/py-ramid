@@ -1,4 +1,4 @@
-import { RoomInfo, registerCallback } from "roomInfo";
+import { RoomInfo, registerRoomRoutine } from "roomInfo";
 import { PLAYER_WHITELIST } from "config";
 
 function checkRoads(room: RoomInfo) {
@@ -12,7 +12,7 @@ function checkRoads(room: RoomInfo) {
         roads.forEach((r) => room.roadToRepair.push(r.id));
     }
 }
-registerCallback("checkRoads", checkRoads)
+registerRoomRoutine("checkRoads", checkRoads)
 
 function getTowerAttackHits(range: number) {
     if (range <= 5) return 600;

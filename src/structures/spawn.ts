@@ -1,4 +1,4 @@
-import { RoomInfo, registerCallback, myRooms } from "roomInfo";
+import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody } from "creepCount";
 import Logger from "utils/Logger";
 
@@ -117,4 +117,4 @@ function checkRefillState(room: RoomInfo) {
 
     room.delay("checkRefill", 200);
 }
-registerCallback("checkRefill", checkRefillState);
+registerRoomRoutine("checkRefill", checkRefillState);

@@ -1,4 +1,4 @@
-import { registerCallback, RoomInfo } from "roomInfo";
+import { registerRoomRoutine, RoomInfo } from "roomInfo";
 import { tickSpawn } from "structures/spawn";
 import { tickTower } from "structures/tower";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY, TERMINAL_MINERAL } from "config";
@@ -26,7 +26,7 @@ function updateRoomCreepCount(room: RoomInfo) {
     }
     room.delay("updateCreepCount", 100);
 }
-registerCallback("updateCreepCount", updateRoomCreepCount);
+registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
 
 export function tickNormalRoom(room: RoomInfo) {
     room.loadStructures();

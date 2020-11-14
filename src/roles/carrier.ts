@@ -1,4 +1,4 @@
-import { RoomInfo, runCallback } from "roomInfo";
+import { RoomInfo } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
 
 function selectRefillTarget(creep: Creep, room: RoomInfo) {

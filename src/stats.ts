@@ -1,6 +1,7 @@
 import { STATS_SEGMENT, STATS_SUMMARY_TIME } from "config";
 import { onSegment } from "rawMemory";
 import { myRooms, RoomInfo } from "roomInfo";
+import { globalDelay, registerGlobalRoutine } from "scheduler";
 
 interface RoomStats {
     rcl: number,
@@ -22,7 +23,8 @@ interface Stats {
         current: number,
         bucket: number
     },
-    rooms: { [name: string]: RoomStats }
+    rooms: { [name: string]: RoomStats },
+    time: number
 }
 
 function summaryRoom(room: RoomInfo): RoomStats {
@@ -37,7 +39,7 @@ function summaryRoom(room: RoomInfo): RoomStats {
 }
 
 export function summaryStats() {
-    if (Game.time % STATS_SUMMARY_TIME == 0) onSegment(STATS_SEGMENT, () => {
+    onSegment(STATS_SEGMENT, () => {
         let obj: Stats = {
             gcl: {
                 level: Game.gcl.level,
@@ -49,8 +51,11 @@ export function summaryStats() {
                 current: Game.cpu.getUsed(),
                 bucket: Game.cpu.bucket
             },
-            rooms: _.mapValues(myRooms, summaryRoom)
+            rooms: _.mapValues(myRooms, summaryRoom),
+            time: Game.time
         }
         RawMemory.segments[STATS_SEGMENT] = JSON.stringify(obj);
     });
+    globalDelay("summatyStats", STATS_SUMMARY_TIME);
 }
+registerGlobalRoutine("summatyStats", summaryStats);

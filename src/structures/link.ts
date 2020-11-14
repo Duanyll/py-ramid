@@ -1,4 +1,4 @@
-import { registerCallback, RoomInfo } from "roomInfo";
+import { registerRoomRoutine, RoomInfo } from "roomInfo";
 
 function runLinks(room: RoomInfo) {
     if (room.structRcl < 5) return;
@@ -20,4 +20,4 @@ function runLinks(room: RoomInfo) {
         }
     });
 }
-registerCallback("runLinks", runLinks)
+registerRoomRoutine("runLinks", runLinks)

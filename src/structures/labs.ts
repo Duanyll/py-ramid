@@ -1,4 +1,4 @@
-import { myRooms, registerCallback, RoomInfo } from "roomInfo";
+import { registerRoomRoutine, RoomInfo } from "roomInfo";
 import Logger from "utils/Logger";
 
 class LabInfo {
@@ -125,7 +125,7 @@ function runLabs(room: RoomInfo) {
             break;
     }
 }
-registerCallback("runLabs", runLabs);
+registerRoomRoutine("runLabs", runLabs);
 
 function fetchLabWork(room: RoomInfo) {
     if (room.structRcl < 7 || room.state.labMode == "boost") {
@@ -146,4 +146,4 @@ function fetchLabWork(room: RoomInfo) {
         global.reaction(room.name, "disabled");
     }
 }
-registerCallback("fetchLabWork", fetchLabWork);
+registerRoomRoutine("fetchLabWork", fetchLabWork);

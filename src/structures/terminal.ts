@@ -1,5 +1,5 @@
-import { ROOM_RESERVE_T3 } from "config";
-import { myRooms, RoomInfo } from "roomInfo";
+import { myRooms } from "roomInfo";
+import { globalDelay, registerGlobalRoutine } from "scheduler";
 import Logger from "utils/Logger";
 
 export function runTerminals() {
@@ -20,9 +20,11 @@ export function runTerminals() {
         }
     })
 
+    let continueToRun = false;
     _.forIn(myRooms, (room) => {
         if (!room.structures.terminal) return;
         for (const res in room.resource.import) {
+            continueToRun = true;
             if (!sourceTerminals[res]) continue;
             for (const source of sourceTerminals[res]) {
                 const amount = room.resource.import[res];
@@ -40,5 +42,7 @@ export function runTerminals() {
                 }
             }
         }
-    })
+    });
+    if (continueToRun) globalDelay("runTerminal", TERMINAL_COOLDOWN);
 }
+registerGlobalRoutine("runTerminal", runTerminals);

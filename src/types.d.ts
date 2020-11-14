@@ -42,16 +42,15 @@ interface Memory {
         recipe: ResourceConstant[],
         amount: number
     }[],
+    routine: { [type in GlobalRoutine]?: number };
 }
 
-type CallbackType = "checkCreepHealth" | "summatyStats" |
+type RoomRoutine = "checkCreepHealth" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall";
-interface RoomCallback {
-    type: CallbackType;
-    param?: any[];
-}
+
+type GlobalRoutine = "runTerminal" | "summatyStats";
 
 type BodyPartDescription = { type: BodyPartConstant, count: number }[];
 
@@ -128,7 +127,7 @@ interface RoomResource {
 
 interface RoomMemory {
     tasks: {
-        [name: string]: number;
+        [name in RoomRoutine]?: number;
     }
     spawnQueue: SpawnRequest[];
     design: RoomDesign;

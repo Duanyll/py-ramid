@@ -5,12 +5,13 @@ import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { loadCreeps } from "creep";
 import { tickSegmentRequest } from "rawMemory";
-import { summaryStats } from "stats";
 import { tickObserver } from "structures/observer";
-import { runTerminals } from "structures/terminal";
 import "compounds";
+import "structures/terminal";
+import "stats"
 import { tickConstruction } from "construction";
 import Logger from "utils/Logger";
+import { globalDelay, tickGlobalRoutine } from "scheduler";
 
 function loadScript() {
     global.age = 0;
@@ -20,7 +21,10 @@ function loadScript() {
     Memory.roomsToAvoid = Memory.roomsToAvoid || {};
     Memory.labQueue = Memory.labQueue || [];
     loadRooms();
-    Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`)
+    Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
+
+    globalDelay("runTerminal", 1);
+    globalDelay("summatyStats", 1);
 }
 
 if (Game) {
@@ -63,8 +67,8 @@ export const runLoop = ErrorMapper.wrap(() => {
     tickObserver();
     tickMoveHelper();
     tickConstruction();
-    if (Game.time % 20 == 0) runTerminals();
-    summaryStats();
+
+    tickGlobalRoutine();
 
     tickSegmentRequest();
     clearMemory();

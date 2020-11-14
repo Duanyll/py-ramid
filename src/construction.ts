@@ -1,4 +1,4 @@
-import { RoomInfo, registerCallback } from "roomInfo";
+import { RoomInfo, registerRoomRoutine } from "roomInfo";
 import Logger from "utils/Logger";
 
 interface ConstructionRequest {
@@ -63,8 +63,8 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         room.delay("setConstruction", 1000);
     }
 }
-registerCallback("setConstruction", setConstruction);
-registerCallback("fullCheckConstruction", (room) => {
+registerRoomRoutine("setConstruction", setConstruction);
+registerRoomRoutine("fullCheckConstruction", (room) => {
     setConstruction(room, true);
     room.delay("fullCheckConstruction", 5000);
 })
