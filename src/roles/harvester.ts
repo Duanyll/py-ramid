@@ -1,6 +1,6 @@
 import { registerCallback, RoomInfo } from "roomInfo";
 import { moveCreepTo, moveCreepToRoom } from "moveHelper";
-import { goRefill } from "roleCarrier";
+import { goRefill } from "roles/carrier";
 import { objToPos } from "utils/utils";
 import { USER_NAME } from "config";
 import { registerCreepRole } from "creep";

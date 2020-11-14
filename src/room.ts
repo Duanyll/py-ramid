@@ -1,19 +1,13 @@
 import { registerCallback, RoomInfo } from "roomInfo";
-import { tickSpawn } from "spawn";
-import { tickTower } from "tower";
-import { runManager } from "manager";
+import { tickSpawn } from "structures/spawn";
+import { tickTower } from "structures/tower";
 import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY, TERMINAL_MINERAL } from "config";
 import { creepRolesForLevel, minerBody } from "creepCount";
-import { registerCreepRole, runCreep } from "creep";
-import { runBuilder } from "roleBuilder";
-import { runCarrier, runRefiller } from "roleCarrier";
-import { runHarvester, runRemoteBuilder, runRemoteCarrier, runRemoteHarvester, runRemoteReserver } from "roleHarvester";
-import { runUpgrader } from "roleUpgrader";
-import { runEmergencyWorker, runWorker } from "roleWorker";
-import "labs"
-import "link"
+import { runCreep } from "creep";
+import "structures/labs"
+import "structures/link"
 import "defense"
-import { runMiner } from "roleMiner";
+import "roles"
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
@@ -33,21 +27,6 @@ function updateRoomCreepCount(room: RoomInfo) {
     room.delay("updateCreepCount", 100);
 }
 registerCallback("updateCreepCount", updateRoomCreepCount);
-
-registerCreepRole({
-    build: runBuilder,
-    carry: runCarrier,
-    harvest: runHarvester,
-    rhHarv: runRemoteHarvester,
-    rhCarry: runRemoteCarrier,
-    rhReserve: runRemoteReserver,
-    rhBuild: runRemoteBuilder,
-    upgrade: runUpgrader,
-    work: runWorker,
-    emergency: runEmergencyWorker,
-    manage: runManager,
-    mine: runMiner
-});
 
 export function tickNormalRoom(room: RoomInfo) {
     room.loadStructures();

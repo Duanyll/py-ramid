@@ -1,5 +1,3 @@
-// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
-
 import { ErrorMapper } from "utils/ErrorMapper";
 import { myRooms, loadRooms } from "roomInfo";
 import { tickNormalRoom } from "room";
@@ -8,8 +6,8 @@ import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { loadCreeps } from "creep";
 import { tickSegmentRequest } from "rawMemory";
 import { summaryStats } from "stats";
-import { tickObserver } from "observer";
-import { runTerminals } from "terminal";
+import { tickObserver } from "structures/observer";
+import { runTerminals } from "structures/terminal";
 import "compounds";
 import { tickConstruction } from "construction";
 
@@ -44,6 +42,7 @@ function clearMemory() {
     }
 }
 
+// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;

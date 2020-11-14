@@ -1,7 +1,7 @@
 import { RoomInfo, registerCallback } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
-import { goRefill } from "roleCarrier";
-import { goUpgrade } from "roleUpgrader";
+import { goRefill } from "roles/carrier";
+import { goUpgrade } from "roles/upgrader";
 import { WALL_BUILD_STEP } from "config";
 
 interface BuilderMemory extends CreepMemory {

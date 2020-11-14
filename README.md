@@ -8,6 +8,8 @@ Based on [screepers/screeps-typescript-starter](https://github.com/screepers/scr
 
 ## Design 设计
 
+整体设计尽量简单化，重视缓存。
+
 ### 资源调度
 
 以 terminal 为中心，将 storage 的作用视作存储 terminal 放不下的资源。

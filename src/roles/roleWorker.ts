@@ -1,8 +1,8 @@
 import { RoomInfo } from "roomInfo";
 import { moveCreepTo, moveCreepToRoom } from "moveHelper";
-import { goRefill } from "roleCarrier";
-import { goBuild } from "roleBuilder";
-import { goUpgrade } from "roleUpgrader";
+import { goRefill } from "roles/carrier";
+import { goBuild } from "roles/builder";
+import { goUpgrade } from "roles/upgrader";
 
 interface WorkerMemory extends CreepMemory {
     status: "pickup" | "refill" | "build"
