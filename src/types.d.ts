@@ -48,7 +48,7 @@ interface Memory {
 type RoomRoutine = "checkCreepHealth" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork" | "fetchWall";
+    "fetchLabWork" | "fetchWall" | "runPowerSpawn";
 
 type GlobalRoutine = "runTerminal" | "summatyStats";
 
@@ -76,7 +76,8 @@ interface RoomState {
     labMode: "disabled" | "boost" | "reaction",
     labContent: ResourceConstant[],
     labRemainAmount: number,
-    chargeNuker: boolean
+    chargeNuker: boolean,
+    powerToProcess: number
 }
 
 interface RoomDesign {

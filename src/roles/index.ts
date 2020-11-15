@@ -4,7 +4,7 @@ import { runCarrier } from "./carrier";
 import { runHarvester, runRemoteHarvester, runRemoteCarrier, runRemoteReserver, runRemoteBuilder } from "./harvester";
 import { runManager } from "./manager";
 import { runMiner } from "./miner";
-import { runWorker, runEmergencyWorker } from "./roleWorker";
+import { runWorker, runEmergencyWorker } from "./worker";
 import { runUpgrader } from "./upgrader";
 
 registerCreepRole({
