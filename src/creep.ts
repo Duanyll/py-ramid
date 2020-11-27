@@ -1,7 +1,7 @@
 import { myRooms, RoomInfo } from "roomInfo";
 import Logger from "utils/Logger";
 
-export let globalCreeps: { [role: string]: Creep[] } = {}
+export let globalCreeps: { [role in CreepRole]?: Creep[] } = {}
 
 export function loadCreeps() {
     for (const name in myRooms) {

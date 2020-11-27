@@ -1,6 +1,7 @@
 import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody } from "creepCount";
 import Logger from "utils/Logger";
+import { registerTask } from "scheduler";
 
 function getCreepSpawnTime(body: BodyPartDescription) {
     return _.sumBy(body, (p) => p.count) * 3;
@@ -118,3 +119,8 @@ function checkRefillState(room: RoomInfo) {
     room.delay("checkRefill", 200);
 }
 registerRoomRoutine("checkRefill", checkRefillState);
+
+function spawnOnce(param: { room: string, info: SpawnRequest }) {
+    myRooms[param.room].spawnQueue.push(param.info);
+}
+registerTask("spawnCreep", spawnOnce);

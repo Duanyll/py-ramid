@@ -1,3 +1,5 @@
+import { globalDelay, registerGlobalRoutine } from "scheduler";
+
 let segmentRequests: { [setment: number]: (() => void)[] } = {};
 
 export function tickSegmentRequest() {
@@ -16,10 +18,13 @@ export function tickSegmentRequest() {
         if (request.length >= 10) break;
     }
     RawMemory.setActiveSegments(request);
+    if (request.length > 0) globalDelay("rawMemory", 1);
 }
+registerGlobalRoutine("rawMemory", tickSegmentRequest);
 
 export function onSegment(segment: number, callback: () => void) {
     segmentRequests[segment] = segmentRequests[segment] || [];
     segmentRequests[segment].push(callback);
+    globalDelay("rawMemory", 1);
 }
 

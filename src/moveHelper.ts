@@ -1,5 +1,5 @@
 import { myRooms } from "roomInfo";
-import { objToPos } from "utils/utils";
+import { findRouteCallback, objToPos } from "utils/utils";
 
 let movingCreeps: {
     [name: string]: RoomPosition
@@ -40,7 +40,7 @@ function isEqualPosition(a: { x: number, y: number, roomName: string }, b: { x: 
 }
 
 function canBypassCreep(creep: AnyCreep) {
-    if (!creep.my) return true;
+    if (!creep.my) return false;
     // @ts-ignore
     if (creep.memory.role == "manage") return false;
     if (movingCreeps[creep.name]) return true;
@@ -171,21 +171,9 @@ export function moveCreepToRoom(creep: Creep, room: string) {
     let m = creep.memory as ExitingCreepMemory;
     if (!m._exitInfo || m._exitInfo.target != room || m._exitInfo.room != creep.room.name) {
         let route = Game.map.findRoute(creep.room, room, {
-            routeCallback: (roomName) => {
-                if (Memory.roomsToAvoid[roomName]) return Infinity;
-                let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-                let isHighway = (Number(parsed[1]) % 10 === 0) ||
-                    (Number(parsed[2]) % 10 === 0);
-                let isMyRoom = Game.rooms[roomName] &&
-                    Game.rooms[roomName].controller &&
-                    Game.rooms[roomName].controller.my;
-                if (isHighway || isMyRoom) {
-                    return 1;
-                } else {
-                    return 1.5;
-                }
-            }
-        }) as { exit: ExitConstant, room: string }[];
+            routeCallback: findRouteCallback
+        });
+        if (route == ERR_NO_PATH) return;
         const dir = route[0].exit;
         let exit = creep.pos.findClosestByPath(dir);
         m._exitInfo = { target: room, room: creep.room.name, x: exit.x, y: exit.y };

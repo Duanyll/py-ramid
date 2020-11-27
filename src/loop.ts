@@ -4,14 +4,18 @@ import { tickNormalRoom } from "room";
 import { tickExpansion } from "expansion";
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { loadCreeps } from "creep";
-import { tickSegmentRequest } from "rawMemory";
-import { tickObserver } from "structures/observer";
 import "compounds";
 import "structures/terminal";
 import "stats"
+import "rawMemory"
+import "structures/observer"
+import "structures/nuker";
 import { tickConstruction } from "construction";
 import Logger from "utils/Logger";
-import { globalDelay, tickGlobalRoutine } from "scheduler";
+import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler";
+
+import "war";
+import { tickWar } from "war";
 
 function loadScript() {
     global.age = 0;
@@ -21,6 +25,7 @@ function loadScript() {
     Memory.roomsToAvoid = Memory.roomsToAvoid || {};
     Memory.labQueue = Memory.labQueue || [];
     loadRooms();
+    initTasks();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
 
     globalDelay("runTerminal", 1);
@@ -64,13 +69,13 @@ export const runLoop = ErrorMapper.wrap(() => {
         ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]))();
     }
     tickExpansion();
-    tickObserver();
+    tickWar();
     tickMoveHelper();
     tickConstruction();
 
     tickGlobalRoutine();
+    tickTasks();
 
-    tickSegmentRequest();
     clearMemory();
 
     if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {

@@ -28,7 +28,7 @@ function sendDismantler(roomName: string, target: string) {
         name: `${target}-creep`, memory: {
             role: "dismantle", target: target
         },
-        body: [{ type: WORK, count: 20 }, { type: MOVE, count: 20 }]
+        body: [{ type: WORK, count: 25 }, { type: MOVE, count: 25 }]
     });
 }
 
@@ -42,7 +42,7 @@ function sendAttaker(roomName: string, target: string) {
         name: `${target}-creep`, memory: {
             role: "attack", target: target
         },
-        body: [{ type: ATTACK, count: 20 }, { type: MOVE, count: 20 }]
+        body: [{ type: ATTACK, count: 25 }, { type: MOVE, count: 25 }]
     });
 }
 

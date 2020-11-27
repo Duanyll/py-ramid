@@ -8,7 +8,7 @@ import "structures/labs"
 import "structures/link"
 import "defense"
 import "roles"
-import "power"
+import "structures/powerSpawn"
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);

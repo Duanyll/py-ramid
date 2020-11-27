@@ -153,7 +153,8 @@ export function runManager(creep: Creep, room: RoomInfo) {
                     res.from.store.getUsedCapacity(res.type),
                     // @ts-expect-error
                     res.to.store.getFreeCapacity(res.type),
-                    creep.store.getCapacity()
+                    creep.store.getCapacity(),
+                    res.amount || Infinity
                 );
                 creep.withdraw(res.from, res.type, amount);
                 m.target = res.to.id;

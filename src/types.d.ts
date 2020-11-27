@@ -9,7 +9,7 @@ declare namespace _ {
 // 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
-    | "claim" | "emergency" | "dismantle" | "attack" | "scout";
+    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry";
 
 interface CreepMemory {
     _move?: {
@@ -36,13 +36,37 @@ type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "s
 interface Memory {
     logLevel: LogLevel;
     age: number;
-    roomsToClaim: { from: string, to: string }[];
+    // roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
     labQueue: {
         recipe: ResourceConstant[],
         amount: number
     }[],
     routine: { [type in GlobalRoutine]?: number };
+    tasks: {
+        [time: number]: { type: GlobalTask, param: any }[]
+    },
+    mining: {
+        power: {
+            /**
+             * 房间正在采集的 PowerBank 的 id
+             */
+            from: { [room: string]: string };
+            targets: string[];
+            info: {
+                [id: string]: {
+                    discoverTime: number,
+                    status: "dropped" | "waiting" | "spawnRequested" | "harvested";
+                    pos: { room: string, x: number, y: number },
+                }
+            }
+        },
+        deposit: {
+            from: { [room: string]: string };
+            targets: string[];
+            info: {}
+        }
+    }
 }
 
 type RoomRoutine = "checkCreepHealth" |
@@ -50,7 +74,9 @@ type RoomRoutine = "checkCreepHealth" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn";
 
-type GlobalRoutine = "runTerminal" | "summatyStats";
+type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" | "scanPowerBank";
+
+type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot";
 
 type BodyPartDescription = { type: BodyPartConstant, count: number }[];
 
@@ -147,6 +173,8 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        loot: (flag: string, home: string, creepRun: number) => void;
+        nuke: (delay: number, from: string, room: string, x: number, y: number) => void;
         logLevel: (level: LogLevel) => LogLevel;
         logLabs: () => void;
         recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
