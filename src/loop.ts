@@ -23,6 +23,7 @@ function loadScript() {
     Logger.info(`Current game tick is ${Game.time}`);
     Logger.info(`Last load lasted for ${Memory.age} ticks.`);
     Memory.roomsToAvoid = Memory.roomsToAvoid || {};
+    Memory.roomCost = Memory.roomCost || {};
     Memory.labQueue = Memory.labQueue || [];
     loadRooms();
     initTasks();

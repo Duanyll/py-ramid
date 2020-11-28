@@ -32,10 +32,8 @@ export class Logger {
         logConsole("prompt", message);
     }
 
-    static assert(expr: boolean, message: string) {
-        if (!expr) {
-            logConsole("assert", "Assertion Fail: " + message);
-        }
+    static assert(message: string) {
+        logConsole("assert", "Assertion Fail: " + message);
     }
 
     static error(message: string) {

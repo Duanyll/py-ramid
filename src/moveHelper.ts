@@ -1,4 +1,5 @@
 import { myRooms } from "roomInfo";
+import Logger from "utils/Logger";
 import { findRouteCallback, objToPos } from "utils/utils";
 
 let movingCreeps: {
@@ -164,19 +165,43 @@ export function tickMoveHelper() {
 }
 
 interface ExitingCreepMemory extends CreepMemory {
-    _exitInfo: { target: string, x: number, y: number, room: string }
+    _exitInfo: {
+        target: string,
+        x?: number,
+        y?: number,
+        room?: string,
+        route: { room: string, exit: ExitConstant }[] | ERR_NO_PATH
+    }
 }
 
 export function moveCreepToRoom(creep: Creep, room: string) {
+    if (creep.room.name == room) {
+        Logger.assert(`${creep.name} - Don't use moveCreepToRoom in the same room`);
+        return;
+    }
     let m = creep.memory as ExitingCreepMemory;
-    if (!m._exitInfo || m._exitInfo.target != room || m._exitInfo.room != creep.room.name) {
+    if (!m._exitInfo || m._exitInfo.target != room || !m._exitInfo.route) {
         let route = Game.map.findRoute(creep.room, room, {
             routeCallback: findRouteCallback
         });
-        if (route == ERR_NO_PATH) return;
-        const dir = route[0].exit;
-        let exit = creep.pos.findClosestByPath(dir);
-        m._exitInfo = { target: room, room: creep.room.name, x: exit.x, y: exit.y };
+        if (route == ERR_NO_PATH) {
+            Logger.error(`${creep.name}: No path to ${room}!`)
+        }
+        m._exitInfo = { target: room, route }
+    }
+    if (m._exitInfo.room != creep.room.name) {
+        if (m._exitInfo.route == ERR_NO_PATH) return;
+        let exit = m._exitInfo.route.shift();
+        let exits = Game.map.describeExits(creep.room.name);
+        if (!exit || exit.room != exits[exit.exit]) {
+            delete m._exitInfo;
+            moveCreepToRoom(creep, room);
+            return;
+        }
+        let exitPos = creep.pos.findClosestByPath(exit.exit);
+        m._exitInfo.room = creep.room.name;
+        m._exitInfo.x = exitPos.x;
+        m._exitInfo.y = exitPos.y;
     }
     moveCreepTo(creep, new RoomPosition(m._exitInfo.x, m._exitInfo.y, creep.room.name));
 }

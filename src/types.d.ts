@@ -38,6 +38,7 @@ interface Memory {
     age: number;
     // roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
+    roomCost: { [name: string]: number };
     labQueue: {
         recipe: ResourceConstant[],
         amount: number
@@ -185,7 +186,7 @@ declare namespace NodeJS {
         produceG: (amount: number) => void;
         produceT3: (a: "U" | "L" | "K" | "Z" | "G", b: "O" | "H", amount: number) => void;
         mining: (roomName: string, enable: boolean) => void;
-        myRooms: { [name: string]: import("d:/source/py-ramid/src/roomInfo").RoomInfo; };
+        myRooms: { [name: string]: import("roomInfo").RoomInfo; };
         reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
         sendClaimer: (roomName: string, target: string) => void;

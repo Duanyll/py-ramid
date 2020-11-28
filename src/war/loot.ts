@@ -64,8 +64,8 @@ export function runLootCarrier(creep: Creep) {
             for (const type in creep.store) {
                 creep.transfer(terminal, type as ResourceConstant);
             }
-            m.remainRun--;
             if (m.remainRun > 0) {
+                m.remainRun--;
                 m.status = "go";
             } else {
                 creep.suicide();
