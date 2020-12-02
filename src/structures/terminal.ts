@@ -10,7 +10,7 @@ export function runTerminals() {
         if (!terminal) return;
         for (const res in terminal.store) {
             let amount = Math.min(
-                room.countResource(res as ResourceConstant) - (room.resource.reserve[res] ?? 0) - (room.resource.lock[res] ?? 0),
+                room.countResource(res as ResourceConstant) - (room.resource.reserve[res] || 0) - (room.resource.lock[res] || 0),
                 terminal.store.getUsedCapacity(res as ResourceConstant)
             );
             if (amount > 0) {
@@ -24,6 +24,7 @@ export function runTerminals() {
     _.forIn(myRooms, (room) => {
         if (!room.structures.terminal) return;
         for (const res in room.resource.import) {
+            if (room.resource.import[res] <= 0) continue;
             continueToRun = true;
             if (!sourceTerminals[res]) continue;
             for (const source of sourceTerminals[res]) {

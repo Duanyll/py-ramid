@@ -1,10 +1,11 @@
-import { RoomInfo, registerRoomRoutine } from "roomInfo";
+import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
 import { PLAYER_WHITELIST } from "config";
+import { registerTask, schedule } from "scheduler";
 
 function checkRoads(room: RoomInfo) {
     if (room.roadToRepair.length > 0) return;
     let roads = room.detail.find(FIND_STRUCTURES, {
-        filter: (s) => (s.structureType == "road" || s.structureType == "container" ) && s.hitsMax - s.hits >= 200
+        filter: (s) => (s.structureType == "road" || s.structureType == "container") && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
         room.delay("checkRoads", 500);
@@ -33,12 +34,13 @@ function getTowerRepairHits(range: number) {
 }
 
 export function tickTower(room: RoomInfo) {
-    let hostile = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => !PLAYER_WHITELIST[creep.owner.username])[0];
+    let hostiles = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => !PLAYER_WHITELIST[creep.owner.username]);
     let towerWorked = false;
-    if (hostile) {
+    if (hostiles.length > 0 && !room.state.disableTower) {
         room.structures.towers.forEach((tower) => {
-            tower.attack(hostile);
-            room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+            tower.attack(_.sample(hostiles));
+            if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 200)
+                room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
         });
         towerWorked = true;
     } else if (room.roadToRepair.length > 0) {
@@ -61,4 +63,14 @@ export function tickTower(room: RoomInfo) {
         towerWorked = true;
         room.delay("checkRoads", 10);
     }
+}
+
+function setTowerState(param: { room: string, state: boolean }) {
+    myRooms[param.room].state.disableTower = param.state;
+}
+registerTask("setTowerState", setTowerState)
+
+global.disableTower = (room: string, time: number = 1500) => {
+    myRooms[room].state.disableTower = true;
+    schedule("setTowerState", time, { room, state: false });
 }

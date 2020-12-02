@@ -77,7 +77,7 @@ type RoomRoutine = "checkCreepHealth" |
 
 type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" | "scanPowerBank";
 
-type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot";
+type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
 type BodyPartDescription = { type: BodyPartConstant, count: number }[];
 
@@ -104,7 +104,8 @@ interface RoomState {
     labContent: ResourceConstant[],
     labRemainAmount: number,
     chargeNuker: boolean,
-    powerToProcess: number
+    powerToProcess: number,
+    disableTower?: boolean
 }
 
 interface RoomDesign {
@@ -174,6 +175,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        disableTower: (room: string, time?: number) => void;
         loot: (flag: string, home: string, creepRun: number) => void;
         nuke: (delay: number, from: string, room: string, x: number, y: number) => void;
         logLevel: (level: LogLevel) => LogLevel;

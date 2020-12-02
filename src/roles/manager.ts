@@ -34,7 +34,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                     terminal.store.getUsedCapacity(res),
                     Math.max(
                         (resInfo.reserve[res] || 0) - storage.store.getUsedCapacity(res),
-                        (res in resInfo.export) ? (terminal.store.getUsedCapacity(res) - resInfo.export[res]) : 0
+                        (terminal.store.getUsedCapacity(res) - (resInfo.export[res] || 5000))
                     )
                 )
                 for (const res in terminal.store) {
@@ -53,7 +53,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                 // 再从 storage 给 terminal 补货
                 const terminalAmount = (res: ResourceConstant) => Math.min(
                     storage.store.getUsedCapacity(res) - (resInfo.reserve[res] || 0),
-                    (resInfo.export[res] || 0) - terminal.store[res],
+                    (resInfo.export[res] || 5000) - terminal.store.getUsedCapacity(res),
                 );
                 for (const res in storage.store) {
                     if (res == RESOURCE_ENERGY) continue;
@@ -117,15 +117,22 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
             return false;
         },
         (room, storage) => {
-            if (room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_POWER) >= 80
-                && storage.store.getUsedCapacity(RESOURCE_POWER) > 0) {
-                room.delay("runPowerSpawn", 2);
-                return {
-                    from: storage,
-                    to: room.structures.powerSpawn,
-                    type: RESOURCE_POWER
+            if (room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_POWER) >= 80)
+                if (storage.store.getUsedCapacity(RESOURCE_POWER) > 0) {
+                    room.delay("runPowerSpawn", 2);
+                    return {
+                        from: storage,
+                        to: room.structures.powerSpawn,
+                        type: RESOURCE_POWER
+                    }
+                } else if (room.structures.terminal.store.getUsedCapacity(RESOURCE_POWER) > 0) {
+                    room.delay("runPowerSpawn", 2);
+                    return {
+                        from: room.structures.terminal,
+                        to: room.structures.powerSpawn,
+                        type: RESOURCE_POWER
+                    }
                 }
-            }
             return false;
         }
     ]
