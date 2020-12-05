@@ -8,7 +8,7 @@ function fetchWallTask(room: RoomInfo) {
         return;
     }
     let repairQueue: (StructureWall | StructureRampart)[] = [];
-    if (room.design.walls && room.state.energyMode == "wall") {
+    if (room.design.walls && room.state.energy.usage .builder) {
         room.design.walls.forEach(p => {
             let wall = room.detail.lookForAt(LOOK_STRUCTURES, p.x, p.y)
                 .find(s => s.structureType == STRUCTURE_WALL) as StructureWall;

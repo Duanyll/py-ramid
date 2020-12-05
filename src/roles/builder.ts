@@ -45,7 +45,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
                     req.hitsRemain -= creep.getActiveBodyparts(WORK) * 100;
                     if (req.hitsRemain <= 0) {
                         room.wallBuildQueue.shift();
-                        if (room.wallBuildQueue.length == 0 && room.state.energyMode == "wall") {
+                        if (room.wallBuildQueue.length == 0 && room.state.energy.usage .builder) {
                             room.delay("fetchWall", 1);
                         }
                     }
@@ -70,7 +70,7 @@ export function runBuilder(creep: Creep, room: RoomInfo) {
     }
 
     if (m.state == "pickup") {
-        if (room.state.energyState == "store") {
+        if (room.state.energy.storeMode) {
             if (room.structRcl >= 7) return;
             const target = _.last(room.detail.find(FIND_SOURCES_ACTIVE));
             if (!target) return;
@@ -90,7 +90,7 @@ export function runBuilder(creep: Creep, room: RoomInfo) {
         }
     } else {
         if (!room.creepForRole["carry1"]) { if (goRefill(creep, room)) return; }
-        if (room.state.energyState == "store") {
+        if (room.state.energy.storeMode) {
             const target = room.structures.storage;
             if (creep.pos.isNearTo(target)) {
                 creep.transfer(target, RESOURCE_ENERGY);

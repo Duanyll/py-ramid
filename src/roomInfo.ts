@@ -202,8 +202,7 @@ export class RoomInfo {
         m.state = m.state || {} as RoomState;
         _.defaults(m.state, {
             status: "normal",
-            energyState: "store",
-            energyMode: "upgrade",
+            energy: { storeMode: true, activeCount: 0, usage: {}, primary: ["builder"] },
             labMode: "disabled",
             labContent: []
         } as RoomState);

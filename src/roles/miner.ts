@@ -17,9 +17,5 @@ export function runMiner(creep: Creep, room: RoomInfo) {
 global.mining = (roomName: string, enable: boolean) => {
     let room = myRooms[roomName];
     room.state.enableMining = enable;
-    if (enable) {
-        room.resource.reserve[room.structures.mineral.mineralType] =
-            Math.min(0, room.resource.reserve[room.structures.mineral.mineralType]);
-    }
     room.delay("updateCreepCount", 1);
 }

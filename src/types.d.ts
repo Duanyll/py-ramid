@@ -90,10 +90,19 @@ interface SpawnRequest {
 
 type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 
+type EnergyWork = "upgrade" | "builder" | "power" | "battery"
+
 interface RoomState {
     status: "normal" | "energy-emergency";
-    energyState: "store" | "take";
-    energyMode: "upgrade" | "power" | "battery" | "wall",
+    // energyMode: "upgrade" | "power" | "battery" | "wall",
+    energy: {
+        storeMode: boolean,
+        usage: {
+            [type in EnergyWork]?: boolean
+        },
+        primary: EnergyWork[]
+        activeCount: number;
+    }
     lastLinkToController: boolean,
     enableMining: boolean;
     // wallHits: number;
@@ -104,7 +113,7 @@ interface RoomState {
     labContent: ResourceConstant[],
     labRemainAmount: number,
     chargeNuker: boolean,
-    powerToProcess: number,
+    autoProcessPower: boolean,
     disableTower?: boolean
 }
 
@@ -169,12 +178,14 @@ interface RoomMemory {
             status: "disabled" | "waiting" | "building" | "working"
         }
     },
-    resource: RoomResource
+    resource: RoomResource,
+    sign?: string
 }
 
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        burnPower: (roomName: string, amount: number | false | "auto") => void;
         disableTower: (room: string, time?: number) => void;
         loot: (flag: string, home: string, creepRun: number) => void;
         nuke: (delay: number, from: string, room: string, x: number, y: number) => void;

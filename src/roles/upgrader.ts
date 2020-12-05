@@ -1,6 +1,6 @@
 import { RoomInfo } from "roomInfo";
 import { moveCreepTo } from "moveHelper";
-import { CONTROLLER_SIGN, ROOM_LEAST_STORE_ENERGY, ROOM_STORE_ENERGY } from "config";
+import { CONTROLLER_SIGN } from "config";
 
 interface UpgraderMemory extends CreepMemory {
     status: "pickup" | "upgrade"
@@ -18,7 +18,7 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
 
     if (m.status == "pickup") {
         let target: AnyStoreStructure = room.structures.controllerLink;
-        if (!target && room.structures.storage && room.state.energyState == "take") {
+        if (!target && room.structures.storage && !room.state.energy.storeMode) {
             target = room.structures.storage;
         }
         if (target) {
@@ -37,9 +37,23 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
             }
         }
     } else {
-        if (room.state.energyMode == "upgrade" || Game.time % 50 == 0
+        if (room.state.energy.usage .upgrade
+            || room.structures.controller.level < 8
+            || Game.time % 50 == 0
             || room.structures.controller.ticksToDowngrade < CONTROLLER_DOWNGRADE[room.structures.controller.level] - 10000)
             goUpgrade(creep, room);
+    }
+}
+
+export function goSignRoom(creep: Creep, room: Room) {
+    const sign = Memory.rooms[room.name]?.sign || CONTROLLER_SIGN;
+    let controller = room.controller;
+    if (!controller.sign || controller.sign.username != SYSTEM_USERNAME && controller.sign.text != sign) {
+        if (creep.pos.isNearTo(controller)) {
+            creep.signController(controller, sign);
+        } else {
+            moveCreepTo(creep, controller);
+        }
     }
 }
 
@@ -47,13 +61,7 @@ export function goUpgrade(creep: Creep, room: RoomInfo) {
     const c = room.structures.controller;
     if (creep.pos.inRangeTo(c, 2)) {
         creep.upgradeController(c);
-        if (!c.sign || c.sign.text != CONTROLLER_SIGN && c.sign.username != SYSTEM_USERNAME) {
-            if (creep.pos.isNearTo(c))
-                creep.signController(c, CONTROLLER_SIGN);
-            else {
-                moveCreepTo(creep, c);
-            }
-        }
+        goSignRoom(creep, room.detail);
     }
     else {
         moveCreepTo(creep, c);

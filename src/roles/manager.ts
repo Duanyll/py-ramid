@@ -72,7 +72,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
             return false;
         },
         (room, storage) => {
-            if (room.state.energyState == "take"
+            if (!room.state.energy.storeMode
                 && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < TERMINAL_STORE_ENERGY) {
                 return {
                     from: storage,
@@ -83,7 +83,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
             return false;
         },
         (room, storage) => {
-            if (room.state.energyState == "take" && room.state.chargeNuker
+            if (!room.state.energy.storeMode && room.state.chargeNuker
                 && room.structures.nuker?.store.getUsedCapacity(RESOURCE_ENERGY) < NUKER_ENERGY_CAPACITY) {
                 return {
                     from: storage,
@@ -94,7 +94,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
             return false;
         },
         (room, storage, capacity) => {
-            if (room.state.energyState == "take"
+            if (!room.state.energy.storeMode
                 && room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_ENERGY) >= capacity) {
                 room.delay("runPowerSpawn", 2);
                 return {

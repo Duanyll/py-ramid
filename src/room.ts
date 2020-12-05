@@ -1,7 +1,7 @@
 import { registerRoomRoutine, RoomInfo } from "roomInfo";
 import { tickSpawn } from "structures/spawn";
 import { tickTower } from "structures/tower";
-import { ROOM_STORE_ENERGY, ROOM_LEAST_STORE_ENERGY, TERMINAL_MINERAL } from "config";
+import { TERMINAL_MINERAL } from "config";
 import { creepRolesForLevel, minerBody } from "creepCount";
 import { runCreep } from "creep";
 import "structures/labs"
@@ -9,13 +9,14 @@ import "structures/link"
 import "defense"
 import "roles"
 import "structures/powerSpawn"
+import Logger from "utils/Logger";
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
-    if (room.structRcl >= 7 && (room.state.energyState == "store")) {
+    if (room.structRcl >= 7 && (room.state.energy.storeMode)) {
         delete room.creepRoleDefs["build1"];
     }
-    if (room.structRcl == 8 && room.state.energyMode != "wall") {
+    if (room.structRcl == 8 && !room.state.energy.usage.builder) {
         delete room.creepRoleDefs["build1"];
     }
     if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
@@ -29,6 +30,47 @@ function updateRoomCreepCount(room: RoomInfo) {
 }
 registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
 
+function decideRoomEnergyUsage(room: RoomInfo) {
+    if (!room.structures.storage) return;
+    const storeEnergy = room.structures.storage.store.energy;
+    let config = room.state.energy;
+    function end() {
+        config.activeCount = _.compact(_.values(config.usage)).length;
+        room.delay("updateCreepCount", 1);
+        if (config.usage.power) room.delay("runPowerSpawn", 1);
+        Logger.silly(`${room.name} update energy mode: ${JSON.stringify(config.usage)}`);
+    }
+    if (config.storeMode && storeEnergy > 120000) {
+        let work = config.primary.shift();
+        config.primary.push(work);
+        config.storeMode = false;
+        config.usage = { [work]: true };
+        return end();
+    }
+
+    if (!config.storeMode && storeEnergy < 100000) {
+        config.storeMode = true;
+        config.usage = {};
+        return end();
+    }
+
+    if (!config.storeMode && storeEnergy > 140000 && config.activeCount < 2) {
+        function findSecondaryWork(): EnergyWork | false {
+            if (!config.usage.builder) return "builder";
+            if (!config.usage.power && room.structures.powerSpawn) return "power";
+            if (!config.usage.battery && room.structures.factory) return "battery";
+            if (!config.usage.upgrade) return "upgrade";
+            return false;
+        }
+        let secondary = findSecondaryWork();
+        if (secondary) {
+            config.usage[secondary] = true;
+            config.activeCount = 2;
+            return end();
+        }
+    }
+}
+
 export function tickNormalRoom(room: RoomInfo) {
     room.loadStructures();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
@@ -36,17 +78,7 @@ export function tickNormalRoom(room: RoomInfo) {
     }
     room.detail.memory.rcl = room.detail.controller.level;
 
-    if (room.structures.storage) {
-        if (room.state.energyState == "store" && room.structures.storage.store.energy > ROOM_STORE_ENERGY) {
-            room.state.energyState = "take";
-            room.delay("updateCreepCount", 0);
-        }
-        if (room.state.energyState == "take" && room.structures.storage.store.energy < ROOM_LEAST_STORE_ENERGY) {
-            room.state.energyState = "store";
-            room.delay("updateCreepCount", 0);
-
-        }
-    }
+    decideRoomEnergyUsage(room);
 
     room.tickTasks();
 
@@ -63,5 +95,4 @@ function onRclUpgrade(room: RoomInfo) {
     room.delay("setConstruction", 1);
     room.delay("checkRoads", 1);
     room.delay("checkRefill", 1);
-    if (room.structures.controller.level >= 8) room.state.energyMode = "wall";
 }
