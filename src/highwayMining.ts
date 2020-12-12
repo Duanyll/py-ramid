@@ -7,7 +7,7 @@ Memory.mining = Memory.mining ||
     { power: { from: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } };
 
 function canRoomHarvestPB(room: RoomInfo) {
-    return room.structRcl == 8 && room.state.energyState == "take";
+    return room.structRcl == 8 && room.structures.storage.store.energy > 100000;
 }
 
 function scanPowerBank() {

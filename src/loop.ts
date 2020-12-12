@@ -1,9 +1,9 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import { myRooms, loadRooms } from "roomInfo";
 import { tickNormalRoom } from "room";
-import { tickExpansion } from "expansion";
+import "expansion"
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
-import { loadCreeps } from "creep";
+import { globalCreeps, loadCreeps, runCreep } from "creep";
 import "compounds";
 import "structures/terminal";
 import "stats"
@@ -15,7 +15,6 @@ import Logger from "utils/Logger";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler";
 
 import "war";
-import { tickWar } from "war";
 
 function loadScript() {
     global.age = 0;
@@ -58,6 +57,11 @@ function clearMemory() {
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
+    if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
+        Game.cpu.generatePixel();
+        Logger.info(`Used CPU in bucket to generate 1 pixel.`);
+    }
+
     if (global.reloadRoomsNextTick) {
         Logger.info("Reloading rooms ...");
         loadRooms();
@@ -69,8 +73,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     for (const name in myRooms) {
         ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]))();
     }
-    tickExpansion();
-    tickWar();
+    _.values(globalCreeps).forEach(l => l.forEach(c => runCreep(c)));
     tickMoveHelper();
     tickConstruction();
 
@@ -78,9 +81,4 @@ export const runLoop = ErrorMapper.wrap(() => {
     tickTasks();
 
     clearMemory();
-
-    if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
-        Game.cpu.generatePixel();
-        Logger.info(`Used CPU in bucket to generate 1 pixel.`);
-    }
 });

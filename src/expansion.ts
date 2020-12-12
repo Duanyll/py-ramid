@@ -1,6 +1,6 @@
 import { RoomInfo, myRooms } from "roomInfo";
 import { moveCreepToRoom, moveCreepTo } from "moveHelper";
-import { globalCreeps } from "creep";
+import { globalCreeps, registerCreepRole } from "creep";
 import Logger from "utils/Logger";
 
 function sendClaimer(roomName: string, target: string) {
@@ -98,8 +98,8 @@ function runAttacker(creep: Creep) {
     }
 }
 
-export function tickExpansion() {
-    _.forEach(globalCreeps["claim"], runClaimer);
-    _.forEach(globalCreeps["attack"], runAttacker);
-    _.forEach(globalCreeps["dismantle"], runDismantler)
-}
+registerCreepRole({
+    "claim": runClaimer,
+    "attack": runAttacker,
+    "dismantle": runDismantler
+})

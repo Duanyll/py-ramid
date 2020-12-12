@@ -2,6 +2,11 @@ import { myRooms, RoomInfo } from "roomInfo";
 import Logger from "utils/Logger";
 
 export let globalCreeps: { [role in CreepRole]?: Creep[] } = {}
+export let creepGroups: {
+    [groupName: string]: {
+        [groupRole: string]: Creep;
+    }
+} = {};
 
 export function loadCreeps() {
     for (const name in myRooms) {
@@ -9,6 +14,7 @@ export function loadCreeps() {
         myRooms[name].creepForRole = {};
     }
     globalCreeps = {};
+    creepGroups = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         // console.log(`Processing creep: ${name}`)
@@ -17,23 +23,27 @@ export function loadCreeps() {
             room.creeps.push(creep);
 
             if (creep.memory.roleId) {
-                room.creepForRole[creep.memory.roleId] = room.creepForRole[creep.memory.roleId] || [];
+                room.creepForRole[creep.memory.roleId] ||= [];
                 room.creepForRole[creep.memory.roleId].push(creep);
             }
         } else {
-            if (creep.spawning) continue;
-            globalCreeps[creep.memory.role] = globalCreeps[creep.memory.role] || [];
+            globalCreeps[creep.memory.role] ||= [];
             globalCreeps[creep.memory.role].push(creep);
+
+            if (creep.memory.group) {
+                creepGroups[creep.memory.group] ||= {};
+                creepGroups[creep.memory.group][creep.memory.roleId] = creep;
+            }
         }
     }
 }
 
 let CreepRoleDrivers: {
-    [roleName: string]: (creep: Creep, room?: RoomInfo) => void;
+    [roleName in CreepRole]?: (creep: Creep, room?: RoomInfo) => void;
 } = {}
 
 export function registerCreepRole(drivers: {
-    [roleName: string]: (creep: Creep, room?: RoomInfo) => void;
+    [roleName in CreepRole]?: (creep: Creep, room?: RoomInfo) => void;
 }) {
     CreepRoleDrivers = _.assign(CreepRoleDrivers, drivers);
 }

@@ -197,23 +197,30 @@ export class RoomInfo {
         let m = this.detail.memory;
         m.design = m.design || designRoom(this.detail);
         upgradeDesign(this.detail, m.design);
-        m.tasks = m.tasks || {};
-        m.spawnQueue = m.spawnQueue || [];
-        m.state = m.state || {} as RoomState;
-        _.defaults(m.state, {
-            status: "normal",
-            energy: { storeMode: true, activeCount: 0, usage: {}, primary: ["builder"] },
-            labMode: "disabled",
-            labContent: []
-        } as RoomState);
-        m.resource = m.resource || {} as RoomResource;
-        _.defaults(m.resource, {
-            reserve: {},
-            import: {},
-            export: {},
-            lock: {},
-            produce: {}
-        } as RoomResource);
+
+        _.defaultsDeep(m, {
+            tasks: {},
+            spawnQueue: [],
+            state: {
+                status: "normal",
+                energy: {
+                    storeMode: true,
+                    activeCount: 0,
+                    usage: {},
+                    primary: ["builder"],
+                    primaryUpdateTime: Game.time
+                },
+                labMode: "disabled",
+                labContent: [],
+            },
+            resource: {
+                reserve: {},
+                import: {},
+                export: {},
+                lock: {},
+                produce: {}
+            }
+        } as RoomMemory)
         this.helperRoom = this.detail.memory.helperRoom;
     }
 

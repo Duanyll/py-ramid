@@ -21,6 +21,7 @@ interface CreepMemory {
     target?: string;
     roleId?: string;
     room?: string;
+    group?: string;
 }
 
 interface PowerCreepMemory {
@@ -100,7 +101,8 @@ interface RoomState {
         usage: {
             [type in EnergyWork]?: boolean
         },
-        primary: EnergyWork[]
+        primary: EnergyWork[],
+        primaryUpdateTime: number
         activeCount: number;
     }
     lastLinkToController: boolean,

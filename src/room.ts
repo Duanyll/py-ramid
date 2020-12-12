@@ -45,6 +45,7 @@ function decideRoomEnergyUsage(room: RoomInfo) {
         config.primary.push(work);
         config.storeMode = false;
         config.usage = { [work]: true };
+        config.primaryUpdateTime = Game.time;
         return end();
     }
 
@@ -54,7 +55,7 @@ function decideRoomEnergyUsage(room: RoomInfo) {
         return end();
     }
 
-    if (!config.storeMode && storeEnergy > 140000 && config.activeCount < 2) {
+    if (!config.storeMode && (storeEnergy > 140000 || Game.time - config.primaryUpdateTime > 3000) && config.activeCount < 2) {
         function findSecondaryWork(): EnergyWork | false {
             if (!config.usage.builder) return "builder";
             if (!config.usage.power && room.structures.powerSpawn) return "power";

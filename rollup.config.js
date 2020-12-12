@@ -5,6 +5,7 @@ import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import typescript from "rollup-plugin-typescript2";
 import screeps from "rollup-plugin-screeps";
+import copy from "rollup-plugin-copy"
 
 let cfg;
 const dest = process.env.DEST;
@@ -21,12 +22,19 @@ export default {
     format: "cjs",
     sourcemap: true
   },
+  external: ['lodash', 'source-map'],
 
   plugins: [
     clear({ targets: ["dist"] }),
     resolve(),
     commonjs(),
-    typescript({tsconfig: "./tsconfig.json"}),
-    screeps({config: cfg, dryRun: cfg == null})
+    typescript({ tsconfig: "./tsconfig.json" }),
+    copy({
+      targets: [
+        { src: "lib/lodash.min.js", dest: "dist/", rename: "lodash4.js" },
+        { src: "lib/source-map.min.js", dest: "dist/", rename: "source-map.js" },
+      ]
+    }),
+    screeps({ config: cfg, dryRun: cfg == null })
   ]
 }

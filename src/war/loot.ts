@@ -1,3 +1,4 @@
+import { registerCreepRole } from "creep";
 import { moveCreepTo, moveCreepToRoom } from "moveHelper";
 import { myRooms } from "roomInfo";
 import { registerTask, schedule } from "scheduler";
@@ -79,6 +80,8 @@ export function runLootCarrier(creep: Creep) {
         }
     }
 }
+
+registerCreepRole({ "rCarry": runLootCarrier });
 
 function checkLootJob(param: { flag: string, home: string, creepRun: number }) {
     const flag = Game.flags[param.flag];
