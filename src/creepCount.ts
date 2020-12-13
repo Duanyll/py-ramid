@@ -113,3 +113,7 @@ export const helperCreepCount: {
 export const emergencyCreepBody: BodyPartDescription = [{ type: "work", count: 1 }, { type: "carry", count: 2 }, { type: "move", count: 2 }];
 
 export const minerBody: BodyPartDescription = [{ type: "work", count: 12 }, { type: "move", count: 6 }];
+
+export const pbHarvesterBody: BodyPartDescription = [{ type: "move", count: 25 }, { type: "attack", count: 25 }];
+export const pbHealerBody: BodyPartDescription = [{ type: "move", count: 16 }, { type: "heal", count: 16 }];
+export const pbCarrierBody: BodyPartDescription = [{ type: "carry", count: 25 }, { type: "move", count: 25 }];

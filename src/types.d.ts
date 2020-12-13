@@ -9,7 +9,8 @@ declare namespace _ {
 // 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
-    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry";
+    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
+    | "pbHarv" | "pbHeal" | "pbCarry";
 
 interface CreepMemory {
     _move?: {
@@ -34,6 +35,17 @@ interface PowerCreepMemory {
 
 type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
 
+interface PowerBankInfo {
+    discoverTime: number,
+    decayTime: number,
+    power: number,
+    status: "dropped" | "waiting" | "spawnRequested" | "harvested";
+    pos: { room: string, x: number, y: number },
+    harvGroups?: string[],
+    carryGroup?: string,
+    harvRoom?: string
+}
+
 interface Memory {
     logLevel: LogLevel;
     age: number;
@@ -56,11 +68,7 @@ interface Memory {
             from: { [room: string]: string };
             targets: string[];
             info: {
-                [id: string]: {
-                    discoverTime: number,
-                    status: "dropped" | "waiting" | "spawnRequested" | "harvested";
-                    pos: { room: string, x: number, y: number },
-                }
+                [id: string]: PowerBankInfo
             }
         },
         deposit: {
@@ -76,7 +84,8 @@ type RoomRoutine = "checkCreepHealth" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn";
 
-type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" | "scanPowerBank";
+type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" |
+    "scanPowerBank" | "processPowerBank";
 
 type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
@@ -187,6 +196,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        pbMining: (rooms: string[] | "clear") => void;
         burnPower: (roomName: string, amount: number | false | "auto") => void;
         disableTower: (room: string, time?: number) => void;
         loot: (flag: string, home: string, creepRun: number) => void;

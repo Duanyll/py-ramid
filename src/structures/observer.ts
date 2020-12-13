@@ -42,7 +42,7 @@ export function onVisibility(room: string, callback: () => void) {
     if (Game.rooms[room])
         callback();
     else {
-        observeQueue[room] = observeQueue[room] || [];
+        observeQueue[room] ||= [];
         observeQueue[room].push(callback);
         globalDelay("observer", 1);
     }

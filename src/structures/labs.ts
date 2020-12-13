@@ -1,6 +1,8 @@
 import { registerRoomRoutine, RoomInfo } from "roomInfo";
 import Logger from "utils/Logger";
 
+Memory.labQueue ||= [];
+
 class LabInfo {
     in: string[] = [];
     out: string[] = [];

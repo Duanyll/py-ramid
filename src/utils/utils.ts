@@ -1,12 +1,14 @@
+import Logger from "./Logger";
+
 export function objToPos(obj: { x: number, y: number, room: string }) {
     return new RoomPosition(obj.x, obj.y, obj.room);
 }
 
 export function posToObj(pos: RoomPosition) {
-    return { x: pos.x, y: pos.y, z: pos.roomName };
+    return { x: pos.x, y: pos.y, room: pos.roomName };
 }
 
-export function roomNameToXY(name: string) {
+export function roomNameToXY(name: string): [number, number] {
     let xx = parseInt(name.substr(1), 10);
     let verticalPos = 2;
     if (xx >= 100) {
@@ -30,8 +32,8 @@ export function findRouteCallback(roomName: string) {
     if (Memory.roomsToAvoid[roomName]) return Infinity;
     if (Memory.roomCost[roomName]) return Memory.roomCost[roomName];
     let parsed = roomNameToXY(roomName);
-    let isHighway = (Number(parsed[1]) % 10 === 0) ||
-        (Number(parsed[2]) % 10 === 0);
+    let isHighway = (Number(parsed[0]) % 10 === 0) ||
+        (Number(parsed[1]) % 10 === 0);
     let isMyRoom = Game.rooms[roomName] &&
         Game.rooms[roomName].controller &&
         Game.rooms[roomName].controller.my;
@@ -50,18 +52,31 @@ export const OPPOSITE_EXIT = {
 };
 
 function getDistanceByPath(from: RoomPosition, type: FindConstant) {
-    // @ts-ignore
-    let goals = _.map(Game.rooms[from.roomName].find(type), (i) => {
-        // @ts-ignore
-        if (i.pos) i = i.pos as RoomPosition;
-        return { range: 1, pos: i };
-    }) as { range: number, pos: RoomPosition };
-    let path = PathFinder.search(from, goals, {
-        // @ts-ignore
-        roomCallback: (name) => {
-            if (name != from.roomName) return false;
-    }});
-    return path.cost;
+    switch (type) {
+        case FIND_EXIT_BOTTOM:
+            return 50 - from.y;
+        case FIND_EXIT_TOP:
+            return from.y;
+        case FIND_EXIT_LEFT:
+            return from.x;
+        case FIND_EXIT_RIGHT:
+            return 50 - from.x;
+        default:
+            if (!Game.rooms[from.roomName]) return 25;
+            // @ts-ignore
+            let goals = _.map(Game.rooms[from.roomName].find(type), (i) => {
+                // @ts-ignore
+                if (i.pos) i = i.pos as RoomPosition;
+                return { range: 1, pos: i };
+            }) as { range: number, pos: RoomPosition };
+            let path = PathFinder.search(from, goals, {
+                // @ts-ignore
+                roomCallback: (name) => {
+                    if (name != from.roomName) return false;
+                }
+            });
+            return path.cost;
+    }
 }
 
 export function estimateDistance(a: RoomPosition, b: RoomPosition) {
@@ -75,6 +90,23 @@ export function estimateDistance(a: RoomPosition, b: RoomPosition) {
         dis += getDistanceByPath(a, longPath[0].exit);
         dis += 50 * (longPath.length - 1);
         dis += getDistanceByPath(b, OPPOSITE_EXIT[_.last(longPath).exit]);
+        Logger.debug(`Estimating distance from ${a} to ${b}: ${dis}`)
         return dis;
     }
+}
+
+export function getCreepSpawnTime(body: BodyPartDescription) {
+    return _.sumBy(body, (p) => p.count) * 3;
+}
+
+export function getCreepCost(body: BodyPartDescription) {
+    return _.sumBy(body, (p) => BODYPART_COST[p.type] * p.count);
+}
+
+export function expandBodypart(body: BodyPartDescription) {
+    let res: BodyPartConstant[] = [];
+    body.forEach((p) => {
+        for (let i = 0; i < p.count; i++) res.push(p.type);
+    });
+    return res;
 }

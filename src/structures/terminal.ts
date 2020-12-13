@@ -14,7 +14,7 @@ export function runTerminals() {
                 terminal.store.getUsedCapacity(res as ResourceConstant)
             );
             if (amount > 0) {
-                sourceTerminals[res] = sourceTerminals[res] || [];
+                sourceTerminals[res] ||= [];
                 sourceTerminals[res].push({ terminal, amount });
             }
         }

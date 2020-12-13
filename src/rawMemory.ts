@@ -23,7 +23,7 @@ export function tickSegmentRequest() {
 registerGlobalRoutine("rawMemory", tickSegmentRequest);
 
 export function onSegment(segment: number, callback: () => void) {
-    segmentRequests[segment] = segmentRequests[segment] || [];
+    segmentRequests[segment] ||= [];
     segmentRequests[segment].push(callback);
     globalDelay("rawMemory", 1);
 }

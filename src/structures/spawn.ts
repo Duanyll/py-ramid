@@ -2,22 +2,7 @@ import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
 import { helperCreepCount, emergencyCreepBody } from "creepCount";
 import Logger from "utils/Logger";
 import { registerTask } from "scheduler";
-
-function getCreepSpawnTime(body: BodyPartDescription) {
-    return _.sumBy(body, (p) => p.count) * 3;
-}
-
-function getCreepCost(body: BodyPartDescription) {
-    return _.sumBy(body, (p) => BODYPART_COST[p.type] * p.count);
-}
-
-function expandBodypart(body: BodyPartDescription) {
-    let res: BodyPartConstant[] = [];
-    body.forEach((p) => {
-        for (let i = 0; i < p.count; i++) res.push(p.type);
-    });
-    return res;
-}
+import { expandBodypart, getCreepCost, getCreepSpawnTime } from "utils/utils";
 
 function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
     let needSpawn = true;

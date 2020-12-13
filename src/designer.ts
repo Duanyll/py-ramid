@@ -265,7 +265,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
             if (ins[i][j] || res[i][j] == ' ' || res[i][j] == '.') continue;
-            structPos[StructureMapping[res[i][j]]] = structPos[StructureMapping[res[i][j]]] || [];
+            structPos[StructureMapping[res[i][j]]] ||= [];
             structPos[StructureMapping[res[i][j]]].push([i, j]);
         }
     }

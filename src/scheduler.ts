@@ -5,18 +5,18 @@ export function registerGlobalRoutine(type: GlobalRoutine, func: () => void) {
     globalRoutineStore[type] = func;
 }
 
-let globalRoutine = Memory.routine ? (Memory.routine) : (Memory.routine = {});
+Memory.routine ||= {};
 export function tickGlobalRoutine() {
-    _.forIn(globalRoutine, (next, name) => {
+    _.forIn(Memory.routine, (next, name) => {
         if (next == Game.time) globalRoutineStore[name as GlobalRoutine]();
     })
 }
 
 export function globalDelay(type: GlobalRoutine, time: number) {
-    if (!globalRoutine[type] || globalRoutine[type] <= Game.time) {
-        globalRoutine[type] = Game.time + time;
+    if (!Memory.routine[type] || Memory.routine[type] <= Game.time) {
+        Memory.routine[type] = Game.time + time;
     } else {
-        globalRoutine[type] = _.min([Game.time + time, globalRoutine[type]]);
+        Memory.routine[type] = _.min([Game.time + time, Memory.routine[type]]);
     }
 }
 
@@ -46,7 +46,7 @@ export function schedule(type: GlobalTask, delay: number, param: any) {
         return;
     }
     const time = Game.time + delay;
-    tasks[time] = tasks[time] || [];
+    tasks[time] ||= [];
     tasks[time].push({ type, param });
 }
 

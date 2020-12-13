@@ -14,6 +14,7 @@ import { tickConstruction } from "construction";
 import Logger from "utils/Logger";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler";
 
+import "highwayMining"
 import "war";
 
 function loadScript() {
@@ -21,9 +22,6 @@ function loadScript() {
     Logger.prompt(`Restarting PY-RAMID ...`);
     Logger.info(`Current game tick is ${Game.time}`);
     Logger.info(`Last load lasted for ${Memory.age} ticks.`);
-    Memory.roomsToAvoid = Memory.roomsToAvoid || {};
-    Memory.roomCost = Memory.roomCost || {};
-    Memory.labQueue = Memory.labQueue || [];
     loadRooms();
     initTasks();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
@@ -57,10 +55,10 @@ function clearMemory() {
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
-    if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
-        Game.cpu.generatePixel();
-        Logger.info(`Used CPU in bucket to generate 1 pixel.`);
-    }
+    // if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
+    //     Game.cpu.generatePixel();
+    //     Logger.info(`Used CPU in bucket to generate 1 pixel.`);
+    // }
 
     if (global.reloadRoomsNextTick) {
         Logger.info("Reloading rooms ...");
