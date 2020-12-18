@@ -50,8 +50,8 @@ export const creepRolesForLevel: {
         harv1: { role: "harvest", body: [{ type: "work", count: 8 }, { type: "carry", count: 4 }, { type: "move", count: 6 }] },
         harv2: { role: "harvest", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         build1: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
-        // build2: { role: "build", body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
         carry1: { role: "carry", body: [{ type: "carry", count: 24 }, { type: "move", count: 12 }] },
+        center: { role: "manage", body: [{ type: "carry", count: 16 }] },
         upgr1: { role: "upgrade", body: [{ type: "work", count: 12 }, { type: "carry", count: 4 }, { type: "move", count: 8 }] },
     },
     7: {
@@ -107,7 +107,7 @@ export const helperCreepCount: {
     5: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
     6: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
     7: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
-    8: { count: 2, body: [{ type: "work", count: 6 }, { type: "carry", count: 7 }, { type: "move", count: 7 }] },
+    8: { count: 2, body: [{ type: "work", count: 10 }, { type: "carry", count: 10 }, { type: "move", count: 10 }] },
 }
 
 export const emergencyCreepBody: BodyPartDescription = [{ type: "work", count: 1 }, { type: "carry", count: 2 }, { type: "move", count: 2 }];

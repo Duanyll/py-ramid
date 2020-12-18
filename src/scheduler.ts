@@ -19,6 +19,7 @@ export function globalDelay(type: GlobalRoutine, time: number) {
         Memory.routine[type] = _.min([Game.time + time, Memory.routine[type]]);
     }
 }
+global.delay = globalDelay;
 
 let taskStore: { [type in GlobalTask]?: (param: any) => void } = {};
 export function registerTask(type: GlobalTask, func: (param: any) => void) {
@@ -49,6 +50,7 @@ export function schedule(type: GlobalTask, delay: number, param: any) {
     tasks[time] ||= [];
     tasks[time].push({ type, param });
 }
+global.schedule = schedule;
 
 export function tickTasks() {
     const tasks = Memory.tasks;

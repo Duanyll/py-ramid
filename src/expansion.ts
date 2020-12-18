@@ -1,6 +1,6 @@
-import { RoomInfo, myRooms } from "roomInfo";
+import { myRooms } from "roomInfo";
 import { moveCreepToRoom, moveCreepTo } from "moveHelper";
-import { globalCreeps, registerCreepRole } from "creep";
+import { registerCreepRole } from "creep";
 import Logger from "utils/Logger";
 
 function sendClaimer(roomName: string, target: string) {

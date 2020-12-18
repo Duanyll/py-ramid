@@ -21,7 +21,7 @@ function runPowerHarvester(creep: Creep) {
                 creep.suicide();
                 return;
             } else {
-                if (pb.hits < 5000) {
+                if (pb.hits < 5000 && creep.ticksToLive > 10) {
                     const carryGroup = creepGroups[pbInfo.carryGroup];
                     const carrierCount = _.ceil(pb.power / (CARRY_CAPACITY * 25));
                     const readyCount = _.values(carryGroup).filter(c => c.pos.inRangeTo(tarpos, 8)).length;

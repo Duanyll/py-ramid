@@ -26,6 +26,12 @@ function updateRoomCreepCount(room: RoomInfo) {
             role: "mine"
         }
     }
+    if (room.structRcl >= 8 && !room.state.energy.usage.upgrade) {
+        room.creepRoleDefs["upgr1"] = {
+            body: [{ type: WORK, count: 3 }, { type: CARRY, count: 1 }, { type: MOVE, count: 2 }],
+            role: "upgrade"
+        }
+    }
     room.delay("updateCreepCount", 100);
 }
 registerRoomRoutine("updateCreepCount", updateRoomCreepCount);

@@ -299,7 +299,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
         ], take("tower", 1))
     });
     design.stages.push({ rcl: 5, list: take("road", structPos["road"].length) });
-    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("terminal", 1), take("lab", 3), ) });
+    design.stages.push({ rcl: 6, list: take("extension", 10).concat(take("terminal", 1), take("lab", 3)) });
     if (design.links.sourceLink[1])
         _.last(design.stages).list.push(
             { type: "link", x: design.links.sourceLink[1][0], y: design.links.sourceLink[1][1] });
@@ -389,7 +389,7 @@ export function designRoom(room: Room): RoomDesign {
         design.centerSpawn = [center.x, center.y + 1];
     } else {
         const largeres = findSquare(13);
-        if (largeres[2] <= 50) {
+        if (largeres[2] <= 15) {
             fillSquare(largeCenter, res, largeres[0], largeres[1], largeCenter.length);
             design.center = [largeres[0] + 6, largeres[1] + 6];
             design.links.centerLink = [largeres[0] + 5, largeres[1] + 6];

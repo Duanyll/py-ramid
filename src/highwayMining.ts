@@ -15,13 +15,15 @@ function canRoomHarvestPB(room: RoomInfo) {
 }
 
 function scanPowerBank() {
-    const pbInfo = Memory.mining.power.info;
+    // 典型 Bug: pbInfo 被 onVisibility 的回调捕获，但几个 tick 后这个位置的对象已经被销毁重建了
+    // const pbInfo = Memory.mining.power.info;
     Memory.mining.power.targets.forEach(room => {
         onVisibility(room, () => {
             Game.rooms[room].find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_POWER_BANK } }).forEach(pb => {
                 pb = pb as StructurePowerBank;
-                if (!pbInfo[pb.id]) {
-                    pbInfo[pb.id] = {
+                if (!Memory.mining.power.info[pb.id]) {
+                    Logger.info(`Discovered PowerBank in ${room}`)
+                    Memory.mining.power.info[pb.id] = {
                         discoverTime: Game.time,
                         power: pb.power,
                         decayTime: Game.time + pb.ticksToDecay,
@@ -43,6 +45,8 @@ function processPowerBank() {
         // Logger.debug(`Processing PowerBank ${id}`)
         if (Game.time < info.decayTime + 1000) {
             newPBInfo[id] = info;
+        } else {
+            Logger.silly(`Removing old PowerBank in ${info.pos.room}`);
         }
         if (info.status == "waiting") {
             tryHarvestPB(info, id);
@@ -54,6 +58,10 @@ function processPowerBank() {
 registerGlobalRoutine("processPowerBank", processPowerBank);
 
 function tryHarvestPB(pb: PowerBankInfo, id: string) {
+    if (pb.decayTime - Game.time <= 3300 || pb.power <= 1400) {
+        Logger.debug(`Give up mining PowerBank in ${pb.pos.room}`);
+        pb.status = "dropped";
+    }
     let minDist = _.minBy(_.map(myRooms,
         room => {
             return {
@@ -68,9 +76,6 @@ function tryHarvestPB(pb: PowerBankInfo, id: string) {
     if (pb.power > 2000 && minDist.dis <= 600 && pb.decayTime - Game.time > 4700) {
         goHarvestPB(pb, id, minDist.room, 3);
         return;
-    }
-    if (pb.decayTime - Game.time <= 3300) {
-        pb.status = "dropped";
     }
 }
 

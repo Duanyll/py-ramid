@@ -49,6 +49,7 @@ interface PowerBankInfo {
 interface Memory {
     logLevel: LogLevel;
     age: number;
+    genPixel: boolean;
     // roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
     roomCost: { [name: string]: number };
@@ -196,6 +197,8 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        schedule: (type: GlobalTask, delay: number, param: any) => void;
+        delay: (type: GlobalRoutine, time: number) => void;
         pbMining: (rooms: string[] | "clear") => void;
         burnPower: (roomName: string, amount: number | false | "auto") => void;
         disableTower: (room: string, time?: number) => void;

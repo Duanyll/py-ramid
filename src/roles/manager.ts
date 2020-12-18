@@ -16,7 +16,7 @@ let lastStorageScannedTime: { [room: string]: number } = {};
 const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: number) =>
     (false | { from: AnyStoreStructure, to: AnyStoreStructure, type: ResourceConstant, amount?: number }))[] = [
         (room, storage) => {
-            if (room.structures.centerLink.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
+            if (room.structures.centerLink?.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
                 return {
                     from: room.structures.centerLink,
                     to: storage,

@@ -20,7 +20,7 @@ export function tickObserver() {
         let obLock: { [id: string]: boolean } = {};
         for (const room in observeQueue) {
             let ob = observers.find(o => !obLock[o.id] && Game.map.getRoomLinearDistance(room, o.room.name) <= OBSERVER_RANGE)
-            if (ob.observeRoom(room) == OK) {
+            if (ob?.observeRoom(room) == OK) {
                 Logger.silly(`Observing room ${room}.`)
                 obLock[ob.id] = true;
             }

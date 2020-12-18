@@ -55,10 +55,10 @@ function clearMemory() {
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
-    // if (Game.cpu.generatePixel && Game.cpu.bucket >= 9000) {
-    //     Game.cpu.generatePixel();
-    //     Logger.info(`Used CPU in bucket to generate 1 pixel.`);
-    // }
+    if (Game.cpu.generatePixel && Game.cpu.bucket == 10000 && global.age > 10 && Memory.genPixel) {
+        Game.cpu.generatePixel();
+        Logger.info(`Used CPU in bucket to generate 1 pixel.`);
+    }
 
     if (global.reloadRoomsNextTick) {
         Logger.info("Reloading rooms ...");
