@@ -18,23 +18,58 @@ function selectRefillTarget(creep: Creep, room: RoomInfo) {
 }
 
 export function goRefill(creep: Creep, room: RoomInfo) {
-    let target = creep.memory.target;
-    if (!room.refillTargets[target]) {
-        target = creep.memory.target = selectRefillTarget(creep, room);
-        if (target == "") return false;
-    }
-    let s = Game.getObjectById(target) as RefillableStructure;
-    if (creep.pos.isNearTo(s)) {
-        creep.transfer(s, RESOURCE_ENERGY);
-        if (creep.store.energy >= s.store.getFreeCapacity(RESOURCE_ENERGY)) {
-            delete room.refillTargets[s.id];
-        } else {
-            room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY) - creep.store.energy;
+    let refilled = false;
+    let nearByTargets: RefillableStructure[];
+    let nextTarget: RefillableStructure;
+    do {
+        if (creep.memory.target && room.refillTargets[creep.memory.target]) {
+            const s = Game.getObjectById(creep.memory.target) as RefillableStructure;
+            if (creep.pos.isNearTo(s)) {
+                if (refilled) return true;
+                const amount = Math.min(creep.store.energy, s.store.getFreeCapacity(RESOURCE_ENERGY));
+                creep.transfer(s, RESOURCE_ENERGY, amount);
+                if (amount >= s.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                    delete room.refillTargets[s.id];
+                } else {
+                    room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY) - amount;
+                }
+                refilled = true;
+                if (amount >= creep.store.energy) {
+                    delete creep.memory.target;
+                    return true;
+                }
+            } else {
+                moveCreepTo(creep, s);
+                return true;
+            }
         }
-    } else {
-        moveCreepTo(creep, s);
-    }
-    return true;
+        if (!nearByTargets) {
+            nearByTargets = [];
+            let dis = Infinity;
+            for (const id in room.refillTargets) {
+                if (room.refillTargets[id] == 0) {
+                    continue;
+                }
+                const s = (Game.getObjectById(id) as RefillableStructure);
+                const cur = s.pos.getRangeTo(creep);
+                if (cur <= 1) {
+                    nearByTargets.push(s);
+                } else if (cur < dis) {
+                    dis = cur;
+                    nextTarget = s;
+                }
+            }
+        }
+        if (nearByTargets.length > 0) {
+            creep.memory.target = nearByTargets.pop().id;
+        } else if (nextTarget) {
+            creep.memory.target = nextTarget.id;
+        } else {
+            delete creep.memory.target;
+            return false;
+        }
+    } while (creep.memory.target);
+    return false;
 }
 
 export function runRefiller(creep: Creep, room: RoomInfo) {

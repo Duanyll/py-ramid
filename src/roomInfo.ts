@@ -251,9 +251,14 @@ export class RoomInfo {
     }
 
     public countResource(type: ResourceConstant): number {
-        return _.sumBy([this.structures.terminal, this.structures.storage, ...(this.creepForRole["center"] || [])],
-            s => s.store.getUsedCapacity(type));
+        return this._store[type] || 0;
     }
+
+    public get energy() {
+        return this.structures.storage.store.energy;
+    }
+
+    _store: { [type in ResourceConstant]?: number } = {};
 }
 
 export let myRooms: { [name: string]: RoomInfo } = {}

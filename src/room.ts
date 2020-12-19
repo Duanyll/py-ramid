@@ -1,4 +1,4 @@
-import { registerRoomRoutine, RoomInfo } from "roomInfo";
+import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
 import { tickSpawn } from "structures/spawn";
 import { tickTower } from "structures/tower";
 import { TERMINAL_MINERAL } from "config";
@@ -38,7 +38,7 @@ registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
 
 function decideRoomEnergyUsage(room: RoomInfo) {
     if (!room.structures.storage) return;
-    const storeEnergy = room.structures.storage.store.energy;
+    const storeEnergy = room.energy;
     let config = room.state.energy;
     function end() {
         config.activeCount = _.compact(_.values(config.usage)).length;
@@ -102,4 +102,29 @@ function onRclUpgrade(room: RoomInfo) {
     room.delay("setConstruction", 1);
     room.delay("checkRoads", 1);
     room.delay("checkRefill", 1);
+}
+
+global.unclaim = (roomName: string, keep?: boolean) => {
+    if (!myRooms[roomName]) {
+        Logger.error(`${roomName} is not owned!`);
+    } else {
+        let message = `Unclaiming ${roomName} (Level: ${myRooms[roomName].structRcl}, mineral: ${myRooms[roomName].structures.mineral.mineralType}), `;
+        message += keep ? "keep structures and memory." : "clean up everything.";
+        message += "\nMake sure every task is cleared!"
+        Logger.confirm(
+            message,
+            `unclaim ${roomName}`,
+            () => {
+                let room = myRooms[roomName];
+                room.creeps.forEach(c => c.suicide());
+                room.detail.find(FIND_CONSTRUCTION_SITES).forEach(c => c.remove());
+                if (!keep) {
+                    room.detail.find(FIND_STRUCTURES).forEach(s => s.destroy());
+                    delete Memory.rooms[roomName];
+                }
+                room.structures.controller.unclaim();
+                global.reloadRoomsNextTick = true;
+            }
+        )
+    }
 }

@@ -14,6 +14,11 @@ function launchNuke(param: { from: string, room: string, x: number, y: number })
 }
 registerTask("launchNuke", launchNuke);
 
-global.nuke = (delay: number, from: string, room: string, x: number, y: number) => {
-    schedule("launchNuke", delay, { from, room, x, y });
+global.nuke = (time: number, from: string, room: string, x: number, y: number) => {
+    if (myRooms[room]) {
+        Logger.error(`Can't nuke own room ${room}!`);
+        return;
+    }
+    Logger.confirm(`Launch nuke from ${room} to [${room}, ${x}, ${y}] at ${time} (${time - Game.time} ticks later)`, `nuke ${room}`,
+        () => { schedule("launchNuke", time - Game.time, { from, room, x, y }); });
 }

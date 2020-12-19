@@ -10,6 +10,8 @@ export function runMiner(creep: Creep, room: RoomInfo) {
         creep.harvest(mineral);
         if (container.store[mineral.mineralType] > 1000) {
             room.moveRequests.out[container.id] = {};
+        } else {
+            delete room.moveRequests.out[container.id];
         }
     }
 }

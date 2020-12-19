@@ -11,7 +11,7 @@ _.defaultsDeep(Memory.mining,
     { power: { from: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } });
 
 function canRoomHarvestPB(room: RoomInfo) {
-    return room.structRcl == 8 && room.structures.storage.store.energy > 100000 && !Memory.mining.power.from[room.name];
+    return room.structRcl == 8 && room.energy > 100000 && !Memory.mining.power.from[room.name];
 }
 
 function scanPowerBank() {

@@ -1,12 +1,5 @@
-/// <reference path="../node_modules/@types/lodash/index.d.ts" />
+declare const _: import("lodash").LoDashStatic;
 
-declare const _: _.LoDashStatic;
-declare namespace _ {
-    // tslint:disable-next-line no-empty-interface (This will be augmented)
-    interface LoDashStatic { }
-}
-
-// 命名规范：都用动词
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
     | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
@@ -83,7 +76,7 @@ interface Memory {
 type RoomRoutine = "checkCreepHealth" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork" | "fetchWall" | "runPowerSpawn";
+    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countResource";
 
 type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank";
@@ -197,6 +190,8 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        unclaim: (roomName: string, keep: boolean) => void;
+        yes: (key: number) => void;
         schedule: (type: GlobalTask, delay: number, param: any) => void;
         delay: (type: GlobalRoutine, time: number) => void;
         pbMining: (rooms: string[] | "clear") => void;
