@@ -4,14 +4,21 @@ import { myRooms, RoomInfo } from "roomInfo";
 export function runMiner(creep: Creep, room: RoomInfo) {
     let mineral = room.structures.mineral;
     let container = room.structures.mineralContainer;
+    if (!container) return;
     if (!creep.pos.isEqualTo(container.pos)) {
         moveCreepTo(creep, container);
     } else {
-        creep.harvest(mineral);
-        if (container.store[mineral.mineralType] > 1000) {
-            room.moveRequests.out[container.id] = {};
-        } else {
-            delete room.moveRequests.out[container.id];
+        if (creep.harvest(mineral) == OK) {
+            const amount = HARVEST_MINERAL_POWER * creep.getActiveBodyparts(WORK);
+            room.state.mineralToTransport += amount;
+            if (room.state.mineralToTransport > 1000) {
+                room.state.mineralToTransport = 0;
+                room.moveRequests.out[container.id] = {
+                    type: mineral.mineralType,
+                    amount: container.store[mineral.mineralType]
+                };
+                room.logStore(mineral.mineralType, container.store[mineral.mineralType]);
+            }
         }
     }
 }

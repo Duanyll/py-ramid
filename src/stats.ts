@@ -24,6 +24,7 @@ interface Stats {
         bucket: number
     },
     rooms: { [name: string]: RoomStats },
+    resource: Partial<Record<ResourceConstant, number>>,
     time: number
 }
 
@@ -36,6 +37,15 @@ function summaryRoom(room: RoomInfo): RoomStats {
         energyStore: room.structures.storage?.store.energy,
         creepCount: room.creeps.length
     };
+}
+
+function summaryResource(): Partial<Record<ResourceConstant, number>> {
+    let res: Partial<Record<ResourceConstant, number>> = {};
+    (["XUH2O", "XKH2O", "XKHO2", "XLH2O", "XLHO2", "XZH2O", "XZHO2", "XGHO2", "G", "power"] as ResourceConstant[])
+        .forEach(r => {
+            res[r] = global.store.current[r];
+        })
+    return res;
 }
 
 export function summaryStats() {
@@ -52,7 +62,8 @@ export function summaryStats() {
                 bucket: Game.cpu.bucket
             },
             rooms: _.mapValues(myRooms, summaryRoom),
-            time: Game.time
+            time: Game.time,
+            resource: summaryResource()
         }
         RawMemory.segments[STATS_SEGMENT] = JSON.stringify(obj);
     });

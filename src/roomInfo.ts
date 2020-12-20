@@ -96,6 +96,7 @@ export class RoomInfo {
             .filter(s => s.structureType == STRUCTURE_LINK)[0] as StructureLink;
     }
     public get structures() {
+        if (!this._structures) this.loadStructures();
         return this._structures;
     }
 
@@ -116,6 +117,8 @@ export class RoomInfo {
         this.detail = Game.rooms[this.name];
         this.initMemory();
         this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
+
+        this.loadStructures();
 
         this.delay("fullCheckConstruction", 0);
         this.delay("checkRoads", 0);
@@ -212,6 +215,7 @@ export class RoomInfo {
                 },
                 labMode: "disabled",
                 labContent: [],
+                mineralToTransport: 0
             },
             resource: {
                 reserve: {},
@@ -238,11 +242,13 @@ export class RoomInfo {
         }
     }
 
-    public requestResource(type: ResourceConstant, amount: number) {
-        this.resource.lock[type] = (this.resource.lock[type] + amount) || amount;
+    public requestResource(type: ResourceConstant, amount: number, dontLock?: boolean) {
+        if (!dontLock) {
+            this.resource.lock[type] = (this.resource.lock[type] + amount) || amount;
+        }
         if (!this.resource.produce[type]) {
-            let required = (this.resource.reserve[type] ?? 0) + (this.resource.lock[type] ?? 0)
-                - this.countResource(type as ResourceConstant);
+            let required = (this.resource.reserve[type] || 0) + (this.resource.lock[type] || 0)
+                - this.countStore(type as ResourceConstant) - (this.resource.import[type] || 0);
             if (required > 0) {
                 this.resource.import[type] = required;
                 globalDelay("runTerminal", 1);
@@ -250,8 +256,26 @@ export class RoomInfo {
         }
     }
 
-    public countResource(type: ResourceConstant): number {
+    public countStore(type: ResourceConstant): number {
         return this._store[type] || 0;
+    }
+
+    public logStore(type: ResourceConstant, amount: number, unlock?: boolean) {
+        this._store[type] ||= 0;
+        if (this._store[type] + amount < 0) {
+            Logger.error(`Invalid room store registeration: ${this.name}, ${type}, ${amount}`);
+        } else {
+            this._store[type] += amount;
+            global.store.current[type] ||= 0;
+            global.store.current[type] += amount;
+        }
+        if (unlock) {
+            if (this.resource.lock[type] + amount < 0) {
+                Logger.error(`Invalid room resource unlock: ${this.name}, ${type}, ${amount}`);
+            } else {
+                this.resource.lock[type] += amount;
+            }
+        }
     }
 
     public get energy() {
@@ -263,15 +287,6 @@ export class RoomInfo {
 
 export let myRooms: { [name: string]: RoomInfo } = {}
 global.myRooms = myRooms;
-
-export function loadRooms() {
-    for (const name in Game.rooms) {
-        const room = Game.rooms[name];
-        if (room.controller?.my) {
-            myRooms[name] = new RoomInfo(name);
-        }
-    }
-}
 
 global.logMoveRequest = (roomName: string) => {
     const room = myRooms[roomName];

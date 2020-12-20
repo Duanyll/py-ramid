@@ -1,10 +1,11 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-import { myRooms, loadRooms } from "roomInfo";
+import { myRooms, RoomInfo } from "roomInfo";
 import { tickNormalRoom } from "room";
 import "expansion"
 import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
 import { globalCreeps, loadCreeps, runCreep } from "creep";
 import "compounds";
+import "resource"
 import "structures/terminal";
 import "stats"
 import "rawMemory"
@@ -16,14 +17,26 @@ import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler"
 
 import "highwayMining"
 import "war";
+import { GlobalStoreManager } from "resource";
+
+function loadRooms() {
+    for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        if (room.controller?.my) {
+            myRooms[name] = new RoomInfo(name);
+        }
+    }
+    loadCreeps();
+    global.store = new GlobalStoreManager();
+}
 
 function loadScript() {
     global.age = 0;
     Logger.prompt(`Restarting PY-RAMID ...`);
     Logger.info(`Current game tick is ${Game.time}`);
     Logger.info(`Last load lasted for ${Memory.age} ticks.`);
-    loadRooms();
     initTasks();
+    loadRooms();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
 
     globalDelay("runTerminal", 1);

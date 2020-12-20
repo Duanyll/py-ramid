@@ -11,7 +11,7 @@ function runPowerSpawn(room: RoomInfo) {
     }
     if (s.store.power > 0 && s.store.energy >= POWER_SPAWN_ENERGY_RATIO && room.resource.lock[RESOURCE_POWER] > 0) {
         if (s.processPower() == OK) {
-            room.resource.lock[RESOURCE_POWER]--;
+            room.logStore(RESOURCE_POWER, -1, true);
             if (room.resource.lock[RESOURCE_POWER] > 0) {
                 room.delay("runPowerSpawn", 1);
                 return;

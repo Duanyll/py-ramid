@@ -76,10 +76,10 @@ interface Memory {
 type RoomRoutine = "checkCreepHealth" |
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countResource";
+    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
 
 type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" |
-    "scanPowerBank" | "processPowerBank";
+    "scanPowerBank" | "processPowerBank" | "countStore";
 
 type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
@@ -110,16 +110,14 @@ interface RoomState {
     }
     lastLinkToController: boolean,
     enableMining: boolean;
-    // wallHits: number;
-    // rampartHits: number;
-    // rampartHitsTarget: number;
     refillFailTime?: number;
     labMode: "disabled" | "boost" | "reaction",
     labContent: ResourceConstant[],
     labRemainAmount: number,
     chargeNuker: boolean,
     autoProcessPower: boolean,
-    disableTower?: boolean
+    disableTower?: boolean,
+    mineralToTransport?: number;
 }
 
 interface RoomDesign {
@@ -190,6 +188,9 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        produce: (type: ResourceConstant, amount: number) => void;
+        cancelLab: (roomName: string) => void;
+        store: import("resource").GlobalStoreManager;
         unclaim: (roomName: string, keep: boolean) => void;
         yes: (key: number) => void;
         schedule: (type: GlobalTask, delay: number, param: any) => void;
@@ -203,11 +204,8 @@ declare namespace NodeJS {
         logLabs: () => void;
         recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
         logMoveRequest: (roomName: string) => void;
-        bookForReserve: () => void;
-        resetResource: () => void;
+        resetResource: (roomName: string) => void;
         cancelAllLabs: () => void;
-        produceG: (amount: number) => void;
-        produceT3: (a: "U" | "L" | "K" | "Z" | "G", b: "O" | "H", amount: number) => void;
         mining: (roomName: string, enable: boolean) => void;
         myRooms: { [name: string]: import("roomInfo").RoomInfo; };
         reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;

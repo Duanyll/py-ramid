@@ -109,9 +109,7 @@ function runLabs(room: RoomInfo) {
                 if (inputAmount >= LAB_REACTION_AMOUNT) {
                     if (lab.runReaction(input0, input1) == OK) {
                         inputAmount -= LAB_REACTION_AMOUNT;
-                        room.resource.lock[input0.mineralType] -= LAB_REACTION_AMOUNT;
-                        room.resource.lock[input1.mineralType] -= LAB_REACTION_AMOUNT;
-                        room.state.labRemainAmount -= LAB_REACTION_AMOUNT;
+                        global.store.logReaction(room, product, room.state.labContent, LAB_REACTION_AMOUNT);
                         if (room.state.labRemainAmount <= 0) {
                             Logger.info(`${room.name} reaction done. `)
                             room.state.labMode = "disabled";
@@ -140,7 +138,7 @@ function fetchLabWork(room: RoomInfo) {
     }
     let task = Memory.labQueue.shift();
     if (task) {
-        let amount = (room.structRcl == 8) ? task.amount : Math.min(task.amount, 10000);
+        let amount = Math.min(task.amount, 8000);
         task.amount -= amount;
         if (task.amount > 0) Memory.labQueue.unshift(task);
         global.reaction(room.name, "reaction", task.recipe, amount);

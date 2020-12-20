@@ -60,10 +60,13 @@ export function runLootCarrier(creep: Creep) {
             }
         }
     } else {
-        const terminal = myRooms[m.home].structures.terminal;
+        const room = myRooms[m.home];
+        const terminal = room.structures.terminal;
         if (creep.pos.isNearTo(terminal)) {
             for (const type in creep.store) {
                 creep.transfer(terminal, type as ResourceConstant);
+                room.logStore(type as ResourceConstant, creep.store[type as ResourceConstant]);
+                return;
             }
             if (m.remainRun > 0) {
                 m.remainRun--;

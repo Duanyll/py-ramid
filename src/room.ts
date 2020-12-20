@@ -20,7 +20,7 @@ function updateRoomCreepCount(room: RoomInfo) {
         delete room.creepRoleDefs["build1"];
     }
     if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
-        && room.countResource(room.structures.mineral.mineralType) < TERMINAL_MINERAL) {
+        && room.countStore(room.structures.mineral.mineralType) < TERMINAL_MINERAL) {
         room.creepRoleDefs["mine1"] = {
             body: minerBody,
             role: "mine"

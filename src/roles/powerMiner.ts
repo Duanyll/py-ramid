@@ -94,11 +94,13 @@ function runPowerCarrier(creep: Creep) {
         if (creep.room.name != home) {
             moveCreepToRoom(creep, home);
         } else {
-            let storage = myRooms[home].structures.storage;
+            let room = myRooms[home];
+            let storage = room.structures.storage;
             if (!creep.pos.isNearTo(storage)) {
                 moveCreepTo(creep, storage);
             } else {
                 creep.transfer(storage, RESOURCE_POWER);
+                room.logStore(RESOURCE_POWER, creep.store.getUsedCapacity(RESOURCE_POWER));
                 creep.suicide();
             }
         }
