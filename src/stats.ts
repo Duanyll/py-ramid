@@ -25,7 +25,8 @@ interface Stats {
     },
     rooms: { [name: string]: RoomStats },
     resource: Partial<Record<ResourceConstant, number>>,
-    time: number
+    time: number,
+    credits: number
 }
 
 function summaryRoom(room: RoomInfo): RoomStats {
@@ -63,7 +64,8 @@ export function summaryStats() {
             },
             rooms: _.mapValues(myRooms, summaryRoom),
             time: Game.time,
-            resource: summaryResource()
+            resource: summaryResource(),
+            credits: Game.market.credits
         }
         RawMemory.segments[STATS_SEGMENT] = JSON.stringify(obj);
     });

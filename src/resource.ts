@@ -69,6 +69,22 @@ export class GlobalStoreManager {
                 this.productLock[product] ||= 0;
                 this.productLock[product] += amount;
             }
+        });
+
+        Memory.labQueue.forEach(req => {
+            // @ts-ignore
+            const product: ResourceConstant = REACTIONS[req.recipe[0]][req.recipe[1]];
+            req.recipe.forEach(r => {
+                this.materialLock[r] ||= 0;
+                this.materialLock[r] += req.amount;
+            });
+            this.productLock[product] ||= 0;
+            this.productLock[product] += req.amount;
+        });
+
+        _.forIn(Memory.labQueueBuffer, (amount, res) => {
+            this.productLock[res as ResourceConstant] ||= 0;
+            this.productLock[res as ResourceConstant] += amount;
         })
     }
 
@@ -124,9 +140,18 @@ global.resetResource = (roomName: string) => {
     room.resource.lock = {};
 }
 
+Memory.labQueueBuffer ||= {};
+
 global.produce = (type: ResourceConstant, amount: number) => {
     if (COMPOUND_RECIPE[type]) {
-        produceCompound(type, amount);
+        Memory.labQueueBuffer[type] ||= 0;
+        Memory.labQueueBuffer[type] += amount;
+        global.store.productLock[type] ||= 0;
+        global.store.productLock[type] += amount;
+        if (Memory.labQueueBuffer[type] >= 8000) {
+            produceCompound(type, 8000, true);
+            Memory.labQueueBuffer[type] -= 8000;
+        }
     } else {
         Logger.error(`Can't produce ${type}!`)
     }

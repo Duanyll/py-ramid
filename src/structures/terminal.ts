@@ -1,4 +1,5 @@
 import { TERMINAL_EXPORT_AMOUNT } from "config";
+import { tryDealResource } from "market";
 import { myRooms } from "roomInfo";
 import { globalDelay, registerGlobalRoutine } from "scheduler";
 import Logger from "utils/Logger";
@@ -47,6 +48,20 @@ export function runTerminals() {
             }
         }
     });
-    if (continueToRun) globalDelay("runTerminal", TERMINAL_COOLDOWN);
+
+    if (Memory.market.enableAutoDeal) {
+        // @ts-ignore
+        _.forIn(Memory.market.autoDeal, (info, type: ResourceConstant) => {
+            if (sourceTerminals[type]) {
+                sourceTerminals[type].forEach(t => {
+                    if (terminalWorked[t.terminal.id]) return;
+                    if (tryDealResource(t.terminal, type, t.amount)) {
+                        terminalWorked[t.terminal.id] = true;
+                    }
+                })
+            }
+        })
+    }
+    globalDelay("runTerminal", TERMINAL_COOLDOWN);
 }
 registerGlobalRoutine("runTerminal", runTerminals);

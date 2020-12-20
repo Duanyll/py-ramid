@@ -10,7 +10,7 @@ _.forIn(REACTIONS, (res2s, res1) => {
         COMPOUND_RECIPE[product] = [res1, res2];
     })
 })
-export function produceCompound(product: ResourceConstant, amount: number) {
+export function produceCompound(product: ResourceConstant, amount: number, fromBuffer?: boolean) {
     amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT;
     let recipe = COMPOUND_RECIPE[product];
     if (!recipe) return;
@@ -21,8 +21,10 @@ export function produceCompound(product: ResourceConstant, amount: number) {
         global.store.materialLock[r] ||= 0;
         global.store.materialLock[r] += amount;
     });
-    global.store.productLock[product] ||= 0;
-    global.store.productLock[product] += amount;
+    if (!fromBuffer) {
+        global.store.productLock[product] ||= 0;
+        global.store.productLock[product] += amount;
+    }
     Memory.labQueue.push({
         recipe, amount
     });

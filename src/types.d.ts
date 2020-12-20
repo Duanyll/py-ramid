@@ -50,6 +50,7 @@ interface Memory {
         recipe: ResourceConstant[],
         amount: number
     }[],
+    labQueueBuffer: Partial<Record<ResourceConstant, number>>;
     routine: { [type in GlobalRoutine]?: number };
     tasks: {
         [time: number]: { type: GlobalTask, param: any }[]
@@ -70,6 +71,17 @@ interface Memory {
             targets: string[];
             info: {}
         }
+    },
+    market: {
+        enableAutoDeal: boolean,
+        autoDeal: {
+            [type in ResourceConstant]?: {
+                basePrice: number,
+                reserveAmount: number,
+                orders?: string[],
+                updateTime: number
+            }
+        }
     }
 }
 
@@ -79,7 +91,8 @@ type RoomRoutine = "checkCreepHealth" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
 
 type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" |
-    "scanPowerBank" | "processPowerBank" | "countStore";
+    "scanPowerBank" | "processPowerBank" |
+    "countStore" | "fetchAutoDealOrders";
 
 type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
@@ -188,6 +201,7 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
         produce: (type: ResourceConstant, amount: number) => void;
         cancelLab: (roomName: string) => void;
         store: import("resource").GlobalStoreManager;

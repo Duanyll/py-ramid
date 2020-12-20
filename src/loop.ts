@@ -16,6 +16,7 @@ import Logger from "utils/Logger";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler";
 
 import "highwayMining"
+import "market"
 import "war";
 import { GlobalStoreManager } from "resource";
 
@@ -41,6 +42,7 @@ function loadScript() {
 
     globalDelay("runTerminal", 1);
     globalDelay("summatyStats", 1);
+    globalDelay("fetchAutoDealOrders", 1000);
 }
 
 if (Game) {
