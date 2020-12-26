@@ -41,7 +41,7 @@ function loadScript() {
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
 
     globalDelay("runTerminal", 1);
-    globalDelay("summatyStats", 1);
+    globalDelay("summaryStats", 1);
     globalDelay("fetchAutoDealOrders", 1000);
 }
 

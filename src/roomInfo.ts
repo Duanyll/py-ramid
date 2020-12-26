@@ -287,6 +287,13 @@ export class RoomInfo {
 
 export let myRooms: { [name: string]: RoomInfo } = {}
 global.myRooms = myRooms;
+Object.defineProperty(Room.prototype, 'info', {
+    get: function (this: Room) {
+        return myRooms[this.name];
+    },
+    enumerable: false,
+    configurable: true
+})
 
 global.logMoveRequest = (roomName: string) => {
     const room = myRooms[roomName];

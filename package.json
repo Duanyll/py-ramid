@@ -8,14 +8,10 @@
     "lint": "tslint -p tsconfig.json \"src/**/*.ts\"",
     "build": "rollup -c",
     "push-main": "rollup -c --environment DEST:main",
-    "push-pserver": "rollup -c --environment DEST:pserver",
-    "push-sim": "rollup -c --environment DEST:sim",
+    "push-local": "pwsh ./push-to-localhost.ps1",
     "test": "npm run test-unit && npm run test-integration",
     "test-unit": "rollup -c rollup.test-unit-config.js && mocha dist/test-unit.bundle.js",
-    "test-integration": "npm run build && rollup -c rollup.test-integration-config.js && mocha dist/test-integration.bundle.js",
-    "watch-main": "rollup -cw --environment DEST:main",
-    "watch-pserver": "rollup -cw --environment DEST:pserver",
-    "watch-sim": "rollup -cw --environment DEST:sim"
+    "test-integration": "npm run build && rollup -c rollup.test-integration-config.js && mocha dist/test-integration.bundle.js"
   },
   "author": "Duanyll",
   "license": "AGPL-3.0-or-later",
@@ -53,8 +49,5 @@
     "tslint-config-prettier": "^1.14.0",
     "tslint-plugin-prettier": "^1.3.0",
     "typescript": "^4.1.2"
-  },
-  "dependencies": {
-    "source-map": "~0.6.1"
   }
 }

@@ -90,13 +90,13 @@ type RoomRoutine = "checkCreepHealth" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
 
-type GlobalRoutine = "runTerminal" | "summatyStats" | "rawMemory" | "observer" |
+type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank" |
     "countStore" | "fetchAutoDealOrders";
 
 type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
-type BodyPartDescription = { type: BodyPartConstant, count: number }[];
+type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];
 
 interface SpawnRequest {
     memory: CreepMemory;
@@ -233,4 +233,8 @@ declare namespace NodeJS {
         reloadRoomsNextTick?: boolean;
         _: _.LoDashStatic;
     }
+}
+
+interface Room {
+    readonly info: import("roomInfo").RoomInfo;
 }

@@ -1,3 +1,4 @@
+import { TERMINAL_EXPORT_AMOUNT } from "config";
 import { myRooms } from "roomInfo";
 import { globalDelay, registerGlobalRoutine } from "scheduler";
 import Logger from "utils/Logger";
@@ -45,7 +46,6 @@ registerGlobalRoutine("fetchAutoDealOrders", fetchAutoDealOrders);
 function getOneAvaliableOrder(type: ResourceConstant): Order {
     let info = Memory.market.autoDeal[type];
     if (!info) return undefined;
-    if (info.updateTime == Game.time) return getMarketOrder(info.orders.shift());
     info.updateTime = Game.time;
     let avalList: string[] = [];
     let res: Order;
@@ -54,16 +54,18 @@ function getOneAvaliableOrder(type: ResourceConstant): Order {
         if (!order) return;
         if (order.price >= info.basePrice && order.amount > 0) {
             avalList.push(id);
+            if (!res) res = order;
         }
     });
     info.orders = avalList;
     return res;
 }
 
+// 每 tick 每种资源只尝试 deal 一次
 export function tryDealResource(terminal: StructureTerminal, res: ResourceConstant, myAmount: number) {
     let order = getOneAvaliableOrder(res);
     if (!order || order.amount <= 0) return false;
-    let dealAmount = Math.min(myAmount, order.amount);
+    let dealAmount = Math.min(TERMINAL_EXPORT_AMOUNT, myAmount, order.amount);
     let room = myRooms[terminal.room.name];
     if (Game.market.deal(order.id, dealAmount, room.name) == OK) {
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} sold at price ${order.price}`);

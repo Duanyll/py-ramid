@@ -4,7 +4,7 @@ export const STATS_SEGMENT = 50;
 export const TERMINAL_STORE_ENERGY = 50000;
 export const TERMINAL_MINERAL = 150000;
 export const ROOM_RESERVE_T3 = 10000;
-export const TERMINAL_EXPORT_AMOUNT = 6000;
+export const TERMINAL_EXPORT_AMOUNT = 8000;
 
 export const WALL_BUILD_STEP = 30000;
 

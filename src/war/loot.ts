@@ -107,7 +107,7 @@ function checkLootJob(param: { flag: string, home: string, creepRun: number }) {
                 Logger.debug(`Continue looting ${flag.name}`)
                 myRooms[param.home].spawnQueue.push({
                     name: `loot-${flag.name}-${Game.time}`,
-                    body: [{ type: CARRY, count: 25 }, { type: MOVE, count: 25 }],
+                    body: [[CARRY, 25], [MOVE, 25]],
                     memory: {
                         role: "rCarry",
                         target: flag.name,

@@ -69,6 +69,6 @@ export function summaryStats() {
         }
         RawMemory.segments[STATS_SEGMENT] = JSON.stringify(obj);
     });
-    globalDelay("summatyStats", STATS_SUMMARY_TIME);
+    globalDelay("summaryStats", STATS_SUMMARY_TIME);
 }
-registerGlobalRoutine("summatyStats", summaryStats);
+registerGlobalRoutine("summaryStats", summaryStats);

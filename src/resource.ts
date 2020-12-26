@@ -115,6 +115,21 @@ export class GlobalStoreManager {
             })
         });
     }
+
+    fixLockedImport() {
+        _.forIn(myRooms, (room) => {
+            _.forIn(room.resource.lock, (amount, type) => {
+                room.requestResource(type as ResourceConstant, 0, true);
+            })
+        });
+    }
+
+    flushBuffer() {
+        _.forIn(Memory.labQueueBuffer, (amount, type) => {
+            produceCompound(type as ResourceConstant, amount, true);
+        })
+        Memory.labQueueBuffer = {};
+    }
 }
 
 global.resetResource = (roomName: string) => {

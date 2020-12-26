@@ -1,40 +1,14 @@
-import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
+import { myRooms, RoomInfo } from "roomInfo";
 import { tickSpawn } from "structures/spawn";
 import { tickTower } from "structures/tower";
-import { TERMINAL_MINERAL } from "config";
-import { creepRolesForLevel, minerBody } from "creepCount";
 import { runCreep } from "creep";
 import "structures/labs"
 import "structures/link"
 import "defense"
 import "roles"
 import "structures/powerSpawn"
+import "creepCount"
 import Logger from "utils/Logger";
-
-function updateRoomCreepCount(room: RoomInfo) {
-    room.creepRoleDefs = _.clone(creepRolesForLevel[room.structRcl]);
-    if (room.structRcl >= 7 && (room.state.energy.storeMode)) {
-        delete room.creepRoleDefs["build1"];
-    }
-    if (room.structRcl == 8 && !room.state.energy.usage.builder) {
-        delete room.creepRoleDefs["build1"];
-    }
-    if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
-        && room.countStore(room.structures.mineral.mineralType) < TERMINAL_MINERAL) {
-        room.creepRoleDefs["mine1"] = {
-            body: minerBody,
-            role: "mine"
-        }
-    }
-    if (room.structRcl >= 8 && !room.state.energy.usage.upgrade) {
-        room.creepRoleDefs["upgr1"] = {
-            body: [{ type: WORK, count: 3 }, { type: CARRY, count: 1 }, { type: MOVE, count: 2 }],
-            role: "upgrade"
-        }
-    }
-    room.delay("updateCreepCount", 100);
-}
-registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
 
 function decideRoomEnergyUsage(room: RoomInfo) {
     if (!room.structures.storage) return;

@@ -96,17 +96,17 @@ export function estimateDistance(a: RoomPosition, b: RoomPosition) {
 }
 
 export function getCreepSpawnTime(body: BodyPartDescription) {
-    return _.sumBy(body, (p) => p.count) * 3;
+    return _.sumBy(body, (p) => p[1]) * 3;
 }
 
 export function getCreepCost(body: BodyPartDescription) {
-    return _.sumBy(body, (p) => BODYPART_COST[p.type] * p.count);
+    return _.sumBy(body, (p) => BODYPART_COST[p[0]] * p[1]);
 }
 
 export function expandBodypart(body: BodyPartDescription) {
     let res: BodyPartConstant[] = [];
     body.forEach((p) => {
-        for (let i = 0; i < p.count; i++) res.push(p.type);
+        for (let i = 0; i < p[1]; i++) res.push(p[0]);
     });
     return res;
 }
