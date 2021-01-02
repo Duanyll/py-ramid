@@ -32,11 +32,14 @@ interface PowerBankInfo {
     discoverTime: number,
     decayTime: number,
     power: number,
-    status: "dropped" | "waiting" | "spawnRequested" | "harvested";
+    status: "dropped" | "waiting" | "harvesting" | "harvested";
     pos: { room: string, x: number, y: number },
-    harvGroups?: string[],
+    harvGroupCount?: number,
     carryGroup?: string,
-    harvRoom?: string
+    harvRoom?: string,
+
+    distance?: number,
+    remainHits?: number
 }
 
 interface Memory {
@@ -57,10 +60,7 @@ interface Memory {
     },
     mining: {
         power: {
-            /**
-             * 房间正在采集的 PowerBank 的 id
-             */
-            from: { [room: string]: string };
+            roomLock: { [room: string]: boolean };
             targets: string[];
             info: {
                 [id: string]: PowerBankInfo
@@ -201,8 +201,9 @@ interface RoomMemory {
 // `global` extension samples
 declare namespace NodeJS {
     interface Global {
+        lastException: number;
         autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
-        produce: (type: ResourceConstant, amount: number) => void;
+        produce: (type: ResourceConstant, amount: number, noBuffer?: boolean) => boolean;
         cancelLab: (roomName: string) => void;
         store: import("resource").GlobalStoreManager;
         unclaim: (roomName: string, keep: boolean) => void;

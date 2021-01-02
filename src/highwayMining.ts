@@ -1,17 +1,16 @@
 import { myRooms, RoomInfo } from "roomInfo";
-import { globalDelay, registerGlobalRoutine, schedule } from "scheduler";
+import { globalDelay, registerGlobalRoutine } from "scheduler";
 import { onVisibility } from "structures/observer";
 import { estimateDistance, objToPos, posToObj } from "utils/utils";
-import "roles/powerMiner";
 import Logger from "utils/Logger";
 import { pbCarrierBody, pbHarvesterBody, pbHealerBody } from "creepCount";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,
-    { power: { from: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } });
+    { power: { roomLock: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } });
 
 function canRoomHarvestPB(room: RoomInfo) {
-    return room.structRcl == 8 && room.energy > 100000 && !Memory.mining.power.from[room.name];
+    return room.structRcl == 8 && room.energy > 100000 && !Memory.mining.power.roomLock[room.name];
 }
 
 function scanPowerBank() {
@@ -47,6 +46,9 @@ function processPowerBank() {
             newPBInfo[id] = info;
         } else {
             Logger.silly(`Removing old PowerBank in ${info.pos.room}`);
+            if (info.harvRoom) {
+                delete Memory.mining.power.roomLock[info.harvRoom];
+            }
         }
         if (info.status == "waiting") {
             tryHarvestPB(info, id);
@@ -70,74 +72,87 @@ function tryHarvestPB(pb: PowerBankInfo, id: string) {
             }
         }), i => i.dis);
     if (pb.power > 1400 && minDist.dis <= 100 && pb.decayTime - Game.time > 3300) {
-        goHarvestPB(pb, id, minDist.room, 2);
+        goHarvestPB(pb, id, minDist.room, minDist.dis);
         return;
     }
     if (pb.power > 2000 && minDist.dis <= 600 && pb.decayTime - Game.time > 4700) {
-        goHarvestPB(pb, id, minDist.room, 3);
+        goHarvestPB(pb, id, minDist.room, minDist.dis);
         return;
     }
 }
 
-function goHarvestPB(pb: PowerBankInfo, id: string, room: RoomInfo, waves: number) {
-    Logger.info(`Harvesting PowerBank in ${pb.pos.room}, from ${room.name}, need ${waves} waves of creep.`);
-    pb.status = "spawnRequested";
+function goHarvestPB(pb: PowerBankInfo, id: string, room: RoomInfo, distance: number) {
+    Logger.info(`Harvesting PowerBank in ${pb.pos.room}, from ${room.name}`);
+    pb.distance = distance;
+    pb.remainHits = POWER_BANK_HITS;
+    pb.status = "harvesting";
     pb.harvRoom = room.name;
-    Memory.mining.power.from[room.name] = id;
-    pb.harvGroups = [];
-    const idShort = id.substr(8, 8);
-    let timeBase = 151;
-    for (let i = 1; i <= waves; i++) {
-        let groupName = `pbHarv-${idShort}-${i}`;
-        pb.harvGroups.push(groupName);
-        schedule("spawnCreep", timeBase - 50 * CREEP_SPAWN_TIME, {
-            room: room.name,
+    Memory.mining.power.roomLock[room.name] = true;
+    pb.harvGroupCount = 0;
+    pb.carryGroup = `pbCarry-${id.substr(7, 8)}`;
+    spawnPowerBankHarvestGroup(1, id, room.name, ++pb.harvGroupCount);
+}
+
+export function onPBHarvesterArrive(creep: Creep, info: PowerBankInfo, id: string) {
+    const pb = Game.getObjectById(id) as StructurePowerBank;
+    const creepAttack = 750 * (creep.ticksToLive + 1);
+    info.remainHits = pb.hits - creepAttack;
+    if (info.remainHits <= 0) {
+        let finishTime = _.ceil(pb.hits / 750);
+        let carrierCount = _.ceil(pb.power / 1250);
+        spawnPowerBankCarryGroup(Math.max(1, finishTime - 150 * _.ceil(carrierCount / 3) - 50),
+            id, info.harvRoom, info.carryGroup, carrierCount);
+    } else {
+        spawnPowerBankHarvestGroup(Math.max(1, creep.ticksToLive - 150 - info.distance),
+            id, info.harvRoom, ++info.harvGroupCount);
+    }
+}
+
+function spawnPowerBankHarvestGroup(time: number, id: string, room: string, wave: number) {
+    const idShort = id.substr(7, 8);
+    const groupName = `pbHarv-${idShort}-${wave}`;
+    global.schedule("spawnCreep", time, {
+        room: room, info: {
+            name: `${groupName}-attack`,
+            body: pbHarvesterBody,
+            memory: {
+                role: "pbHarv",
+                roleId: "attack",
+                group: groupName,
+                target: id
+            }
+        }
+    });
+    for (let i = 1; i <= 2; i++) {
+        global.schedule("spawnCreep", time + 55, {
+            room: room,
             info: {
-                name: `${idShort}-harv${i}`,
-                body: pbHarvesterBody,
+                name: `${groupName}-heal${i}`,
+                body: pbHealerBody,
                 memory: {
-                    role: "pbHarv",
-                    roleId: "attack",
+                    role: "pbHeal",
+                    roleId: `heal${i}`,
                     group: groupName,
                     target: id
                 }
             } as SpawnRequest
-        });
-        for (let j = 1; j <= 2; j++) {
-            schedule("spawnCreep", timeBase - 32 * CREEP_SPAWN_TIME, {
-                room: room.name,
-                info: {
-                    name: `${idShort}-heal${(i - 1) * 2 + j}`,
-                    body: pbHealerBody,
-                    memory: {
-                        role: "pbHeal",
-                        roleId: `heal${j}`,
-                        group: groupName,
-                        target: id
-                    }
-                } as SpawnRequest
-            });
-        }
-        timeBase += CREEP_LIFE_TIME;
+        })
     }
-    const carryGroupName = `pbCarry-${idShort}`;
-    const carrierCount = _.ceil(pb.power / (25 * CARRY_CAPACITY));
-    pb.carryGroup = carryGroupName;
-    timeBase -= 600;
-    for (let i = 1; i <= carrierCount; i++) {
-        schedule("spawnCreep", timeBase - 50 * CREEP_SPAWN_TIME, {
-            room: room.name,
-            info: {
-                name: `${idShort}-carry${i}`,
+}
+function spawnPowerBankCarryGroup(time: number, id: string, room: string, groupName: string, count: number) {
+    for (let i = 1; i <= count; i++) {
+        global.schedule("spawnCreep", time, {
+            room: room, info: {
+                name: `${groupName}-carry${i}`,
                 body: pbCarrierBody,
                 memory: {
                     role: "pbCarry",
                     roleId: `carry${i}`,
-                    group: carryGroupName,
+                    group: groupName,
                     target: id,
-                    status: "go"
-                }
-            } as SpawnRequest
+                    state: "go"
+                } as CreepMemory
+            }
         })
     }
 }

@@ -39,7 +39,7 @@ function fetchAutoDealOrders() {
         });
         info.orders = _.sortBy(info.orders, (o => -getMarketOrder(o).price));
     })
-    globalDelay("fetchAutoDealOrders", 1000);
+    globalDelay("fetchAutoDealOrders", 100);
 }
 registerGlobalRoutine("fetchAutoDealOrders", fetchAutoDealOrders);
 

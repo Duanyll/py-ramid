@@ -21,3 +21,5 @@ registerCreepRole({
     manage: runManager,
     mine: runMiner
 });
+
+import "./powerMiner"

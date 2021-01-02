@@ -130,6 +130,7 @@ export const minerBody: BodyPartDescription = [[WORK, 12], [MOVE, 6]];
 
 export const pbHarvesterBody: BodyPartDescription = [[MOVE, 25], [ATTACK, 25]];
 export const pbHealerBody: BodyPartDescription = [[MOVE, 16], [HEAL, 16]];
+export const pbUnibodyBody: BodyPartDescription = [[MOVE, 25], [ATTACK, 11], [HEAL, 14]]
 export const pbCarrierBody: BodyPartDescription = [[CARRY, 25], [MOVE, 25]];
 
 function updateRoomCreepCount(room: RoomInfo) {

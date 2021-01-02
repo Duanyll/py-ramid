@@ -27,6 +27,7 @@ registerRoomRoutine("countStore", countRoomStore);
 
 export function countGlobalStore() {
     global.store.refresh();
+    global.store.fixLock()
     global.delay("countStore", 5000);
 }
 registerGlobalRoutine("countStore", countGlobalStore);
@@ -108,19 +109,25 @@ export class GlobalStoreManager {
             - (this.reserveLock[res] || 0) - (this.materialLock[res] || 0);
     }
 
-    balanceReserve() {
+    fixLock() {
         _.forIn(myRooms, (room) => {
             _.forIn(room.resource.reserve, (amount, type) => {
                 room.requestResource(type as ResourceConstant, 0, true);
             })
         });
-    }
 
-    fixLockedImport() {
+
         _.forIn(myRooms, (room) => {
             _.forIn(room.resource.lock, (amount, type) => {
                 room.requestResource(type as ResourceConstant, 0, true);
             })
+        });
+
+        // @ts-ignore
+        _.forIn(this.materialLock, (amount, type: ResourceConstant) => {
+            if (this.getFree(type) < 0) {
+                global.produce(type, -this.getFree(type), true);
+            }
         });
     }
 
@@ -157,17 +164,18 @@ global.resetResource = (roomName: string) => {
 
 Memory.labQueueBuffer ||= {};
 
-global.produce = (type: ResourceConstant, amount: number) => {
+global.produce = (type: ResourceConstant, amount: number, noBuffer: boolean) => {
     if (COMPOUND_RECIPE[type]) {
         Memory.labQueueBuffer[type] ||= 0;
         Memory.labQueueBuffer[type] += amount;
         global.store.productLock[type] ||= 0;
         global.store.productLock[type] += amount;
-        if (Memory.labQueueBuffer[type] >= 8000) {
-            produceCompound(type, 8000, true);
-            Memory.labQueueBuffer[type] -= 8000;
+        if (Memory.labQueueBuffer[type] >= 8000 || !noBuffer) {
+            produceCompound(type, Memory.labQueueBuffer[type], true);
+            delete Memory.labQueueBuffer[type];
         }
+        return true;
     } else {
-        Logger.error(`Can't produce ${type}!`)
+        return false;
     }
 }

@@ -1,10 +1,16 @@
 import { creepGroups, registerCreepRole } from "creep";
+import { onPBHarvesterArrive } from "highwayMining";
 import { lockCreepPosition, moveCreepTo, moveCreepToRoom } from "moveHelper";
 import { myRooms } from "roomInfo";
 import { objToPos } from "utils/utils";
 
+interface PowerHarvesterMemory extends CreepMemory {
+    arrived: boolean;
+    started: boolean;
+}
+
 function runPowerHarvester(creep: Creep) {
-    let m = creep.memory;
+    let m = creep.memory as PowerHarvesterMemory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
     if (creep.room.name != tarpos.roomName) {
@@ -12,15 +18,23 @@ function runPowerHarvester(creep: Creep) {
     } else if (!creep.pos.isNearTo(tarpos)) {
         moveCreepTo(creep, tarpos);
     } else {
+        if (!m.arrived) {
+            m.arrived = true;
+            pbInfo.distance = CREEP_LIFE_TIME - creep.ticksToLive;
+        }
         const group = creepGroups[m.group];
         if (group["heal1"]?.pos.isNearTo(creep.pos) && group["heal2"]?.pos.isNearTo(creep.pos)) {
             const pb = tarpos.lookFor(LOOK_STRUCTURES).find(s => s.structureType == STRUCTURE_POWER_BANK) as StructurePowerBank;
             if (!pb) {
                 pbInfo.status = "harvested";
-                delete Memory.mining.power.from[pbInfo.harvRoom];
+                delete Memory.mining.power.roomLock[pbInfo.harvRoom];
                 creep.suicide();
                 return;
             } else {
+                if (!m.started) {
+                    m.started = true;
+                    onPBHarvesterArrive(creep, pbInfo, m.target);
+                }
                 if (pb.hits < 5000 && creep.ticksToLive > 10) {
                     const carryGroup = creepGroups[pbInfo.carryGroup];
                     const carrierCount = _.ceil(pb.power / (CARRY_CAPACITY * 25));
@@ -61,13 +75,13 @@ function runPowerHealer(creep: Creep) {
 }
 
 interface PBCarrierMemory extends CreepMemory {
-    status: "go" | "back",
+    state: "go" | "back",
 }
 function runPowerCarrier(creep: Creep) {
     let m = creep.memory as PBCarrierMemory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
-    if (m.status == "go") {
+    if (m.state == "go") {
         if (creep.room.name != tarpos.roomName) {
             moveCreepToRoom(creep, tarpos.roomName);
         } else if (!creep.pos.inRangeTo(tarpos, 4)) {
@@ -79,11 +93,11 @@ function runPowerCarrier(creep: Creep) {
                 const ruin = tarpos.lookFor(LOOK_RUINS)[0];
                 if (ruin) {
                     creep.withdraw(ruin, RESOURCE_POWER);
-                    m.status = "back";
+                    m.state = "back";
                 } else {
                     const resource = tarpos.lookFor(LOOK_RESOURCES).find(r => r.resourceType == RESOURCE_POWER);
                     if (resource) creep.pickup(resource);
-                    m.status = "back";
+                    m.state = "back";
                 }
             }
         } else {

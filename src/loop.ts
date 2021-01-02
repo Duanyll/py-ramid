@@ -42,7 +42,7 @@ function loadScript() {
 
     globalDelay("runTerminal", 1);
     globalDelay("summaryStats", 1);
-    globalDelay("fetchAutoDealOrders", 1000);
+    globalDelay("fetchAutoDealOrders", 100);
 }
 
 if (Game) {

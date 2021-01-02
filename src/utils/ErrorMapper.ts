@@ -78,7 +78,12 @@ export class ErrorMapper {
                         const message = `Source maps don't work in the simulator - displaying original error`;
                         console.log(`<span style='color:red'>${message}<br>${_.escape(e.stack)}</span>`);
                     } else {
-                        console.log(`<span style='color:red'>${_.escape(this.sourceMappedStackTrace(e))}</span>`);
+                        const backTrace = this.sourceMappedStackTrace(e);
+                        console.log(`<span style='color:red'>${_.escape(backTrace)}</span>`);
+                        if (!global.lastException || global.lastException + 1000 < Game.time) {
+                            Game.notify("Exception thrown! \n" + backTrace);
+                        }
+                        global.lastException = Game.time;
                     }
                 } else {
                     // can't handle it
