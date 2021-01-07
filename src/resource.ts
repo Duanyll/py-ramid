@@ -170,7 +170,7 @@ global.produce = (type: ResourceConstant, amount: number, noBuffer: boolean) => 
         Memory.labQueueBuffer[type] += amount;
         global.store.productLock[type] ||= 0;
         global.store.productLock[type] += amount;
-        if (Memory.labQueueBuffer[type] >= 8000 || !noBuffer) {
+        if (Memory.labQueueBuffer[type] >= 8000 || noBuffer) {
             produceCompound(type, Memory.labQueueBuffer[type], true);
             delete Memory.labQueueBuffer[type];
         }

@@ -1,9 +1,3 @@
-declare const _: import("lodash").LoDashStatic;
-
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
-    | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
-    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
-    | "pbHarv" | "pbHeal" | "pbCarry";
 
 interface CreepMemory {
     _move?: {
@@ -25,8 +19,6 @@ interface PowerCreepMemory {
         path: string;
     }
 }
-
-type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
 
 interface PowerBankInfo {
     discoverTime: number,
@@ -85,17 +77,6 @@ interface Memory {
     }
 }
 
-type RoomRoutine = "checkCreepHealth" |
-    "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
-    "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
-
-type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
-    "scanPowerBank" | "processPowerBank" |
-    "countStore" | "fetchAutoDealOrders";
-
-type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
-
 type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];
 
 interface SpawnRequest {
@@ -106,8 +87,6 @@ interface SpawnRequest {
 }
 
 type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
-
-type EnergyWork = "upgrade" | "builder" | "power" | "battery"
 
 interface RoomState {
     status: "normal" | "energy-emergency";
@@ -196,46 +175,4 @@ interface RoomMemory {
     },
     resource: RoomResource,
     sign?: string
-}
-
-// `global` extension samples
-declare namespace NodeJS {
-    interface Global {
-        lastException: number;
-        autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
-        produce: (type: ResourceConstant, amount: number, noBuffer?: boolean) => boolean;
-        cancelLab: (roomName: string) => void;
-        store: import("resource").GlobalStoreManager;
-        unclaim: (roomName: string, keep: boolean) => void;
-        yes: (key: number) => void;
-        schedule: (type: GlobalTask, delay: number, param: any) => void;
-        delay: (type: GlobalRoutine, time: number) => void;
-        pbMining: (rooms: string[] | "clear") => void;
-        burnPower: (roomName: string, amount: number | false | "auto") => void;
-        disableTower: (room: string, time?: number) => void;
-        loot: (flag: string, home: string, creepRun: number) => void;
-        nuke: (delay: number, from: string, room: string, x: number, y: number) => void;
-        logLevel: (level: LogLevel) => LogLevel;
-        logLabs: () => void;
-        recordWallDesign: (roomName: string, x1?: number, y1?: number, x2?: number, y2?: number) => void;
-        logMoveRequest: (roomName: string) => void;
-        resetResource: (roomName: string) => void;
-        cancelAllLabs: () => void;
-        mining: (roomName: string, enable: boolean) => void;
-        myRooms: { [name: string]: import("roomInfo").RoomInfo; };
-        reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
-        rampart: (room: string, strength?: number) => void;
-        sendClaimer: (roomName: string, target: string) => void;
-        sendDismantler: (roomName: string, target: string) => void;
-        sendAttacker: (roomName: string, target: string) => void;
-        Game: Game;
-        age: number;
-        log: any;
-        reloadRoomsNextTick?: boolean;
-        _: _.LoDashStatic;
-    }
-}
-
-interface Room {
-    readonly info: import("roomInfo").RoomInfo;
 }
