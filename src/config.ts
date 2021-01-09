@@ -1,17 +1,17 @@
-export const STATS_SUMMARY_TIME = 20;
-export const STATS_SEGMENT = 50;
-
-export const TERMINAL_STORE_ENERGY = 50000;
-export const TERMINAL_MINERAL = 150000;
-export const ROOM_RESERVE_T3 = 10000;
-export const TERMINAL_EXPORT_AMOUNT = 8000;
-
-export const WALL_BUILD_STEP = 30000;
-
-export const CONTROLLER_SIGN = `🔺Py-Ramid🔺`
-export const USER_NAME = "duanyll";
-
-export const PLAYER_WHITELIST: { [name: string]: boolean } = {
-    "Administrator-": true,
-    "Asixa": true
+const cfg = {
+    STATS_SUMMARY_TIME: 20,
+    STATS_SEGMENT: 50,
+    TERMINAL_STORE_ENERGY: 50000,
+    TERMINAL_MINERAL: 150000,
+    ROOM_RESERVE_T3: 10000,
+    TERMINAL_EXPORT_AMOUNT: 8000,
+    WALL_BUILD_STEP: 30000,
+    DEFAULT_CONTROLLER_SIGN: `🔺Py-Ramid🔺`,
+    USER_NAME: "duanyll",
+    DEFAULT_PLAYER_WHITELIST: {
+        "Administrator-": true,
+        "Asixa": true
+    }
 }
+
+export default cfg;

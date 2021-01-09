@@ -1,7 +1,7 @@
-import { TERMINAL_EXPORT_AMOUNT } from "config";
-import { myRooms } from "roomInfo";
-import { globalDelay, registerGlobalRoutine } from "scheduler";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
+import { globalDelay, registerGlobalRoutine } from "utils";
+import Logger from "utils";
+import cfg from "config";
 
 Memory.market ||= {} as any;
 _.defaultsDeep(Memory.market, {
@@ -65,7 +65,7 @@ function getOneAvaliableOrder(type: ResourceConstant): Order {
 export function tryDealResource(terminal: StructureTerminal, res: ResourceConstant, myAmount: number) {
     let order = getOneAvaliableOrder(res);
     if (!order || order.amount <= 0) return false;
-    let dealAmount = Math.min(TERMINAL_EXPORT_AMOUNT, myAmount, order.amount);
+    let dealAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, myAmount, order.amount);
     let room = myRooms[terminal.room.name];
     if (Game.market.deal(order.id, dealAmount, room.name) == OK) {
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} sold at price ${order.price}`);

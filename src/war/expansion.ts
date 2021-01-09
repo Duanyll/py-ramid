@@ -1,7 +1,7 @@
-import { myRooms } from "roomInfo";
-import { moveCreepToRoom, moveCreepTo } from "moveHelper";
-import { registerCreepRole } from "creep";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
+import { moveCreepToRoom, moveCreepTo } from "creep/movement";
+import { registerCreepRole } from "creep/roles";
+import Logger from "utils";
 
 function sendClaimer(roomName: string, target: string) {
     let room = myRooms[roomName];
@@ -75,7 +75,7 @@ function runDismantler(creep: Creep) {
         moveCreepToRoom(creep, target.pos.roomName);
     } else if (!creep.pos.isNearTo(target)) {
         moveCreepTo(creep, target);
-     } else {
+    } else {
         let s = target.pos.lookFor(LOOK_STRUCTURES)[0];
         if (s) {
             creep.dismantle(s);

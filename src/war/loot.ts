@@ -1,9 +1,9 @@
-import { registerCreepRole } from "creep";
-import { moveCreepTo, moveCreepToRoom } from "moveHelper";
-import { myRooms } from "roomInfo";
-import { registerTask, schedule } from "scheduler";
+import { registerCreepRole } from "creep/roles";
+import { moveCreepTo, moveCreepToRoom } from "creep/movement";
+import { myRooms } from "room/roomInfo";
+import { registerTask, schedule } from "utils";
 import { onVisibility } from "structures/observer";
-import Logger from "utils/Logger";
+import Logger from "utils";
 
 interface RemoteCarrierMemory extends CreepMemory {
     status: "go" | "back",

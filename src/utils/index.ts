@@ -1,4 +1,5 @@
-import Logger from "./Logger";
+import cfg from "config";
+import Logger from "./logger";
 
 export function objToPos(obj: { x: number, y: number, room: string }) {
     return new RoomPosition(obj.x, obj.y, obj.room);
@@ -110,3 +111,15 @@ export function expandBodypart(body: BodyPartDescription) {
     });
     return res;
 }
+
+Memory.playerWhiteList ||= {};
+_.defaults(Memory.playerWhiteList, cfg.DEFAULT_PLAYER_WHITELIST);
+export function isHostile(username: string) {
+    return !Memory.playerWhiteList[username];
+}
+
+export * from "./dataStructure";
+export * from "./errorMapper";
+export * from "./scheduler";
+export default Logger;
+export * from "./rawMemory";

@@ -1,8 +1,8 @@
-import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
-import { helperCreepCount, emergencyCreepBody } from "creepCount";
-import Logger from "utils/Logger";
-import { registerTask } from "scheduler";
-import { expandBodypart, getCreepCost, getCreepSpawnTime } from "utils/utils";
+import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
+import Logger from "utils";
+import { registerTask } from "utils";
+import { expandBodypart, getCreepCost, getCreepSpawnTime } from "utils";
+import { roleBodies, roomHelperCreepConfig } from "creep/body";
 
 function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
     let needSpawn = true;
@@ -27,7 +27,7 @@ function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescript
 
 function checkHelpersHealth(room: RoomInfo) {
     let helperRoom = myRooms[room.helperRoom];
-    let helperInfo = helperCreepCount[helperRoom.structRcl];
+    let helperInfo = roomHelperCreepConfig[helperRoom.structRcl];
     for (let i = 0; i < helperInfo.count; i++) {
         const roleId = `helper${i}`;
         checkCreepHealth(room, roleId, helperInfo.body, "work", helperRoom);
@@ -78,7 +78,7 @@ export function tickSpawn(room: RoomInfo) {
         if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
             let spawn = room.structures.spawns[0];
             if (spawn && !spawn.spawning) {
-                spawn.spawnCreep(expandBodypart(emergencyCreepBody), `${room.name}-emergency-${Game.time}`, {
+                spawn.spawnCreep(expandBodypart(roleBodies["pbHarv"]), `${room.name}-emergency-${Game.time}`, {
                     memory: {
                         room: room.name,
                         role: "emergency"

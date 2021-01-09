@@ -1,6 +1,6 @@
-import { RoomInfo, registerRoomRoutine, myRooms } from "roomInfo";
-import { PLAYER_WHITELIST } from "config";
-import { registerTask, schedule } from "scheduler";
+import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
+import { isHostile } from "utils";
+import { registerTask, schedule } from "utils";
 
 function checkRoads(room: RoomInfo) {
     if (room.roadToRepair.length > 0) return;
@@ -34,7 +34,7 @@ function getTowerRepairHits(range: number) {
 }
 
 export function tickTower(room: RoomInfo) {
-    let hostiles = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => !PLAYER_WHITELIST[creep.owner.username]);
+    let hostiles = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => isHostile(creep.owner.username));
     let towerWorked = false;
     if (hostiles.length > 0 && !room.state.disableTower) {
         room.structures.towers.forEach((tower) => {

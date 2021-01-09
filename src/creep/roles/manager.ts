@@ -1,6 +1,6 @@
-import { TERMINAL_EXPORT_AMOUNT, TERMINAL_STORE_ENERGY } from "config";
-import { RoomInfo } from "roomInfo";
-import Logger from "utils/Logger";
+import cfg from "config";
+import { RoomInfo } from "room/roomInfo";
+import Logger from "utils";
 
 const CENTER_STRUCTURES: { [type: string]: boolean } = {
     [STRUCTURE_STORAGE]: true,
@@ -34,7 +34,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                     terminal.store.getUsedCapacity(res),
                     Math.max(
                         (resInfo.reserve[res] || 0) - storage.store.getUsedCapacity(res),
-                        (terminal.store.getUsedCapacity(res) - (resInfo.export[res] || TERMINAL_EXPORT_AMOUNT))
+                        (terminal.store.getUsedCapacity(res) - (resInfo.export[res] || cfg.TERMINAL_EXPORT_AMOUNT))
                     )
                 )
                 for (const res in terminal.store) {
@@ -53,7 +53,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                 // 再从 storage 给 terminal 补货
                 const terminalAmount = (res: ResourceConstant) => Math.min(
                     storage.store.getUsedCapacity(res) - (resInfo.reserve[res] || 0),
-                    (resInfo.export[res] || TERMINAL_EXPORT_AMOUNT) - terminal.store.getUsedCapacity(res),
+                    (resInfo.export[res] || cfg.TERMINAL_EXPORT_AMOUNT) - terminal.store.getUsedCapacity(res),
                 );
                 for (const res in storage.store) {
                     if (res == RESOURCE_ENERGY) continue;
@@ -73,7 +73,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
         },
         (room, storage) => {
             if (!room.state.energy.storeMode
-                && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < TERMINAL_STORE_ENERGY) {
+                && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < cfg.TERMINAL_STORE_ENERGY) {
                 return {
                     from: storage,
                     to: room.structures.terminal,

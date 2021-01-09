@@ -35,7 +35,7 @@ let operationToConfirm: {
     key: number
 };
 
-export class Logger {
+export default class Logger {
     static prompt(message: string) {
         logConsole("prompt", message);
     }
@@ -98,5 +98,3 @@ global.yes = (key: number) => {
         operationToConfirm = undefined;
     }
 }
-
-export default Logger;

@@ -7,7 +7,7 @@ declare namespace NodeJS {
         autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
         produce: (type: ResourceConstant, amount: number, noBuffer?: boolean) => boolean;
         cancelLab: (roomName: string) => void;
-        store: import("resource").GlobalStoreManager;
+        store: import("industry/store").GlobalStoreManager;
         unclaim: (roomName: string, keep: boolean) => void;
         yes: (key: number) => void;
         schedule: (type: GlobalTask, delay: number, param: any) => void;
@@ -24,7 +24,7 @@ declare namespace NodeJS {
         resetResource: (roomName: string) => void;
         cancelAllLabs: () => void;
         mining: (roomName: string, enable: boolean) => void;
-        myRooms: { [name: string]: import("roomInfo").RoomInfo; };
+        myRooms: { [name: string]: import("room/roomInfo").RoomInfo; };
         reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
         sendClaimer: (roomName: string, target: string) => void;

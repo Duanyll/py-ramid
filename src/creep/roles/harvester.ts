@@ -1,10 +1,9 @@
-import { registerRoomRoutine, RoomInfo } from "roomInfo";
-import { moveCreepTo, moveCreepToRoom } from "moveHelper";
-import { goRefill } from "roles/carrier";
-import { objToPos } from "utils/utils";
-import { USER_NAME } from "config";
-import { registerCreepRole } from "creep";
-import { remoteBuilderBody, remoteCarrierBody, remoteGuardBody, remoteHarvesterBody, remoteReserverBody } from "creepCount";
+import { registerRoomRoutine, RoomInfo } from "room/roomInfo";
+import { moveCreepTo, moveCreepToRoom } from "creep/movement";
+import { goRefill } from "creep/roles/carrier";
+import { objToPos } from "utils";
+import cfg from "config";
+import { roleBodies } from "creep/body";
 
 interface HarvesterMemory extends CreepMemory {
     status: "harvest" | "move"
@@ -149,7 +148,7 @@ export function runRemoteReserver(creep: Creep) {
         moveCreepToRoom(creep, creep.memory.target);
     } else {
         let controller = creep.room.controller;
-        if (!controller.reservation || controller.reservation.username == USER_NAME && controller.reservation.ticksToEnd <= 4500) {
+        if (!controller.reservation || controller.reservation.username == cfg.USER_NAME && controller.reservation.ticksToEnd <= 4500) {
             if (creep.pos.isNearTo(controller)) {
                 creep.reserveController(controller);
             } else {
@@ -205,7 +204,7 @@ function tickRemoteHarvest(room: RoomInfo) {
             if (Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length > 0) {
                 room.creepRoleDefs[`rhGuard-${roomName}`] = {
                     role: "rhGuard",
-                    body: remoteGuardBody,
+                    body: roleBodies["rhGuard"],
                     target: roomName
                 };
             }
@@ -218,7 +217,7 @@ function tickRemoteHarvest(room: RoomInfo) {
                 case "building":
                     room.creepRoleDefs[`rhBuild-${roomName}`] = {
                         role: "rhBuild",
-                        body: remoteBuilderBody,
+                        body: roleBodies["rhBuild"],
                         target: roomName
                     };
                     break;
@@ -226,20 +225,20 @@ function tickRemoteHarvest(room: RoomInfo) {
                     _.keys(info.sources).forEach((i) => {
                         room.creepRoleDefs[`rhHarv-${roomName}-${i}`] = {
                             role: "rhHarv",
-                            body: remoteHarvesterBody,
+                            body: roleBodies["rhHarv"],
                             target: i
                         };
                         room.creepRoleDefs[`rhBuild-${roomName}-${i}`] = {
                             role: "rhCarry",
-                            body: remoteCarrierBody,
+                            body: roleBodies["rhCarry"],
                             target: i
                         };
                     })
                     let reservation = Game.rooms[roomName]?.controller.reservation;
-                    if (!reservation || reservation.username == USER_NAME && reservation.ticksToEnd < 1000) {
+                    if (!reservation || reservation.username == cfg.USER_NAME && reservation.ticksToEnd < 1000) {
                         room.creepRoleDefs[`rhReserve-${roomName}`] = {
                             role: "rhReserve",
-                            body: remoteReserverBody,
+                            body: roleBodies["rhReserve"],
                             target: roomName
                         };
                     }

@@ -1,5 +1,5 @@
-import { Queue, Point, createMatrix, printMatrix } from "utils/DataStructure";
-import Logger from "utils/Logger";
+import { Queue, createMatrix, printMatrix } from "utils";
+import Logger from "utils";
 
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }

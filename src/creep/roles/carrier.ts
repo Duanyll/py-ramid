@@ -1,5 +1,5 @@
-import { RoomInfo } from "roomInfo";
-import { moveCreepTo } from "moveHelper";
+import { RoomInfo } from "room/roomInfo";
+import { moveCreepTo } from "creep/movement";
 
 function selectRefillTarget(creep: Creep, room: RoomInfo) {
     let target = "";

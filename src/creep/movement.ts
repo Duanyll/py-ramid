@@ -1,6 +1,6 @@
-import { myRooms } from "roomInfo";
-import Logger from "utils/Logger";
-import { findRouteCallback, objToPos } from "utils/utils";
+import { myRooms } from "room/roomInfo";
+import Logger from "utils";
+import { findRouteCallback, objToPos } from "utils";
 
 Memory.roomsToAvoid ||= {};
 Memory.roomCost ||= {};

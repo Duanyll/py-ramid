@@ -1,4 +1,4 @@
-import { registerRoomRoutine, RoomInfo } from "roomInfo";
+import { registerRoomRoutine, RoomInfo } from "room/roomInfo";
 
 function runLinks(room: RoomInfo) {
     if (room.structRcl < 5) return;

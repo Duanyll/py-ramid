@@ -1,15 +1,15 @@
-import { creepGroups, registerCreepRole } from "creep";
-import { onPBHarvesterArrive } from "highwayMining";
-import { lockCreepPosition, moveCreepTo, moveCreepToRoom } from "moveHelper";
-import { myRooms } from "roomInfo";
-import { objToPos } from "utils/utils";
+import { creepGroups } from "creep/creepInfo";
+import { onPBHarvesterArrive } from "industry/highwayMining";
+import { lockCreepPosition, moveCreepTo, moveCreepToRoom } from "creep/movement";
+import { myRooms } from "room/roomInfo";
+import { objToPos } from "utils";
 
 interface PowerHarvesterMemory extends CreepMemory {
     arrived: boolean;
     started: boolean;
 }
 
-function runPowerHarvester(creep: Creep) {
+export function runPowerHarvester(creep: Creep) {
     let m = creep.memory as PowerHarvesterMemory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
@@ -48,7 +48,7 @@ function runPowerHarvester(creep: Creep) {
     }
 }
 
-function runPowerHealer(creep: Creep) {
+export function runPowerHealer(creep: Creep) {
     let m = creep.memory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
@@ -77,7 +77,7 @@ function runPowerHealer(creep: Creep) {
 interface PBCarrierMemory extends CreepMemory {
     state: "go" | "back",
 }
-function runPowerCarrier(creep: Creep) {
+export function runPowerCarrier(creep: Creep) {
     let m = creep.memory as PBCarrierMemory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
@@ -120,9 +120,3 @@ function runPowerCarrier(creep: Creep) {
         }
     }
 }
-
-registerCreepRole({
-    "pbHarv": runPowerHarvester,
-    "pbHeal": runPowerHealer,
-    "pbCarry": runPowerCarrier,
-})

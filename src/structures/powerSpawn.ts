@@ -1,5 +1,5 @@
-import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
-import Logger from "utils/Logger";
+import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
+import Logger from "utils";
 
 function runPowerSpawn(room: RoomInfo) {
     let s = room.structures.powerSpawn;

@@ -1,4 +1,3 @@
-
 interface CreepMemory {
     _move?: {
         dest: { x: number, y: number, room: string };
@@ -74,7 +73,8 @@ interface Memory {
                 updateTime: number
             }
         }
-    }
+    },
+    playerWhiteList: Record<string, boolean>;
 }
 
 type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];

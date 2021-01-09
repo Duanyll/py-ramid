@@ -1,5 +1,5 @@
-import { registerRoomRoutine, RoomInfo } from "roomInfo";
-import Logger from "utils/Logger";
+import { registerRoomRoutine, RoomInfo } from "room/roomInfo";
+import Logger from "utils";
 
 Memory.labQueue ||= [];
 

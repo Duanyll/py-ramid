@@ -1,5 +1,5 @@
-import { RoomInfo, registerRoomRoutine } from "roomInfo";
-import Logger from "utils/Logger";
+import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
+import Logger from "utils";
 
 interface ConstructionRequest {
     pos: RoomPosition;

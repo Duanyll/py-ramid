@@ -1,6 +1,6 @@
-import { WALL_BUILD_STEP } from "config";
-import { pushConstructQueue } from "construction";
-import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
+import cfg from "config";
+import { pushConstructQueue } from "room/construction";
+import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 
 function fetchWallTask(room: RoomInfo) {
     if (room.wallBuildQueue.length > 0) {
@@ -36,10 +36,10 @@ function fetchWallTask(room: RoomInfo) {
     }
     if (repairQueue.length > 0) {
         repairQueue = _.sortBy(repairQueue, r => r.hits);
-        let maxHits = repairQueue[0].hits + WALL_BUILD_STEP * 2;
+        let maxHits = repairQueue[0].hits + cfg.WALL_BUILD_STEP * 2;
         for (const st of repairQueue) {
             if (st.hits > maxHits) break;
-            room.wallBuildQueue.push({ id: st.id, hitsRemain: WALL_BUILD_STEP });
+            room.wallBuildQueue.push({ id: st.id, hitsRemain: cfg.WALL_BUILD_STEP });
         }
     }
 

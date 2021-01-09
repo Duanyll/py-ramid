@@ -1,8 +1,8 @@
-import { RoomInfo } from "roomInfo";
-import { moveCreepTo } from "moveHelper";
-import { goRefill } from "roles/carrier";
-import { goUpgrade } from "roles/upgrader";
-import { WALL_BUILD_STEP } from "config";
+import { RoomInfo } from "room/roomInfo";
+import { moveCreepTo } from "creep/movement";
+import { goRefill } from "creep/roles/carrier";
+import { goUpgrade } from "creep/roles/upgrader";
+import cfg from "config";
 
 interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work",
@@ -13,7 +13,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
     let m = creep.memory as BuilderMemory;
     if (m.lastBuildPos) {
         let rampart = room.detail.lookForAt(LOOK_STRUCTURES, m.lastBuildPos.x, m.lastBuildPos.y)
-            .find(s => s.structureType == "rampart" && s.hits < WALL_BUILD_STEP) as StructureRampart;
+            .find(s => s.structureType == "rampart" && s.hits < cfg.WALL_BUILD_STEP) as StructureRampart;
         if (rampart) {
             if (creep.pos.inRangeTo(rampart, 3)) {
                 creep.repair(rampart);

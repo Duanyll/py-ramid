@@ -1,7 +1,5 @@
-import { ROOM_RESERVE_T3 } from "config";
-import { myRooms } from "roomInfo";
-import { globalDelay } from "scheduler";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
+import Logger from "utils";
 
 export const COMPOUND_RECIPE: Partial<Record<ResourceConstant, ResourceConstant[]>> = {};
 _.forIn(REACTIONS, (res2s, res1) => {

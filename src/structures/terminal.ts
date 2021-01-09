@@ -1,8 +1,8 @@
-import { TERMINAL_EXPORT_AMOUNT } from "config";
-import { tryDealResource } from "market";
-import { myRooms } from "roomInfo";
-import { globalDelay, registerGlobalRoutine } from "scheduler";
-import Logger from "utils/Logger";
+import { tryDealResource } from "industry/market";
+import { myRooms } from "room/roomInfo";
+import { globalDelay, registerGlobalRoutine } from "utils";
+import Logger from "utils";
+import cfg from "config";
 
 export function runTerminals() {
     let sourceTerminals: { [type: string]: { terminal: StructureTerminal, amount: number }[] } = {};
@@ -32,7 +32,7 @@ export function runTerminals() {
             let source = _.find(sourceTerminals[res], i => !terminalWorked[i.terminal.id] && i.terminal.id != destTerminal.id);
             if (!source) continue;
 
-            let transAmount = Math.min(TERMINAL_EXPORT_AMOUNT, dest.resource.import[res], source.amount);
+            let transAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, dest.resource.import[res], source.amount);
             if (source.terminal.send(res as ResourceConstant, transAmount, dest.name) == OK) {
                 terminalWorked[source.terminal.id] = true;
                 Logger.silly(`Send ${transAmount} * ${res} from ${source.terminal.room.name} to ${dest.name}`);

@@ -1,4 +1,4 @@
-import Logger from "utils/Logger";
+import Logger from "./logger";
 
 let globalRoutineStore: { [type in GlobalRoutine]?: () => void } = {};
 export function registerGlobalRoutine(type: GlobalRoutine, func: () => void) {

@@ -1,8 +1,6 @@
-import { registerCreepRole } from "creep";
-import { moveCreepToRoom } from "moveHelper";
-import { myRooms } from "roomInfo";
-import { globalDelay, registerGlobalRoutine } from "scheduler";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
+import { globalDelay, registerGlobalRoutine } from "utils";
+import Logger from "utils";
 
 let observeQueue: {
     [room: string]: (() => void)[];
@@ -29,14 +27,6 @@ export function tickObserver() {
     }
 }
 registerGlobalRoutine("observer", tickObserver);
-
-function RunScout(creep: Creep) {
-    if (creep.memory.target) {
-        if (creep.room.name != creep.memory.target) {
-            moveCreepToRoom(creep, creep.memory.target);
-        }
-    }
-}
 
 export function onVisibility(room: string, callback: () => void) {
     if (Game.rooms[room])

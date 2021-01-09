@@ -1,24 +1,19 @@
-import { ErrorMapper } from "utils/ErrorMapper";
-import { myRooms, RoomInfo } from "roomInfo";
+import { myRooms, RoomInfo } from "room/roomInfo";
 import { tickNormalRoom } from "room";
-import "expansion"
-import { prepareMoveHelper, tickMoveHelper } from "moveHelper";
-import { globalCreeps, loadCreeps, runCreep } from "creep";
-import "compounds";
-import "resource"
-import "structures/terminal";
-import "stats"
-import "rawMemory"
-import "structures/observer"
-import "structures/nuker";
-import { tickConstruction } from "construction";
-import Logger from "utils/Logger";
-import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "scheduler";
+import { prepareMoveHelper, tickMoveHelper } from "creep/movement";
+import { loadCreeps, globalCreeps } from "creep/creepInfo";
+import { runCreep } from "creep";
+import { tickConstruction } from "room/construction";
+import Logger from "utils";
+import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "utils";
+import { GlobalStoreManager } from "industry/store";
+import { ErrorMapper } from "utils";
 
-import "highwayMining"
-import "market"
+import "utils"
+import "industry"
 import "war";
-import { GlobalStoreManager } from "resource";
+import "structures"
+import "stats"
 
 function loadRooms() {
     for (const name in Game.rooms) {

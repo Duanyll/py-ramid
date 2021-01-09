@@ -1,6 +1,6 @@
-import { designRoom, upgradeDesign } from "designer";
-import { globalDelay } from "scheduler";
-import Logger from "utils/Logger";
+import { designRoom, upgradeDesign } from "room/classicDesigner";
+import { globalDelay } from "utils";
+import Logger from "utils";
 
 let roomRoutineStore: { [type in RoomRoutine]?: (room: RoomInfo, ...param: any) => void } = {};
 export function registerRoomRoutine(type: RoomRoutine, func: (room: RoomInfo, ...param: any) => void) {

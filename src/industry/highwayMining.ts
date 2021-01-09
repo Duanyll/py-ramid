@@ -1,9 +1,9 @@
-import { myRooms, RoomInfo } from "roomInfo";
-import { globalDelay, registerGlobalRoutine } from "scheduler";
+import { myRooms, RoomInfo } from "room/roomInfo";
+import { globalDelay, registerGlobalRoutine } from "utils";
 import { onVisibility } from "structures/observer";
-import { estimateDistance, objToPos, posToObj } from "utils/utils";
-import Logger from "utils/Logger";
-import { pbCarrierBody, pbHarvesterBody, pbHealerBody } from "creepCount";
+import { estimateDistance, objToPos, posToObj } from "utils";
+import Logger from "utils";
+import { roleBodies } from "creep/body";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,
@@ -114,7 +114,7 @@ function spawnPowerBankHarvestGroup(time: number, id: string, room: string, wave
     global.schedule("spawnCreep", time, {
         room: room, info: {
             name: `${groupName}-attack`,
-            body: pbHarvesterBody,
+            body: roleBodies["pbHarv"],
             memory: {
                 role: "pbHarv",
                 roleId: "attack",
@@ -128,7 +128,7 @@ function spawnPowerBankHarvestGroup(time: number, id: string, room: string, wave
             room: room,
             info: {
                 name: `${groupName}-heal${i}`,
-                body: pbHealerBody,
+                body: roleBodies["pbHarv"],
                 memory: {
                     role: "pbHeal",
                     roleId: `heal${i}`,
@@ -144,7 +144,7 @@ function spawnPowerBankCarryGroup(time: number, id: string, room: string, groupN
         global.schedule("spawnCreep", time, {
             room: room, info: {
                 name: `${groupName}-carry${i}`,
-                body: pbCarrierBody,
+                body: roleBodies["pbHarv"],
                 memory: {
                     role: "pbCarry",
                     roleId: `carry${i}`,

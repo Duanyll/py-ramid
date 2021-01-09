@@ -1,5 +1,5 @@
-import { moveCreepTo } from "moveHelper";
-import { myRooms, RoomInfo } from "roomInfo";
+import { moveCreepTo } from "creep/movement";
+import { myRooms, RoomInfo } from "room/roomInfo";
 
 export function runMiner(creep: Creep, room: RoomInfo) {
     let mineral = room.structures.mineral;

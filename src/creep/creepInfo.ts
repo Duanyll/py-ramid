@@ -1,5 +1,4 @@
-import { myRooms, RoomInfo } from "roomInfo";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
 
 export let globalCreeps: { [role in CreepRole]?: Creep[] } = {}
 export let creepGroups: {
@@ -7,6 +6,7 @@ export let creepGroups: {
         [groupRole: string]: Creep;
     }
 } = {};
+
 
 export function loadCreeps() {
     for (const name in myRooms) {
@@ -36,24 +36,4 @@ export function loadCreeps() {
             }
         }
     }
-}
-
-let CreepRoleDrivers: {
-    [roleName in CreepRole]?: (creep: Creep, room?: RoomInfo) => void;
-} = {}
-
-export function registerCreepRole(drivers: {
-    [roleName in CreepRole]?: (creep: Creep, room?: RoomInfo) => void;
-}) {
-    CreepRoleDrivers = _.assign(CreepRoleDrivers, drivers);
-}
-
-export function runCreep(creep: Creep, room?: RoomInfo) {
-    if (creep.spawning) return;
-    const role = creep.memory.role;
-    if (!CreepRoleDrivers[role]) {
-        Logger.error(`Unknown creep role: ${role} for ${creep.name}`);
-        return;
-    }
-    CreepRoleDrivers[role](creep, room);
 }

@@ -1,8 +1,8 @@
-import { COMPOUND_RECIPE, produceCompound } from "compounds";
-import { ROOM_RESERVE_T3 } from "config";
-import { myRooms, registerRoomRoutine, RoomInfo } from "roomInfo";
-import { registerGlobalRoutine } from "scheduler";
-import Logger from "utils/Logger";
+import { COMPOUND_RECIPE, produceCompound } from "industry/compounds";
+import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
+import { registerGlobalRoutine } from "utils";
+import Logger from "utils";
+import cfg from "config";
 
 function countRoomStore(room: RoomInfo) {
     room._store = {};
@@ -145,15 +145,15 @@ global.resetResource = (roomName: string) => {
         [room.structures.mineral.mineralType]: true
     };
     room.resource.reserve = {
-        XUH2O: ROOM_RESERVE_T3,
-        XKH2O: ROOM_RESERVE_T3,
-        XKHO2: ROOM_RESERVE_T3,
-        XLH2O: ROOM_RESERVE_T3,
-        XLHO2: ROOM_RESERVE_T3,
-        XZH2O: ROOM_RESERVE_T3,
-        XZHO2: ROOM_RESERVE_T3,
-        XGHO2: ROOM_RESERVE_T3,
-        G: ROOM_RESERVE_T3
+        XUH2O: cfg.ROOM_RESERVE_T3,
+        XKH2O: cfg.ROOM_RESERVE_T3,
+        XKHO2: cfg.ROOM_RESERVE_T3,
+        XLH2O: cfg.ROOM_RESERVE_T3,
+        XLHO2: cfg.ROOM_RESERVE_T3,
+        XZH2O: cfg.ROOM_RESERVE_T3,
+        XZHO2: cfg.ROOM_RESERVE_T3,
+        XGHO2: cfg.ROOM_RESERVE_T3,
+        G: cfg.ROOM_RESERVE_T3
     };
     room.resource.import = {};
     room.resource.export = {

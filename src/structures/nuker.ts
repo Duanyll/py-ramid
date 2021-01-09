@@ -1,6 +1,6 @@
-import { myRooms } from "roomInfo";
-import { registerTask, schedule } from "scheduler";
-import Logger from "utils/Logger";
+import { myRooms } from "room/roomInfo";
+import { registerTask, schedule } from "utils";
+import Logger from "utils";
 
 function launchNuke(param: { from: string, room: string, x: number, y: number }) {
     let nuker = myRooms[param.from]?.structures.nuker;

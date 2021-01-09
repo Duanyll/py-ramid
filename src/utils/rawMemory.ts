@@ -1,4 +1,4 @@
-import { globalDelay, registerGlobalRoutine } from "scheduler";
+import { globalDelay, registerGlobalRoutine } from "./scheduler";
 
 let segmentRequests: { [setment: number]: (() => void)[] } = {};
 

@@ -1,6 +1,6 @@
-import { RoomInfo } from "roomInfo";
-import { moveCreepTo } from "moveHelper";
-import { CONTROLLER_SIGN } from "config";
+import { RoomInfo } from "room/roomInfo";
+import { moveCreepTo } from "creep/movement";
+import cfg from "config";
 
 interface UpgraderMemory extends CreepMemory {
     status: "pickup" | "upgrade"
@@ -46,7 +46,7 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
 }
 
 export function goSignRoom(creep: Creep, room: Room) {
-    const sign = Memory.rooms[room.name]?.sign || CONTROLLER_SIGN;
+    const sign = Memory.rooms[room.name]?.sign || cfg.DEFAULT_CONTROLLER_SIGN;
     let controller = room.controller;
     if (!controller.sign || controller.sign.username != SYSTEM_USERNAME && controller.sign.text != sign) {
         if (creep.pos.isNearTo(controller)) {
