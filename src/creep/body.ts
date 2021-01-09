@@ -1,6 +1,3 @@
-import cfg from "config";
-import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
-
 export const commonWorkerBody: Record<number, BodyPartDescription> = {
     1: [[WORK, 1], [CARRY, 2], [MOVE, 2]],
     2: [[WORK, 2], [CARRY, 2], [MOVE, 4]],

@@ -1,4 +1,4 @@
-import { myRooms, RoomInfo } from "room/roomInfo";
+import { RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 import roles from "./roles";
 

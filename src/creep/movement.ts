@@ -118,7 +118,7 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
                             this.memory._move.time = Game.time;
                             this.memory._move.path = Room.serializePath(path);
                             // @ts-ignore 2345
-                            return defaultCreepMove.call(this, path[0].direction as DirectionConstant);
+                            return defaultCreepMove.call(this, path[0].direction);
                         }
                     }
                 }
