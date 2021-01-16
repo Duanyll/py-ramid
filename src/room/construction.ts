@@ -60,13 +60,13 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         onSRCLUpgrade(room);
         setConstruction(room);
     } else {
-        room.delay("setConstruction", 1000);
+        room.delay("setConstruction");
     }
 }
 registerRoomRoutine("setConstruction", setConstruction);
 registerRoomRoutine("fullCheckConstruction", (room) => {
     setConstruction(room, true);
-    room.delay("fullCheckConstruction", 5000);
+    room.delay("fullCheckConstruction");
 })
 
 export function tickConstruction() {

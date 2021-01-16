@@ -1,5 +1,4 @@
 const cfg = {
-    STATS_SUMMARY_TIME: 20,
     STATS_SEGMENT: 50,
     TERMINAL_STORE_ENERGY: 50000,
     TERMINAL_MINERAL: 150000,
@@ -8,10 +7,28 @@ const cfg = {
     WALL_BUILD_STEP: 30000,
     DEFAULT_CONTROLLER_SIGN: `🔺Py-Ramid🔺`,
     USER_NAME: "duanyll",
+    MARKET_RESERVE: 30000,
+    LAB_CLEAR_THRESHOLD: 8000,
     DEFAULT_PLAYER_WHITELIST: {
         "Administrator-": true,
         "Asixa": true
-    }
+    } as Record<string, boolean>,
+    GLOBAL_ROUTINE_DELAY: {
+        "countStore": 5000,
+        "fetchAutoDealOrders": 100,
+        "runTerminal": TERMINAL_COOLDOWN,
+        "scanPowerBank": 100,
+        "summaryStats": 20
+    } as Partial<Record<GlobalRoutine, number>>,
+    ROOM_ROUTINE_DELAY: {
+        "checkRefill": 200,
+        "checkRoads": 500,
+        "fetchLabWork": 1000,
+        "fetchWall": 5000,
+        "fullCheckConstruction": 5000,
+        "setConstruction": 1000,
+        "updateCreepCount": 100
+    } as Partial<Record<RoomRoutine, number>>
 }
 
 export default cfg;

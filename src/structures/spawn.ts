@@ -101,7 +101,7 @@ function checkRefillState(room: RoomInfo) {
     room.structures.spawns.forEach(f);
     room.structures.towers.forEach(f);
 
-    room.delay("checkRefill", 200);
+    room.delay("checkRefill");
 }
 registerRoomRoutine("checkRefill", checkRefillState);
 

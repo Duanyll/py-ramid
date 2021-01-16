@@ -8,7 +8,8 @@
     "dist/**": true,
     "node_modules/**": true,
     "typings/**": true,
-    "LICENSE": true
+    "LICENSE": true,
+    "lib/**": true
   },
   "files.exclude": {
     "**/.git": true,

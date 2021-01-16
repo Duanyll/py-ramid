@@ -39,7 +39,7 @@ function fetchAutoDealOrders() {
         });
         info.orders = _.sortBy(info.orders, (o => -getMarketOrder(o).price));
     })
-    globalDelay("fetchAutoDealOrders", 100);
+    globalDelay("fetchAutoDealOrders");
 }
 registerGlobalRoutine("fetchAutoDealOrders", fetchAutoDealOrders);
 
@@ -85,7 +85,7 @@ global.autoSell = (type: ResourceConstant, price: number | false, reserve?: numb
     } else {
         Memory.market.autoDeal[type] = {
             basePrice: price,
-            reserveAmount: reserve || 30000,
+            reserveAmount: reserve ?? cfg.MARKET_RESERVE,
             updateTime: 0,
             orders: []
         }

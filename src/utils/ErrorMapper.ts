@@ -67,20 +67,21 @@ export class ErrorMapper {
         return outStack;
     }
 
-    public static wrap(loop: () => void): () => void {
+    public static wrap(func: () => void, description?: string): () => void {
         return () => {
             try {
-                loop();
+                func();
             } catch (e) {
                 if (e instanceof Error) {
                     if ("sim" in Game.rooms) {
                         const message = `Source maps don't work in the simulator - displaying original error`;
                         console.log(`<span style='color:red'>${message}<br>${_.escape(e.stack)}</span>`);
                     } else {
-                        const backTrace = this.sourceMappedStackTrace(e);
-                        console.log(`<span style='color:red'>${_.escape(backTrace)}</span>`);
+                        const message = "Exception thrown" + (description ? ` running ${description}.` : `!`) + '\n'
+                            + this.sourceMappedStackTrace(e);
+                        console.log(`<span style='color:red'>${_.escape(message)}</span>`);
                         if (!global.lastException || global.lastException + 1000 < Game.time) {
-                            Game.notify("Exception thrown! \n" + backTrace);
+                            Game.notify(message);
                         }
                         global.lastException = Game.time;
                     }

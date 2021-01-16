@@ -8,7 +8,7 @@ function checkRoads(room: RoomInfo) {
         filter: (s) => (s.structureType == "road" || s.structureType == "container") && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
-        room.delay("checkRoads", 500);
+        room.delay("checkRoads");
     } else {
         roads.forEach((r) => room.roadToRepair.push(r.id));
     }

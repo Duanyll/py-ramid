@@ -96,7 +96,7 @@ function updateRoomCreepCount(room: RoomInfo) {
             role: "upgrade"
         }
     }
-    room.delay("updateCreepCount", 100);
+    room.delay("updateCreepCount");
 }
 registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
 

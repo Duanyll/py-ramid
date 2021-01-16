@@ -1,18 +1,31 @@
+import cfg from "config";
+import { ErrorMapper } from "./errorMapper";
 import Logger from "./logger";
 
 let globalRoutineStore: { [type in GlobalRoutine]?: () => void } = {};
 export function registerGlobalRoutine(type: GlobalRoutine, func: () => void) {
-    globalRoutineStore[type] = func;
+    globalRoutineStore[type] = ErrorMapper.wrap(func, `global task ${type}`);
 }
 
 Memory.routine ||= {};
 export function tickGlobalRoutine() {
-    _.forIn(Memory.routine, (next, name) => {
-        if (next == Game.time) globalRoutineStore[name as GlobalRoutine]();
+    // @ts-ignore
+    _.forIn(Memory.routine, (next, name: GlobalRoutine) => {
+        let routine = globalRoutineStore[name];
+        if (!routine) {
+            Logger.error(`Unknown global routine: ${name}`);
+            delete Memory.routine[name];
+        }
+        let defaultDelay = cfg.GLOBAL_ROUTINE_DELAY[name];
+        if (next == Game.time || (defaultDelay && Game.time - next > defaultDelay)) {
+            routine();
+            Memory.routine[name] = _.max([Memory.routine[name], Game.time])
+        }
     })
 }
 
-export function globalDelay(type: GlobalRoutine, time: number) {
+export function globalDelay(type: GlobalRoutine, time?: number) {
+    time ??= cfg.GLOBAL_ROUTINE_DELAY[type];
     if (!Memory.routine[type] || Memory.routine[type] <= Game.time) {
         Memory.routine[type] = Game.time + time;
     } else {

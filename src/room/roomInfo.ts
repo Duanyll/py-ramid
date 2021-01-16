@@ -1,6 +1,7 @@
 import { designRoom, upgradeDesign } from "room/classicDesigner";
 import { globalDelay } from "utils";
 import Logger from "utils";
+import cfg from "config";
 
 let roomRoutineStore: { [type in RoomRoutine]?: (room: RoomInfo, ...param: any) => void } = {};
 export function registerRoomRoutine(type: RoomRoutine, func: (room: RoomInfo, ...param: any) => void) {
@@ -234,7 +235,8 @@ export class RoomInfo {
         })
     }
 
-    public delay(type: RoomRoutine, time: number) {
+    public delay(type: RoomRoutine, time?: number) {
+        time ??= cfg.ROOM_ROUTINE_DELAY[type];
         if (!this.tasks[type] || this.tasks[type] <= Game.time) {
             this.tasks[type] = Game.time + time;
         } else {

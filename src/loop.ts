@@ -14,6 +14,7 @@ import "industry"
 import "war";
 import "structures"
 import "stats"
+import cfg from "config";
 
 function loadRooms() {
     for (const name in Game.rooms) {
@@ -35,13 +36,11 @@ function loadScript() {
     loadRooms();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
 
-    globalDelay("runTerminal", 1);
-    globalDelay("summaryStats", 1);
-    globalDelay("fetchAutoDealOrders", 100);
+    _.forIn(cfg.GLOBAL_ROUTINE_DELAY, (time, type) => globalDelay(type as GlobalRoutine, time));
 }
 
 if (Game) {
-    ErrorMapper.wrap(loadScript)();
+    ErrorMapper.wrap(loadScript, "loading script.")();
 } else {
     Logger.error(`It seems that the code is running in wrong environment...`)
 }
@@ -79,7 +78,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     loadCreeps();
     prepareMoveHelper();
     for (const name in myRooms) {
-        ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]))();
+        ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]), `room ${name}`)();
     }
     _.values(globalCreeps).forEach(l => l.forEach(c => runCreep(c)));
     tickMoveHelper();
@@ -89,4 +88,4 @@ export const runLoop = ErrorMapper.wrap(() => {
     tickTasks();
 
     clearMemory();
-});
+}, "main loop");

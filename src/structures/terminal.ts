@@ -55,6 +55,6 @@ export function runTerminals() {
             if (readyTerminal) tryDealResource(readyTerminal.terminal, type, readyTerminal.amount);
         })
     }
-    globalDelay("runTerminal", TERMINAL_COOLDOWN);
+    globalDelay("runTerminal");
 }
 registerGlobalRoutine("runTerminal", runTerminals);

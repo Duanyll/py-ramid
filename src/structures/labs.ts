@@ -129,11 +129,11 @@ registerRoomRoutine("runLabs", runLabs);
 
 function fetchLabWork(room: RoomInfo) {
     if (room.structRcl < 7 || room.state.labMode == "boost") {
-        room.delay("fetchLabWork", 1000);
+        room.delay("fetchLabWork");
         return;
     }
     if (room.state.labMode == "reaction" && room.state.labRemainAmount > 0) {
-        room.delay("fetchLabWork", 1000);
+        room.delay("fetchLabWork");
         return;
     }
     let task = Memory.labQueue.shift();

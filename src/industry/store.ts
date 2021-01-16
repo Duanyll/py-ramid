@@ -1,6 +1,6 @@
 import { COMPOUND_RECIPE, produceCompound } from "industry/compounds";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
-import { registerGlobalRoutine } from "utils";
+import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
 
@@ -27,8 +27,8 @@ registerRoomRoutine("countStore", countRoomStore);
 
 export function countGlobalStore() {
     global.store.refresh();
-    global.store.fixLock()
-    global.delay("countStore", 5000);
+    global.store.fixLock();
+    globalDelay("countStore");
 }
 registerGlobalRoutine("countStore", countGlobalStore);
 
@@ -170,7 +170,7 @@ global.produce = (type: ResourceConstant, amount: number, noBuffer: boolean) => 
         Memory.labQueueBuffer[type] += amount;
         global.store.productLock[type] ||= 0;
         global.store.productLock[type] += amount;
-        if (Memory.labQueueBuffer[type] >= 8000 || noBuffer) {
+        if (Memory.labQueueBuffer[type] >= cfg.LAB_CLEAR_THRESHOLD || noBuffer) {
             produceCompound(type, Memory.labQueueBuffer[type], true);
             delete Memory.labQueueBuffer[type];
         }

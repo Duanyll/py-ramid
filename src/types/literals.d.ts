@@ -6,7 +6,7 @@ type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" |
 type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
 
 
-type RoomRoutine = "checkCreepHealth" |
+type RoomRoutine =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";

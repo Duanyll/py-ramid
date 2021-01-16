@@ -17,7 +17,7 @@ export default roles;
 export function registerCreepRole(drivers: {
     [roleName in CreepRole]?: (creep: Creep, room?: RoomInfo) => void;
 }) {
-    roles = _.assign(roles, drivers);
+    roles = _.assign(roles, _.mapValues(drivers));
 }
 
 registerCreepRole({

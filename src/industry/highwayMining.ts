@@ -34,7 +34,7 @@ function scanPowerBank() {
             })
         })
     })
-    globalDelay("scanPowerBank", 100);
+    globalDelay("scanPowerBank");
 }
 registerGlobalRoutine("scanPowerBank", scanPowerBank);
 
@@ -55,7 +55,7 @@ function processPowerBank() {
         }
     })
     Memory.mining.power.info = newPBInfo;
-    globalDelay("processPowerBank", 100);
+    globalDelay("processPowerBank");
 }
 registerGlobalRoutine("processPowerBank", processPowerBank);
 
@@ -128,7 +128,7 @@ function spawnPowerBankHarvestGroup(time: number, id: string, room: string, wave
             room: room,
             info: {
                 name: `${groupName}-heal${i}`,
-                body: roleBodies["pbHarv"],
+                body: roleBodies["pbHeal"],
                 memory: {
                     role: "pbHeal",
                     roleId: `heal${i}`,
@@ -144,7 +144,7 @@ function spawnPowerBankCarryGroup(time: number, id: string, room: string, groupN
         global.schedule("spawnCreep", time, {
             room: room, info: {
                 name: `${groupName}-carry${i}`,
-                body: roleBodies["pbHarv"],
+                body: roleBodies["pbCarry"],
                 memory: {
                     role: "pbCarry",
                     roleId: `carry${i}`,

@@ -83,7 +83,6 @@ export default class Logger {
     }
 }
 
-console.log = Logger.info;
 global.logLevel = (level: LogLevel) => Memory.logLevel = level;
 global.yes = (key: number) => {
     if (!operationToConfirm) {

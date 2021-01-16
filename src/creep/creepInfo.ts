@@ -7,7 +7,6 @@ export let creepGroups: {
     }
 } = {};
 
-
 export function loadCreeps() {
     for (const name in myRooms) {
         myRooms[name].creeps = [];

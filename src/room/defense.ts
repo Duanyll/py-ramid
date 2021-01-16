@@ -4,7 +4,7 @@ import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 
 function fetchWallTask(room: RoomInfo) {
     if (room.wallBuildQueue.length > 0) {
-        room.delay("fetchWall", 5000);
+        room.delay("fetchWall");
         return;
     }
     let repairQueue: (StructureWall | StructureRampart)[] = [];
@@ -43,7 +43,7 @@ function fetchWallTask(room: RoomInfo) {
         }
     }
 
-    room.delay("fetchWall", 5000);
+    room.delay("fetchWall");
 }
 registerRoomRoutine("fetchWall", fetchWallTask);
 
