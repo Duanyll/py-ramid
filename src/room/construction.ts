@@ -1,5 +1,5 @@
 import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
-import Logger from "utils";
+import Logger, { RMManager } from "utils";
 
 interface ConstructionRequest {
     pos: RoomPosition;
@@ -26,42 +26,45 @@ export function onSRCLUpgrade(room: RoomInfo) {
 }
 
 export function setConstruction(room: RoomInfo, full?: boolean) {
-    const stage = room.design.currentStage;
-    if (full) {
-        for (let i = 1; i < stage; i++) {
-            const list = room.design.stages[i].list;
-            list.forEach(s => {
-                if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
-                    || _.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type))) {
-                    pushConstructQueue({ pos: new RoomPosition(s.x, s.y, room.name), type: s.type, name: s.name });
-                }
-            })
-        }
-    }
-    let nextStage = true;
-    if (!room.design.stages[stage]) return;
-    if (room.design.stages[stage].rcl > room.structures.controller.level) return;
-    room.design.stages[stage].list.forEach(s => {
-        if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
-            nextStage = false;
-            if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
-                if (s.type != STRUCTURE_WALL) {
-                    let wall = _.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y),
-                        st => st.structureType == STRUCTURE_WALL) as StructureWall;
-                    if (wall) wall.destroy();
-                }
-                pushConstructQueue({ pos: new RoomPosition(s.x, s.y, room.name), type: s.type, name: s.name });
+    RMManager.read(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
+        const stage = room.design.currentStage;
+        const stages = segment[room.name].stages;
+        if (full) {
+            for (let i = 1; i < stage; i++) {
+                const list = stages[i].list;
+                list.forEach(s => {
+                    if (!(_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)
+                        || _.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type))) {
+                        pushConstructQueue({ pos: new RoomPosition(s.x, s.y, room.name), type: s.type, name: s.name });
+                    }
+                })
             }
         }
-    });
-    if (nextStage) {
-        Logger.report(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
-        room.design.currentStage++;
-        onSRCLUpgrade(room);
-        setConstruction(room);
-    } else {
-        room.delay("setConstruction");
-    }
+        let nextStage = true;
+        if (!stages[stage]) return;
+        if (stages[stage].rcl > room.structures.controller.level) return;
+        stages[stage].list.forEach(s => {
+            if (!_.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y), st => st.structureType == s.type)) {
+                nextStage = false;
+                if (!_.find(room.detail.lookForAt(LOOK_CONSTRUCTION_SITES, s.x, s.y), c => c.structureType == s.type)) {
+                    if (s.type != STRUCTURE_WALL) {
+                        let wall = _.find(room.detail.lookForAt(LOOK_STRUCTURES, s.x, s.y),
+                            st => st.structureType == STRUCTURE_WALL) as StructureWall;
+                        if (wall) wall.destroy();
+                    }
+                    pushConstructQueue({ pos: new RoomPosition(s.x, s.y, room.name), type: s.type, name: s.name });
+                }
+            }
+        });
+        if (nextStage) {
+            Logger.report(`Room ${room.name}: Construction stage ${room.design.currentStage} compelete.`);
+            room.design.currentStage++;
+            onSRCLUpgrade(room);
+            setConstruction(room);
+        } else {
+            room.delay("setConstruction");
+        }
+    })
 }
 registerRoomRoutine("setConstruction", setConstruction);
 registerRoomRoutine("fullCheckConstruction", (room) => {

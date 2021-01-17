@@ -3,42 +3,17 @@ import Logger from "utils";
 
 Memory.labQueue ||= [];
 
-class LabInfo {
-    in: string[] = [];
-    out: string[] = [];
-    level: number;
-
-    constructor(room: RoomInfo) {
-        this.level = room.structRcl;
-        room.structures.labs.forEach(a => {
-            if (this.in.length >= 2)
-                this.out.push(a.id);
-            else {
-                let canBeIn = true;
-                room.structures.labs.forEach(b => {
-                    if (!a.pos.inRangeTo(b, 2)) canBeIn = false;
-                });
-                (canBeIn ? this.in : this.out).push(a.id);
-            }
-        })
-
-        // console.log(`Input labs for ${room.name}:`);
-        // this.in.forEach(console.log);
-    }
-}
-
-let labInfoCache: { [room: string]: LabInfo } = {}
-function getLabInfo(room: RoomInfo): LabInfo {
-    if (labInfoCache[room.name] && labInfoCache[room.name].level == room.structRcl)
-        return labInfoCache[room.name];
-    return labInfoCache[room.name] = new LabInfo(room);
-}
-
 function runLabs(room: RoomInfo) {
     if (room.structRcl < 6) return;
     switch (room.state.labMode) {
         case "disabled":
-            room.structures.labs.forEach(l => {
+            room.structures.labs.input.forEach(l => {
+                if (_.sum(_.values(l.store)) > 0) {
+                    room.moveRequests.out[l.id] = {};
+                    delete room.moveRequests.in[l.id];
+                }
+            });
+            room.structures.labs.output.forEach(l => {
                 if (_.sum(_.values(l.store)) > 0) {
                     room.moveRequests.out[l.id] = {};
                     delete room.moveRequests.in[l.id];
@@ -46,8 +21,8 @@ function runLabs(room: RoomInfo) {
             });
             break;
         case "boost":
-            for (let i = 0; i < room.structures.labs.length; i++) {
-                let lab = room.structures.labs[i];
+            for (let i = 0; i < room.structures.labs.output.length; i++) {
+                let lab = room.structures.labs.output[i];
                 if (room.state.labContent[i]) {
                     if (lab.store.getFreeCapacity(RESOURCE_ENERGY) > 1000) {
                         room.moveRequests.in[lab.id] = {
@@ -71,11 +46,10 @@ function runLabs(room: RoomInfo) {
             room.delay("runLabs", 50);
             break;
         case "reaction":
-            let info = getLabInfo(room);
             let inputAmount = Infinity;
             for (let i = 0; i < 2; i++) {
                 let resType = room.state.labContent[i];
-                let lab = Game.getObjectById(info.in[i]) as StructureLab;
+                let lab = room.structures.labs.input[i];
                 if (lab.mineralType && lab.mineralType != resType) {
                     room.moveRequests.out[lab.id] = {
                         type: lab.mineralType,
@@ -95,10 +69,10 @@ function runLabs(room: RoomInfo) {
             }
             // @ts-ignore
             let product: ResourceConstant = REACTIONS[room.state.labContent[0]][room.state.labContent[1]];
-            let input0 = Game.getObjectById(info.in[0]) as StructureLab;
-            let input1 = Game.getObjectById(info.in[1]) as StructureLab;
-            for (let i = 0; i < info.out.length; i++) {
-                let lab = Game.getObjectById(info.out[i]) as StructureLab;;
+            let input0 = room.structures.labs.input[0];
+            let input1 = room.structures.labs.input[1];
+            for (let i = 0; i < room.structures.labs.output.length; i++) {
+                let lab = room.structures.labs.output[i];
                 if (lab.mineralType && lab.mineralType != product
                     || lab.store.getUsedCapacity(lab.mineralType) as number > 1000) {
                     room.moveRequests.out[lab.id] = {

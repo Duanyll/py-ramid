@@ -19,7 +19,7 @@ function countRoomStore(room: RoomInfo) {
     const s = room.structures;
     const c = room.creepForRole;
     _.concat<AnyStoreStructure | Creep>(
-        s.labs, s.terminal, s.storage, s.factory, s.powerSpawn, c["center"], c["carry1"]
+        s.labs.input, s.labs.output, s.terminal, s.storage, s.factory, s.powerSpawn, c["center"], c["carry1"]
     ).forEach(processStructure);
     // room.delay("countStore", 1000);
 }

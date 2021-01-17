@@ -1,12 +1,55 @@
 import { globalDelay, registerGlobalRoutine } from "./scheduler";
 
-let segmentRequests: { [setment: number]: (() => void)[] } = {};
+type SegmentRequest = {
+    type: "r";
+    func: (segment: any) => void;
+} | {
+    type: "w";
+    func: () => any;
+} | {
+    type: "rw";
+    func: (segment: any) => any;
+} | {
+    type: "raw";
+    func: () => void;
+};
+let segmentRequests: {
+    [setment: number]: {
+        read: boolean,
+        write: boolean,
+        callbacks: SegmentRequest[]
+    }
+} = {};
+
+Memory.rawMemoryIndex ||= {};
 
 export function tickSegmentRequest() {
     for (const segmentId in RawMemory.segments) {
         let id = Number(segmentId);
         if (segmentRequests[id]) {
-            segmentRequests[id].forEach(f => f());
+            let obj: any;
+            if (segmentRequests[id].read) {
+                obj = _.isEmpty(RawMemory.segments[id]) ? {} : JSON.parse(RawMemory.segments[id]);
+            }
+            segmentRequests[id].callbacks.forEach(i => {
+                switch (i.type) {
+                    case "raw":
+                        i.func();
+                        break;
+                    case "r":
+                        i.func(obj);
+                        break;
+                    case "w":
+                        obj = i.func();
+                        break;
+                    case "rw":
+                        obj = i.func(obj);
+                        break;
+                }
+            });
+            if (segmentRequests[id].write) {
+                RawMemory.segments[id] = JSON.stringify(obj);
+            }
             delete segmentRequests[id];
         }
     }
@@ -22,9 +65,34 @@ export function tickSegmentRequest() {
 }
 registerGlobalRoutine("rawMemory", tickSegmentRequest);
 
-export function onSegment(segment: number, callback: () => void) {
-    segmentRequests[segment] ||= [];
-    segmentRequests[segment].push(callback);
-    globalDelay("rawMemory", 1);
-}
+export class RMManager {
+    static onSegment(segment: number, callback: () => void) {
+        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
+        segmentRequests[segment].callbacks.push({ type: "raw", func: callback });
+        globalDelay("rawMemory", 1);
+    }
 
+    static read(segment: number, callback: (segment: any) => void) {
+        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
+        segmentRequests[segment].callbacks.push({ type: "r", func: callback });
+        segmentRequests[segment].read = true;
+        globalDelay("rawMemory", 1);
+    }
+
+    static write(segment: number, callback: () => any) {
+        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
+        segmentRequests[segment].callbacks.push({ type: "w", func: callback });
+        segmentRequests[segment].write = true;
+        globalDelay("rawMemory", 1);
+    }
+
+    static readWrite(segment: number, callback: (segment: any) => any) {
+        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
+        segmentRequests[segment].callbacks.push({ type: "rw", func: callback });
+        segmentRequests[segment].read = true;
+        segmentRequests[segment].write = true;
+        globalDelay("rawMemory", 1);
+    }
+
+}
+export default RMManager;

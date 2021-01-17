@@ -1,6 +1,5 @@
-import { onSegment } from "utils";
 import { myRooms, RoomInfo } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { globalDelay, registerGlobalRoutine, RMManager } from "utils";
 import cfg from "config";
 
 interface RoomStats {
@@ -50,7 +49,7 @@ function summaryResource(): Partial<Record<ResourceConstant, number>> {
 }
 
 export function summaryStats() {
-    onSegment(cfg.STATS_SEGMENT, () => {
+    RMManager.write(cfg.SEGMENTS.stats, () => {
         let obj: Stats = {
             gcl: {
                 level: Game.gcl.level,
@@ -67,7 +66,7 @@ export function summaryStats() {
             resource: summaryResource(),
             credits: Game.market.credits
         }
-        RawMemory.segments[cfg.STATS_SEGMENT] = JSON.stringify(obj);
+        return obj;
     });
     globalDelay("summaryStats");
 }

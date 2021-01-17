@@ -314,7 +314,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
     design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("lab", 4), take("powerSpawn", 1)) });
 }
 
-export function designRoom(room: Room): RoomDesign {
+export function classicDesignRoom(room: Room): RoomDesign {
     let cpuBefore = Game.cpu.getUsed();
     let res = new Array<Array<string>>(51);
     const terrain = room.getTerrain();

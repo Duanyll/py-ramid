@@ -59,7 +59,7 @@ export function tickSpawn(room: RoomInfo) {
         if (req.memory.role == "manage") {
             spawn = room.structures.centerSpawn;
             if (spawn.spawning) return;
-            dir = spawn.pos.getDirectionTo(room.design.center[0], room.design.center[1]);
+            dir = spawn.pos.getDirectionTo(room.design.center.x, room.design.center.y);
         } else {
             spawn = _.find(room.structures.spawns, s => !s.spawning);
             if (!spawn) return;

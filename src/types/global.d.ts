@@ -30,10 +30,12 @@ declare namespace NodeJS {
         sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;
         sendAttacker: (roomName: string, target: string) => void;
+
         Game: Game;
         age: number;
         log: any;
         reloadRoomsNextTick?: boolean;
+        migrating: boolean;
         _: _.LoDashStatic;
     }
 }

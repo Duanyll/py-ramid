@@ -15,6 +15,8 @@ import "war";
 import "structures"
 import "stats"
 import cfg from "config";
+import { checkMigrateDone, initMigrate } from "migrate";
+import { tickSegmentRequest } from "utils/rawMemory";
 
 function loadRooms() {
     for (const name in Game.rooms) {
@@ -32,6 +34,12 @@ function loadScript() {
     Logger.prompt(`Restarting PY-RAMID ...`);
     Logger.info(`Current game tick is ${Game.time}`);
     Logger.info(`Last load lasted for ${Memory.age} ticks.`);
+    if (initMigrate()) {
+        Logger.prompt(`Memory migrate in need.`);
+        global.migrating = true;
+        return;
+    }
+
     initTasks();
     loadRooms();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
@@ -63,6 +71,18 @@ function clearMemory() {
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
+
+    if (global.migrating) {
+        tickSegmentRequest();
+        if (!checkMigrateDone()) {
+            Logger.info(`Tick ${Game.time} dropped. Waiting for migration done`);
+            return;
+        } else {
+            global.migrating = false;
+            Logger.prompt("Migration done.");
+            loadScript();
+        }
+    }
 
     if (Game.cpu.generatePixel && Game.cpu.bucket == 10000 && global.age > 10 && Memory.genPixel) {
         Game.cpu.generatePixel();

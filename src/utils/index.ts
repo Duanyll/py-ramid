@@ -1,5 +1,7 @@
 import cfg from "config";
 import Logger from "./logger";
+import "./rawMemory"
+import RMManager from "./rawMemory";
 
 export function objToPos(obj: { x: number, y: number, room: string }) {
     return new RoomPosition(obj.x, obj.y, obj.room);
@@ -121,5 +123,5 @@ export function isHostile(username: string) {
 export * from "./dataStructure";
 export * from "./errorMapper";
 export * from "./scheduler";
-export default Logger;
 export * from "./rawMemory";
+export default Logger;

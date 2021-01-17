@@ -1,5 +1,4 @@
 const cfg = {
-    STATS_SEGMENT: 50,
     TERMINAL_STORE_ENERGY: 50000,
     TERMINAL_MINERAL: 150000,
     ROOM_RESERVE_T3: 10000,
@@ -28,7 +27,11 @@ const cfg = {
         "fullCheckConstruction": 5000,
         "setConstruction": 1000,
         "updateCreepCount": 100
-    } as Partial<Record<RoomRoutine, number>>
+    } as Partial<Record<RoomRoutine, number>>,
+    SEGMENTS: {
+        stats: 50,
+        roomDesign: [10, 11, 12, 13, 14]
+    }
 }
 
 export default cfg;

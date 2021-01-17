@@ -37,7 +37,6 @@ interface Memory {
     logLevel: LogLevel;
     age: number;
     genPixel: boolean;
-    // roomsToClaim: { from: string, to: string }[];
     roomsToAvoid: { [name: string]: boolean };
     roomCost: { [name: string]: number };
     labQueue: {
@@ -75,6 +74,9 @@ interface Memory {
         }
     },
     playerWhiteList: Record<string, boolean>;
+    rawMemoryIndex: {
+        [segment: number]: string[]
+    }
 }
 
 type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];
@@ -146,6 +148,43 @@ interface RoomDesign {
     ramparts: { x: number, y: number }[]
 }
 
+interface PointInRoom { x: number, y: number }
+interface RoomDesign2 {
+    version: number;
+    rclDone: number;
+    currentStage: number;
+    detailSegment: number;
+    center: PointInRoom;
+    source: PointInRoom[];
+    link: {
+        source: PointInRoom[];
+        center: PointInRoom;
+        controller: PointInRoom;
+    };
+    centerSpawn: PointInRoom;
+    mineralContainer: PointInRoom;
+    lab: {
+        input: PointInRoom[];
+        output: PointInRoom[];
+    }
+}
+
+interface RoomDesignDetail {
+    version: number,
+    stages: {
+        rcl: number;
+        list: {
+            type: BuildableStructureConstant;
+            x: number;
+            y: number;
+            name?: string;
+        }[]
+    }[],
+    walls: PointInRoom[],
+    ramparts: PointInRoom[],
+    matrix: string[];
+}
+
 interface RoomResource {
     // 在 storage 里长期储备垫底的资源
     reserve: { [type: string]: number },
@@ -163,7 +202,7 @@ interface RoomMemory {
         [name in RoomRoutine]?: number;
     }
     spawnQueue: SpawnRequest[];
-    design: RoomDesign;
+    design: RoomDesign2;
     state: RoomState;
     rcl: number;
     helperRoom?: string;

@@ -1,4 +1,4 @@
-import { designRoom, upgradeDesign } from "room/classicDesigner";
+import { classicDesignRoom, upgradeDesign } from "room/designer/classic";
 import { globalDelay } from "utils";
 import Logger from "utils";
 import cfg from "config";
@@ -15,7 +15,7 @@ class RoomStructures {
     extensions: StructureExtension[] = [];
     extractor: StructureExtractor;
     factory: StructureFactory;
-    labs: StructureLab[] = [];
+    labs: { input: StructureLab[], output: StructureLab[] };
     links: StructureLink[] = [];
     nuker: StructureNuker;
     observer: StructureObserver;
@@ -92,8 +92,8 @@ export class RoomInfo {
 
     private _structures?: RoomStructures;
     private _structuresLoadTime = 0;
-    private getLink(pos: [number, number]) {
-        return this.detail.lookForAt(LOOK_STRUCTURES, pos[0], pos[1])
+    private getLink(pos: PointInRoom) {
+        return this.detail.lookForAt(LOOK_STRUCTURES, pos.x, pos.y)
             .filter(s => s.structureType == STRUCTURE_LINK)[0] as StructureLink;
     }
     public get structures() {
@@ -110,7 +110,7 @@ export class RoomInfo {
     }
 
     public get structRcl() {
-        return this.design.stages[Math.max(this.design.currentStage - 1, 0)].rcl;
+        return this.design.rclDone;
     }
 
     public constructor(roomName: string) {
@@ -175,17 +175,22 @@ export class RoomInfo {
                     break;
             }
         });
-        strobj.centerLink = this.getLink(this.design.links.centerLink);
-        strobj.controllerLink = this.getLink(this.design.links.controllerLink);
-        strobj.sourceLink = this.design.links.sourceLink.map(p => this.getLink(p));
-        strobj.sources = this.design.sources.map(p => this.detail.lookForAt(LOOK_SOURCES, p[0], p[1])[0]);
-        strobj.labs = _.compact(this.design.labs.map(
-            p => this.detail.lookForAt(LOOK_STRUCTURES, p[0], p[1])
-                .find(s => s.structureType == "lab")) as StructureLab[]);
-        strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn[0], this.design.centerSpawn[1])
+        strobj.centerLink = this.getLink(this.design.link.center);
+        strobj.controllerLink = this.getLink(this.design.link.controller);
+        strobj.sourceLink = this.design.link.source.map(p => this.getLink(p));
+        strobj.sources = this.design.source.map(p => this.detail.lookForAt(LOOK_SOURCES, p.x, p.y)[0]);
+        strobj.labs = {
+            input: _.compact(this.design.lab.input.map(
+                p => this.detail.lookForAt(LOOK_STRUCTURES, p.x, p.y)
+                    .find(s => s.structureType == "lab")) as StructureLab[]),
+            output: _.compact(this.design.lab.output.map(
+                p => this.detail.lookForAt(LOOK_STRUCTURES, p.x, p.y)
+                    .find(s => s.structureType == "lab")) as StructureLab[])
+        }
+        strobj.centerSpawn = this.detail.lookForAt(LOOK_STRUCTURES, this.design.centerSpawn.x, this.design.centerSpawn.y)
             .find(s => s.structureType == STRUCTURE_SPAWN) as StructureSpawn;
         strobj.mineral = this.detail.find(FIND_MINERALS)[0];
-        strobj.mineralContainer = this.detail.lookForAt(LOOK_STRUCTURES, this.design.mineralContainer[0], this.design.mineralContainer[1])
+        strobj.mineralContainer = this.detail.lookForAt(LOOK_STRUCTURES, this.design.mineralContainer.x, this.design.mineralContainer.y)
             .find(s => s.structureType == STRUCTURE_CONTAINER) as StructureContainer;
 
         this.tombstones = this.detail.find(FIND_TOMBSTONES);
@@ -199,8 +204,9 @@ export class RoomInfo {
     initMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
-        m.design = m.design || designRoom(this.detail);
-        upgradeDesign(this.detail, m.design);
+        // TODO: 直接生成 RoomDesign2
+        // m.design = m.design || classicDesignRoom(this.detail);
+        // upgradeDesign(this.detail, m.design);
 
         _.defaultsDeep(m, {
             tasks: {},
