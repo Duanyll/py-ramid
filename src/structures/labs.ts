@@ -71,6 +71,7 @@ function runLabs(room: RoomInfo) {
             let product: ResourceConstant = REACTIONS[room.state.labContent[0]][room.state.labContent[1]];
             let input0 = room.structures.labs.input[0];
             let input1 = room.structures.labs.input[1];
+            room.labRunning = (inputAmount >= LAB_REACTION_AMOUNT);
             for (let i = 0; i < room.structures.labs.output.length; i++) {
                 let lab = room.structures.labs.output[i];
                 if (lab.mineralType && lab.mineralType != product

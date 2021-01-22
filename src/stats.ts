@@ -8,11 +8,19 @@ interface RoomStats {
     rclTotal: number,
     rclPercentage: number,
     energyStore: number,
-    creepCount: number
+    creepCount: number,
+    wallHits: number,
+    // lab: string
 }
 
 interface Stats {
     gcl: {
+        level: number,
+        progress: number,
+        progressTotal: number,
+        progressPercentage: number
+    },
+    gpl: {
         level: number,
         progress: number,
         progressTotal: number,
@@ -25,7 +33,22 @@ interface Stats {
     rooms: { [name: string]: RoomStats },
     resource: Partial<Record<ResourceConstant, number>>,
     time: number,
-    credits: number
+    credits: number,
+    labRunningCount: number
+}
+
+function reportLab(room: RoomInfo) {
+    const content = room.state.labContent;
+    switch (room.state.labMode) {
+        case "disabled":
+            return `Empty`;
+        case "reaction":
+            // @ts-ignore
+            let product: ResourceConstant = REACTIONS[content[0]][content[1]];
+            return `${content[0]} + ${content[1]} = ${product} * ${room.state.labRemainAmount}${room.labRunning ? "" : " paused."}`;
+        case "boost":
+            return `${content.toString()}`;
+    }
 }
 
 function summaryRoom(room: RoomInfo): RoomStats {
@@ -35,7 +58,9 @@ function summaryRoom(room: RoomInfo): RoomStats {
         rclProgress: room.detail.controller.progress,
         rclPercentage: room.detail.controller.progress / room.detail.controller.progressTotal,
         energyStore: room.structures.storage?.store.energy,
-        creepCount: room.creeps.length
+        creepCount: room.creeps.length,
+        wallHits: room.wallHits,
+        // lab: reportLab(room)
     };
 }
 
@@ -57,6 +82,12 @@ export function summaryStats() {
                 progressTotal: Game.gcl.progressTotal,
                 progressPercentage: Game.gcl.progress / Game.gcl.progressTotal
             },
+            gpl: {
+                level: Game.gpl.level,
+                progress: Game.gpl.progress,
+                progressTotal: Game.gpl.progressTotal,
+                progressPercentage: Game.gpl.progress / Game.gpl.progressTotal
+            },
             cpu: {
                 current: Game.cpu.getUsed(),
                 bucket: Game.cpu.bucket
@@ -64,7 +95,8 @@ export function summaryStats() {
             rooms: _.mapValues(myRooms, summaryRoom),
             time: Game.time,
             resource: summaryResource(),
-            credits: Game.market.credits
+            credits: Game.market.credits,
+            labRunningCount: _.reduce(myRooms, (cnt, room) => cnt += room.labRunning ? 1 : 0, 0)
         }
         return obj;
     });

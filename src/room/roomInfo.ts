@@ -58,6 +58,7 @@ export class RoomInfo {
     refillTargets: { [id: string]: number } = {};
     roadToRepair: string[] = [];
     wallBuildQueue: { id: string, hitsRemain: number }[] = [];
+    wallHits: number;
     moveRequests: {
         in: {
             [id: string]: {
@@ -73,6 +74,8 @@ export class RoomInfo {
         }
     } = { in: {}, out: {} }
     tombstones: Tombstone[];
+
+    labRunning: boolean;
 
     public get state(): RoomState {
         return this.detail.memory.state;

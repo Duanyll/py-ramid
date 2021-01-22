@@ -47,7 +47,7 @@ export function migrateToRoomDesign2(roomName: string) {
                 controller: { x: old.links.controllerLink[0], y: old.links.controllerLink[1] }
             },
             centerSpawn: { x: old.centerSpawn[0], y: old.centerSpawn[1] },
-            mineralContainer: { x: old.centerSpawn[0], y: old.centerSpawn[1] },
+            mineralContainer: { x: old.mineralContainer[0], y: old.mineralContainer[1] },
             lab: createLabInfo(old.labs)
         }
 

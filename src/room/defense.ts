@@ -41,6 +41,7 @@ function fetchWallTask(room: RoomInfo) {
         if (repairQueue.length > 0) {
             repairQueue = _.sortBy(repairQueue, r => r.hits);
             let maxHits = repairQueue[0].hits + cfg.WALL_BUILD_STEP * 2;
+            room.wallHits = repairQueue[0].hits;
             for (const st of repairQueue) {
                 if (st.hits > maxHits) break;
                 room.wallBuildQueue.push({ id: st.id, hitsRemain: cfg.WALL_BUILD_STEP });
