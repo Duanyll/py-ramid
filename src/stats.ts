@@ -38,16 +38,12 @@ interface Stats {
 }
 
 function reportLab(room: RoomInfo) {
-    const content = room.state.labContent;
-    switch (room.state.labMode) {
-        case "disabled":
-            return `Empty`;
-        case "reaction":
-            // @ts-ignore
-            let product: ResourceConstant = REACTIONS[content[0]][content[1]];
-            return `${content[0]} + ${content[1]} = ${product} * ${room.state.labRemainAmount}${room.labRunning ? "" : " paused."}`;
-        case "boost":
-            return `${content.toString()}`;
+    let res = room.name + ": ";
+    if (room.state.lab.remain) {
+        res += `${room.state.lab.remain} * ${room.state.lab.product} `
+    }
+    if (room.state.lab.boost.length) {
+        res += `boost: [${room.state.lab.boost.join(',')}]`;
     }
 }
 

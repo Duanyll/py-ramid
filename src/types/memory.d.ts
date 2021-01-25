@@ -40,7 +40,7 @@ interface Memory {
     roomsToAvoid: { [name: string]: boolean };
     roomCost: { [name: string]: number };
     labQueue: {
-        recipe: ResourceConstant[],
+        product: ResourceConstant,
         amount: number
     }[],
     labQueueBuffer: Partial<Record<ResourceConstant, number>>;
@@ -76,7 +76,8 @@ interface Memory {
     playerWhiteList: Record<string, boolean>;
     rawMemoryIndex: {
         [segment: number]: string[]
-    }
+    },
+    version: number;
 }
 
 type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];
@@ -104,52 +105,21 @@ interface RoomState {
     }
     lastLinkToController: boolean,
     enableMining: boolean;
-    refillFailTime?: number;
-    labMode: "disabled" | "boost" | "reaction",
-    labContent: ResourceConstant[],
-    labRemainAmount: number,
+    refillFailTime?: number,
+    lab: {
+        boost: ResourceConstant[],
+        product?: ResourceConstant,
+        remain?: number,
+        boostExpires?: number
+    }
     chargeNuker: boolean,
     autoProcessPower: boolean,
     disableTower?: boolean,
     mineralToTransport?: number;
 }
 
-interface RoomDesign {
-    version: number;
-    matrix: string[];
-    center: [number, number];
-    currentStage: number;
-    stages: {
-        rcl: number;
-        list: {
-            type: BuildableStructureConstant;
-            x: number;
-            y: number;
-            name?: string;
-        }[]
-    }[],
-    links: {
-        sourceLink: [number, number][];
-        centerLink: [number, number];
-        controllerLink: [number, number];
-    },
-    sources: [number, number][],
-    centerSpawn: [number, number];
-    remoteSources: {
-        sources: { x: number, y: number, room: string }[];
-        containers: { x: number, y: number, room: string }[];
-        route: {
-            [room: string]: { x: number, y: number }[];
-        }
-    },
-    labs: [number, number][],
-    mineralContainer: [number, number],
-    walls: { x: number, y: number }[],
-    ramparts: { x: number, y: number }[]
-}
-
 interface PointInRoom { x: number, y: number }
-interface RoomDesign2 {
+interface RoomDesign {
     version: number;
     rclDone: number;
     currentStage: number;
@@ -202,7 +172,7 @@ interface RoomMemory {
         [name in RoomRoutine]?: number;
     }
     spawnQueue: SpawnRequest[];
-    design: RoomDesign2;
+    design: RoomDesign;
     state: RoomState;
     rcl: number;
     helperRoom?: string;

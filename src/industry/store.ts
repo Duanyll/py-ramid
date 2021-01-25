@@ -1,4 +1,4 @@
-import { COMPOUND_RECIPE, produceCompound } from "industry/compounds";
+import { LAB_RECIPE, produceCompound } from "industry/compounds";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
@@ -58,11 +58,10 @@ export class GlobalStoreManager {
                 this.reserveLock[type] += amount;
             });
 
-            if (room.state.labMode == "reaction") {
-                const recipe = room.state.labContent;
-                const amount = room.state.labRemainAmount;
-                // @ts-ignore
-                const product: ResourceConstant = REACTIONS[recipe[0]][recipe[1]];
+            if (room.state.lab.remain) {
+                const recipe = LAB_RECIPE[room.state.lab.product];
+                const amount = room.state.lab.remain;
+                const product: ResourceConstant = room.state.lab.product;
                 recipe.forEach(r => {
                     this.materialLock[r] ||= 0;
                     this.materialLock[r] += amount;
@@ -73,14 +72,12 @@ export class GlobalStoreManager {
         });
 
         Memory.labQueue.forEach(req => {
-            // @ts-ignore
-            const product: ResourceConstant = REACTIONS[req.recipe[0]][req.recipe[1]];
-            req.recipe.forEach(r => {
+            LAB_RECIPE[req.product].forEach(r => {
                 this.materialLock[r] ||= 0;
                 this.materialLock[r] += req.amount;
             });
-            this.productLock[product] ||= 0;
-            this.productLock[product] += req.amount;
+            this.productLock[req.product] ||= 0;
+            this.productLock[req.product] += req.amount;
         });
 
         _.forIn(Memory.labQueueBuffer, (amount, res) => {
@@ -94,11 +91,11 @@ export class GlobalStoreManager {
         global.delay("countStore", 5000);
     }
 
-    logReaction(room: RoomInfo, product: ResourceConstant, material: ResourceConstant[], amount: number) {
-        room.state.labRemainAmount -= amount;
+    logReaction(room: RoomInfo, product: ResourceConstant, amount: number) {
+        room.state.lab.remain -= amount;
         room.logStore(product, amount);
         this.productLock[product] -= amount;
-        material.forEach(c => {
+        LAB_RECIPE[product].forEach(c => {
             room.logStore(c, -amount, true);
             this.materialLock[product] -= amount;
         })
@@ -165,7 +162,7 @@ global.resetResource = (roomName: string) => {
 Memory.labQueueBuffer ||= {};
 
 global.produce = (type: ResourceConstant, amount: number, noBuffer: boolean) => {
-    if (COMPOUND_RECIPE[type]) {
+    if (LAB_RECIPE[type]) {
         Memory.labQueueBuffer[type] ||= 0;
         Memory.labQueueBuffer[type] += amount;
         global.store.productLock[type] ||= 0;

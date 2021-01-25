@@ -148,7 +148,7 @@ const smallCenter = [
     "trtllr"
 ]
 
-function fillOutPoints(res: string[][], room: Room, design: RoomDesign) {
+function fillOutPoints(res: string[][], room: Room, design: RoomDesignOld) {
     function setObj(x: number, y: number, type: string): [number, number] {
         for (let i = 0; i < 8; i++) {
             let creepx = x + dx[i];
@@ -180,7 +180,7 @@ function fillOutPoints(res: string[][], room: Room, design: RoomDesign) {
 }
 
 type Route = [number, number][];
-function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
+function fillRoutes(res: string[][], room: Room, design: RoomDesignOld): Route[] {
     const sx = design.center[0];
     const sy = design.center[1];
     const sid = posToId(sx, sy);
@@ -213,7 +213,7 @@ function fillRoutes(res: string[][], room: Room, design: RoomDesign): Route[] {
     return routes;
 }
 
-function fillExtensions(res: string[][], room: Room, design: RoomDesign) {
+function fillExtensions(res: string[][], room: Room, design: RoomDesignOld) {
     let dis = createMatrix(51, 51, INF);
     let ins = createMatrix(51, 51, false);
     let q = new Queue<[number, number]>();
@@ -248,7 +248,7 @@ function fillExtensions(res: string[][], room: Room, design: RoomDesign) {
     }
 }
 
-function createBuildStages(res: string[][], room: Room, design: RoomDesign, routes: Route[]) {
+function createBuildStages(res: string[][], room: Room, design: RoomDesignOld, routes: Route[]) {
     let ins = createMatrix(51, 51, false);
     let structPos: { [type: string]: [number, number][] } = {};
     let nroutes: { type: STRUCTURE_ROAD, x: number, y: number }[][] = [];
@@ -314,7 +314,7 @@ function createBuildStages(res: string[][], room: Room, design: RoomDesign, rout
     design.stages.push({ rcl: 8, list: take("nuker", 1).concat(take("lab", 4), take("powerSpawn", 1)) });
 }
 
-export function classicDesignRoom(room: Room): RoomDesign {
+export function classicDesignRoom(room: Room): RoomDesignOld {
     let cpuBefore = Game.cpu.getUsed();
     let res = new Array<Array<string>>(51);
     const terrain = room.getTerrain();
@@ -378,7 +378,7 @@ export function classicDesignRoom(room: Room): RoomDesign {
 
     let design = {
         links: {}
-    } as RoomDesign;
+    } as RoomDesignOld;
 
     let isSmall = false;
     if (fixedCenter) {
@@ -398,7 +398,7 @@ export function classicDesignRoom(room: Room): RoomDesign {
             const smallRes = findSquare(6);
             if (smallRes[2] == INF) {
                 Logger.error(`Can't design room ${room.name}.`);
-                return {} as RoomDesign;
+                return {} as RoomDesignOld;
             }
             isSmall = true;
             fillSquare(smallCenter, res, smallRes[0], smallRes[1], smallCenter.length);
@@ -434,7 +434,7 @@ export function classicDesignRoom(room: Room): RoomDesign {
     return design;
 }
 
-export function designRemoteHarvest(roomName: string, design: RoomDesign, remoteSources: RoomPosition[]) {
+export function designRemoteHarvest(roomName: string, design: RoomDesignOld, remoteSources: RoomPosition[]) {
     const centerPos = new RoomPosition(design.center[0], design.center[1], roomName);
     let routes: RoomPosition[] = [];
     design.remoteSources = { sources: [], containers: [], route: {} };
@@ -479,14 +479,14 @@ export function designRemoteHarvest(roomName: string, design: RoomDesign, remote
     })
 }
 
-function appendLabDesignInfo(design: RoomDesign) {
+function appendLabDesignInfo(design: RoomDesignOld) {
     design.labs = [];
     design.stages.forEach(
         s => s.list.forEach(
             i => (i.type == "lab") ? design.labs.push([i.x, i.y]) : undefined));
 }
 
-function appendMineralContainer(room: Room, design: RoomDesign) {
+function appendMineralContainer(room: Room, design: RoomDesignOld) {
     let mpos = room.find(FIND_MINERALS)[0].pos;
     let x = mpos.x, y = mpos.y;
     let res: [number, number];
@@ -502,7 +502,7 @@ function appendMineralContainer(room: Room, design: RoomDesign) {
     design.stages[10].list.push({ type: "container", x: res[0], y: res[1] });
 }
 
-export function upgradeDesign(room: Room, design: RoomDesign) {
+export function upgradeDesign(room: Room, design: RoomDesignOld) {
     design.version = design.version || 0;
     if (design.version <= 0) {
         appendLabDesignInfo(design);

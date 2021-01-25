@@ -1,6 +1,40 @@
 import cfg from "config";
 import Logger, { RMManager } from "utils";
 
+interface RoomDesignOld {
+    version: number;
+    matrix: string[];
+    center: [number, number];
+    currentStage: number;
+    stages: {
+        rcl: number;
+        list: {
+            type: BuildableStructureConstant;
+            x: number;
+            y: number;
+            name?: string;
+        }[]
+    }[],
+    links: {
+        sourceLink: [number, number][];
+        centerLink: [number, number];
+        controllerLink: [number, number];
+    },
+    sources: [number, number][],
+    centerSpawn: [number, number];
+    remoteSources: {
+        sources: { x: number, y: number, room: string }[];
+        containers: { x: number, y: number, room: string }[];
+        route: {
+            [room: string]: { x: number, y: number }[];
+        }
+    },
+    labs: [number, number][],
+    mineralContainer: [number, number],
+    walls: { x: number, y: number }[],
+    ramparts: { x: number, y: number }[]
+}
+
 function getSegment(roomName: string) {
     const existSegment = _.find(cfg.SEGMENTS.roomDesign, id => _.includes(Memory.rawMemoryIndex[id], roomName));
     if (existSegment) return existSegment;
@@ -10,8 +44,8 @@ function getSegment(roomName: string) {
     return newSegment;
 }
 
-function createLabInfo(pos: [number, number][]): RoomDesign2["lab"] {
-    let res: RoomDesign2["lab"] = { input: [], output: [] };
+function createLabInfo(pos: [number, number][]): RoomDesign["lab"] {
+    let res: RoomDesign["lab"] = { input: [], output: [] };
     let npos = _.map(pos, i => { return { x: i[0], y: i[1] } });
     npos.forEach(a => {
         if (res.input.length >= 2)
@@ -29,7 +63,7 @@ function createLabInfo(pos: [number, number][]): RoomDesign2["lab"] {
 
 export function migrateToRoomDesign2(roomName: string) {
     if (Memory.rooms[roomName].design.version >= 3) return;
-    let old = Memory.rooms[roomName].design as any as RoomDesign;
+    let old = Memory.rooms[roomName].design as any as RoomDesignOld;
     let segmentId = getSegment(roomName);
     Logger.debug(`Requested to migerate room design in ${roomName}`)
     RMManager.readWrite(segmentId, (segment: Record<string, RoomDesignDetail>) => {

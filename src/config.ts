@@ -26,7 +26,8 @@ const cfg = {
         "fetchWall": 5000,
         "fullCheckConstruction": 5000,
         "setConstruction": 1000,
-        "updateCreepCount": 100
+        "updateCreepCount": 100,
+        "runLabs": 200
     } as Partial<Record<RoomRoutine, number>>,
     SEGMENTS: {
         stats: 50,

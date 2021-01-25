@@ -25,7 +25,7 @@ declare namespace NodeJS {
         cancelAllLabs: () => void;
         mining: (roomName: string, enable: boolean) => void;
         myRooms: { [name: string]: import("room/roomInfo").RoomInfo; };
-        reaction: (room: string, mode: "disabled" | "boost" | "reaction", content?: ResourceConstant[], amount?: number) => void;
+        reaction: (roomName: string, product: ResourceConstant, amount?: number) => void;
         rampart: (room: string, strength?: number) => void;
         sendClaimer: (roomName: string, target: string) => void;
         sendDismantler: (roomName: string, target: string) => void;

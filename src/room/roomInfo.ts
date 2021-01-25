@@ -223,8 +223,10 @@ export class RoomInfo {
                     primary: ["builder"],
                     primaryUpdateTime: Game.time
                 },
-                labMode: "disabled",
-                labContent: [],
+                lab: {
+                    boost: [],
+                    remain: 0
+                },
                 mineralToTransport: 0
             },
             resource: {
