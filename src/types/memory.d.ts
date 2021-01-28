@@ -9,6 +9,7 @@ interface CreepMemory {
     roleId?: string;
     room?: string;
     group?: string;
+    boost?: MineralBoostConstant[];
 }
 
 interface PowerCreepMemory {
@@ -80,7 +81,7 @@ interface Memory {
     version: number;
 }
 
-type BodyPartDescription = [BodyPartConstant, number, ResourceConstant?][];
+type BodyPartDescription = [BodyPartConstant, number, MineralBoostConstant?][];
 
 interface SpawnRequest {
     memory: CreepMemory;

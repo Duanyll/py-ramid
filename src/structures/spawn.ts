@@ -17,11 +17,7 @@ function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescript
     }
     if (needSpawn) {
         if (spawnRoom.spawnQueue.find(r => r.memory.roleId == roleId)) return;
-        spawnRoom.spawnQueue.push({
-            name: `${room.name}-${roleId}-${Game.time}`,
-            body: body,
-            memory: { role: role, room: room.name, roleId: roleId }
-        })
+        spawnRoom.requestSpawn(role, body, { roleId, room: room.name })
     }
 }
 
@@ -106,6 +102,6 @@ function checkRefillState(room: RoomInfo) {
 registerRoomRoutine("checkRefill", checkRefillState);
 
 function spawnOnce(param: { room: string, info: SpawnRequest }) {
-    myRooms[param.room].spawnQueue.push(param.info);
+    myRooms[param.room].requestSpawn(param.info.memory.role, param.info.body, { memory: param.info.memory });
 }
 registerTask("spawnCreep", spawnOnce);

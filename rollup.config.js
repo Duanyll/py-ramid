@@ -6,6 +6,7 @@ import commonjs from "rollup-plugin-commonjs";
 import typescript from "rollup-plugin-typescript2";
 import screeps from "rollup-plugin-screeps";
 import copy from "rollup-plugin-copy"
+import consts from "rollup-plugin-consts";
 
 let cfg;
 const dest = process.env.DEST;
@@ -26,6 +27,7 @@ export default {
 
   plugins: [
     clear({ targets: ["dist"] }),
+    consts({ buildTime: Date() }),
     resolve(),
     commonjs(),
     typescript({ tsconfig: "./tsconfig.json" }),

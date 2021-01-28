@@ -1,4 +1,4 @@
-import { LAB_RECIPE } from "industry/compounds";
+import { LAB_RECIPE } from "utils/constants";
 import { registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 
@@ -8,31 +8,6 @@ function runLabs(room: RoomInfo) {
     if (room.structRcl < 6) return;
     const info = room.state.lab;
     const labs = room.structures.labs;
-    if (info.boostExpires && info.boostExpires < Game.time) {
-        info.boost = [];
-        delete info.boostExpires;
-    }
-    const labsForBoost = _.take(labs.output, info.boost.length);
-    for (let i = 0; i < labsForBoost.length; i++) {
-        let lab = labsForBoost[i];
-        if (lab.store.getFreeCapacity(RESOURCE_ENERGY) > 1000) {
-            room.moveRequests.in[lab.id] = {
-                type: RESOURCE_ENERGY,
-                amount: lab.store.getFreeCapacity(RESOURCE_ENERGY)
-            };
-        } else if (lab.mineralType && lab.mineralType != info.boost[i]) {
-            room.moveRequests.out[lab.id] = {
-                type: lab.mineralType,
-                amount: lab.store[lab.mineralType]
-            };
-        } else if
-            (lab.store.getFreeCapacity(info.boost[i]) > 1000) {
-            room.moveRequests.in[lab.id] = {
-                type: info.boost[i],
-                amount: lab.store.getFreeCapacity(info.boost[i])
-            };
-        }
-    }
     const outputLabs = _.drop(labs.output, info.boost.length);
     if (info.remain) {
         let inputAmount = Infinity;
@@ -121,3 +96,36 @@ function fetchLabWork(room: RoomInfo) {
     }
 }
 registerRoomRoutine("fetchLabWork", fetchLabWork);
+
+function runLabBoost(room: RoomInfo) {
+    if (room.structRcl < 6) return;
+    const info = room.state.lab;
+    const labs = room.structures.labs;
+    if (info.boostExpires && info.boostExpires < Game.time) {
+        info.boost = [];
+        delete info.boostExpires;
+    }
+    const labsForBoost = _.take(labs.output, info.boost.length);
+    for (let i = 0; i < labsForBoost.length; i++) {
+        let lab = labsForBoost[i];
+        if (lab.store.getFreeCapacity(RESOURCE_ENERGY) > 1000) {
+            room.moveRequests.in[lab.id] = {
+                type: RESOURCE_ENERGY,
+                amount: lab.store.getFreeCapacity(RESOURCE_ENERGY)
+            };
+        } else if (lab.mineralType && lab.mineralType != info.boost[i]) {
+            room.moveRequests.out[lab.id] = {
+                type: lab.mineralType,
+                amount: lab.store[lab.mineralType]
+            };
+        } else if
+            (lab.store.getFreeCapacity(info.boost[i]) > 1000) {
+            room.moveRequests.in[lab.id] = {
+                type: info.boost[i],
+                amount: lab.store.getFreeCapacity(info.boost[i])
+            };
+        }
+    }
+    if (labsForBoost.length > 0) room.delay("runBoost");
+}
+registerRoomRoutine("runBoost", runLabBoost);

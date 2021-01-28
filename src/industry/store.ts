@@ -1,4 +1,5 @@
-import { LAB_RECIPE, produceCompound } from "industry/compounds";
+import { produceCompound } from "industry/compounds";
+import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";

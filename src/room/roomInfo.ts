@@ -1,5 +1,5 @@
 import { classicDesignRoom, upgradeDesign } from "room/designer/classic";
-import { globalDelay } from "utils";
+import { getCreepCost as calcCreepCost, globalDelay } from "utils";
 import Logger from "utils";
 import cfg from "config";
 
@@ -285,6 +285,7 @@ export class RoomInfo {
         if (unlock) {
             if (this.resource.lock[type] + amount < 0) {
                 Logger.error(`Invalid room resource unlock: ${this.name}, ${type}, ${amount}`);
+                this.resource.lock[type] = 0;
             } else {
                 this.resource.lock[type] += amount;
             }
@@ -296,6 +297,41 @@ export class RoomInfo {
     }
 
     _store: { [type in ResourceConstant]?: number } = {};
+
+    public requestSpawn(role: CreepRole, body: BodyPartDescription, {
+        roleId,
+        group,
+        room,
+        name = `${this.name}-${roleId || role}-${Game.time}`,
+        memory,
+    }: { roleId?: string, name?: string, group?: string, memory?: CreepMemory, room?: string}) {
+        const cost = calcCreepCost(body);
+        if (Game.creeps[name]) {
+            Logger.error(`${this.name}: Cannot spawn creep ${name}: Existed.`);
+            return false;
+        }
+        if (cost > this.detail.energyCapacityAvailable) {
+            Logger.error(`${this.name}: Cannot spawn creep ${name}: Too large.`);
+            return false;
+        }
+        let boostInfo = [] as MineralBoostConstant[];
+        body.forEach(part => {
+            if (part[2]) {
+                boostInfo.push(part[2]);
+                this.requestResource(part[2], LAB_BOOST_MINERAL * part[1]);
+            }
+        })
+        memory = _.assign(memory, { role, roleId, group, room, boost: boostInfo });
+        if (boostInfo.length) {
+            this.state.lab.boost = _.union(this.state.lab.boost, boostInfo);
+            this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + 500]);
+            this.delay("runBoost", 1);
+        }
+        this.spawnQueue.push({
+            name, body, memory, cost
+        });
+        return true;
+    }
 }
 
 export let myRooms: { [name: string]: RoomInfo } = {}

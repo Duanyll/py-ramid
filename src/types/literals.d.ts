@@ -8,7 +8,7 @@ type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "s
 
 type RoomRoutine =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
-    "checkRHConstruction" | "runLabs" | "runLinks" | "updateCreepCount" |
+    "checkRHConstruction" | "runLabs" | "runBoost" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
 
 type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |

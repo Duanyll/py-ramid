@@ -53,6 +53,8 @@ function canBypassCreep(creep: AnyCreep) {
 }
 
 function shouldDoBypassCreep(creep: AnyCreep) {
+    // @ts-ignore
+    if (creep.fatigue) return false;
     if (!creep.my) return false;
     // @ts-ignore
     if (creep.memory.role == "manage") return false;

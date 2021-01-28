@@ -1,3 +1,5 @@
+import buildTime from "consts:buildTime";
+
 const cfg = {
     TERMINAL_STORE_ENERGY: 50000,
     TERMINAL_MINERAL: 150000,
@@ -27,12 +29,14 @@ const cfg = {
         "fullCheckConstruction": 5000,
         "setConstruction": 1000,
         "updateCreepCount": 100,
-        "runLabs": 200
+        "runLabs": 200,
+        "runBoost": 20
     } as Partial<Record<RoomRoutine, number>>,
     SEGMENTS: {
         stats: 50,
         roomDesign: [10, 11, 12, 13, 14]
-    }
+    },
+    BUILD_TIME: buildTime
 }
 
 export default cfg;

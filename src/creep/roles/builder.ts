@@ -6,7 +6,7 @@ import cfg from "config";
 
 interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work",
-    lastBuildPos?: { x: number, y: number }
+    lastBuildPos?: { x: number, y: number },
 }
 
 export function goBuild(creep: Creep, room: RoomInfo) {
@@ -45,7 +45,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
                     req.hitsRemain -= creep.getActiveBodyparts(WORK) * 100;
                     if (req.hitsRemain <= 0) {
                         room.wallBuildQueue.shift();
-                        if (room.wallBuildQueue.length == 0 && room.state.energy.usage .builder) {
+                        if (room.wallBuildQueue.length == 0 && room.state.energy.usage.builder) {
                             room.delay("fetchWall", 1);
                         }
                     }

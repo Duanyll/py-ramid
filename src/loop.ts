@@ -31,7 +31,7 @@ function loadRooms() {
 
 function loadScript() {
     global.age = 0;
-    Logger.prompt(`Restarting PY-RAMID ...`);
+    Logger.prompt(`Restarting PY-RAMID (build @ ${cfg.BUILD_TIME})...`);
     Logger.info(`Current game tick is ${Game.time}`);
     Logger.info(`Last load lasted for ${Memory.age} ticks.`);
     if (initMigrate()) {

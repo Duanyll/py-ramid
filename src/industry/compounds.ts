@@ -1,13 +1,7 @@
 import { myRooms } from "room/roomInfo";
 import Logger from "utils";
+import { LAB_RECIPE } from "../utils/constants";
 
-export const LAB_RECIPE: Partial<Record<ResourceConstant, ResourceConstant[]>> = {};
-_.forIn(REACTIONS, (res2s, res1) => {
-    _.forIn(res2s, (product, res2) => {
-        // @ts-ignore
-        LAB_RECIPE[product] = [res1, res2];
-    })
-})
 export function produceCompound(product: ResourceConstant, amount: number, fromBuffer?: boolean) {
     amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT;
     let recipe = LAB_RECIPE[product];

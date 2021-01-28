@@ -162,7 +162,7 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
                 }
 
                 // 找一个需要该资源的建筑，没有就放进仓库
-                let fillTarget = storage.id as string;
+                let fillTarget = terminal?.id || storage.id as string;
                 if (m.type) {
                     let directfill = _.findKey(room.moveRequests.in, (info) => {
                         return info.type == m.type;
