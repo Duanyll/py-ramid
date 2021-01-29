@@ -57,7 +57,7 @@ export class RoomInfo {
 
     refillTargets: { [id: string]: number } = {};
     roadToRepair: string[] = [];
-    wallBuildQueue: { id: string, hitsRemain: number }[] = [];
+    wallBuildRequest: Map<string, number> = new Map();
     wallHits: number;
     moveRequests: {
         in: {
@@ -321,7 +321,7 @@ export class RoomInfo {
                 this.requestResource(part[2], LAB_BOOST_MINERAL * part[1]);
             }
         })
-        memory = _.assign(memory, { role, roleId, group, room, boost: boostInfo });
+        memory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
         if (boostInfo.length) {
             this.state.lab.boost = _.union(this.state.lab.boost, boostInfo);
             this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + 500]);

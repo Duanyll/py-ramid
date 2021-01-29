@@ -36,3 +36,11 @@ export function loadCreeps() {
         }
     }
 }
+
+Object.defineProperty(Creep.prototype, 'group', {
+    get: function (this: Creep) {
+        return creepGroups[this.memory.group];
+    },
+    enumerable: false,
+    configurable: true
+})

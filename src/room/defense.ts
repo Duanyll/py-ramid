@@ -8,7 +8,7 @@ function fetchWallTask(room: RoomInfo) {
 
     RMManager.read(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
         let detail = segment[room.name];
-        if (room.wallBuildQueue.length > 0) {
+        if (room.wallBuildRequest.size > 0) {
             return;
         }
         let repairQueue: (StructureWall | StructureRampart)[] = [];
@@ -44,7 +44,7 @@ function fetchWallTask(room: RoomInfo) {
             room.wallHits = repairQueue[0].hits;
             for (const st of repairQueue) {
                 if (st.hits > maxHits) break;
-                room.wallBuildQueue.push({ id: st.id, hitsRemain: cfg.WALL_BUILD_STEP });
+                room.wallBuildRequest.set(st.id, cfg.WALL_BUILD_STEP);
             }
         }
     })

@@ -4,9 +4,23 @@ import { goRefill } from "creep/roles/carrier";
 import { goUpgrade } from "creep/roles/upgrader";
 import cfg from "config";
 
+function getCloestWall(creep: Creep, walls: Map<string, number>) {
+    let mindis = Infinity;
+    let result = '';
+    for (const id of walls.keys()) {
+        const dis = creep.pos.getRangeTo(Game.getObjectById(id));
+        if (dis < mindis) {
+            mindis = dis;
+            result = id;
+        }
+    }
+    return result;
+}
+
 interface BuilderMemory extends CreepMemory {
     state: "pickup" | "work",
     lastBuildPos?: { x: number, y: number },
+    target: string
 }
 
 export function goBuild(creep: Creep, room: RoomInfo) {
@@ -37,17 +51,23 @@ export function goBuild(creep: Creep, room: RoomInfo) {
         return true;
     } else {
         delete m.lastBuildPos;
-        if (room.wallBuildQueue.length > 0) {
-            const req = room.wallBuildQueue[0];
-            let st = Game.getObjectById(req.id) as (StructureRampart | StructureWall);
+        if (room.wallBuildRequest.size > 0) {
+            if (!m.target || !room.wallBuildRequest.has(m.target)) {
+                m.target = getCloestWall(creep, room.wallBuildRequest);
+            }
+
+            let st = Game.getObjectById(m.target) as (StructureRampart | StructureWall);
+            let remHits = room.wallBuildRequest.get(m.target);
             if (creep.pos.inRangeTo(st, 3)) {
                 if (creep.repair(st) == OK) {
-                    req.hitsRemain -= creep.getActiveBodyparts(WORK) * 100;
-                    if (req.hitsRemain <= 0) {
-                        room.wallBuildQueue.shift();
-                        if (room.wallBuildQueue.length == 0 && room.state.energy.usage.builder) {
+                    remHits -= creep.getActiveBodyparts(WORK) * 100;
+                    if (remHits <= 0) {
+                        room.wallBuildRequest.delete(m.target);
+                        if (room.wallBuildRequest.size == 0 && room.state.energy.usage.builder) {
                             room.delay("fetchWall", 1);
                         }
+                    } else {
+                        room.wallBuildRequest.set(m.target, remHits);
                     }
                 }
             } else {

@@ -22,7 +22,7 @@ export function runPowerHarvester(creep: Creep) {
             m.arrived = true;
             pbInfo.distance = CREEP_LIFE_TIME - creep.ticksToLive;
         }
-        const group = creepGroups[m.group];
+        const group = creep.group;
         if (group["heal1"]?.pos.isNearTo(creep.pos) && group["heal2"]?.pos.isNearTo(creep.pos)) {
             const pb = tarpos.lookFor(LOOK_STRUCTURES).find(s => s.structureType == STRUCTURE_POWER_BANK) as StructurePowerBank;
             if (!pb) {
@@ -57,7 +57,7 @@ export function runPowerHealer(creep: Creep) {
     } else if (!creep.pos.inRangeTo(tarpos, 5)) {
         moveCreepTo(creep, tarpos);
     } else {
-        let healTarget = creepGroups[m.group]["attack"];
+        let healTarget = creep.group["attack"];
         if (!healTarget && pbInfo.status == "harvested") {
             creep.suicide();
             return;

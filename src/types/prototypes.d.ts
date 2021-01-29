@@ -6,3 +6,10 @@ interface Room {
      */
     readonly info: import("room/roomInfo").RoomInfo;
 }
+
+interface Creep {
+    /**
+     * 与 Creep 有相同 group 标记的 Creep 的集合
+     */
+    group: Record<string, Creep>;
+}

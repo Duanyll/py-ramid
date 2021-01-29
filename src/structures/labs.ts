@@ -4,6 +4,13 @@ import Logger from "utils";
 
 Memory.labQueue ||= [];
 
+function clearLab(l: StructureLab, room: RoomInfo) {
+    if (l.mineralType) {
+        room.moveRequests.out[l.id] = { type: l.mineralType, amount: l.store[l.mineralType] };
+        delete room.moveRequests.in[l.id];
+    }
+}
+
 function runLabs(room: RoomInfo) {
     if (room.structRcl < 6) return;
     const info = room.state.lab;
@@ -37,7 +44,7 @@ function runLabs(room: RoomInfo) {
         for (let i = 0; i < outputLabs.length; i++) {
             let lab = outputLabs[i];
             if (lab.mineralType && lab.mineralType != info.product
-                || lab.store.getUsedCapacity(lab.mineralType) as number > 1000) {
+                || lab.store[lab.mineralType] > 1000) {
                 room.moveRequests.out[lab.id] = {
                     type: lab.mineralType,
                     amount: lab.store[lab.mineralType]
@@ -60,18 +67,8 @@ function runLabs(room: RoomInfo) {
         let cooldown: number = REACTION_TIME[info.product];
         room.delay("runLabs", cooldown);
     } else {
-        labs.input.forEach(l => {
-            if (l.mineralType) {
-                room.moveRequests.out[l.id] = { type: l.mineralType, amount: l.store[l.mineralType] };
-                delete room.moveRequests.in[l.id];
-            }
-        });
-        outputLabs.forEach(l => {
-            if (l.mineralType) {
-                room.moveRequests.out[l.id] = { type: l.mineralType, amount: l.store[l.mineralType] };
-                delete room.moveRequests.in[l.id];
-            }
-        });
+        labs.input.forEach(l => clearLab(l, room));
+        outputLabs.forEach(l => clearLab(l, room));
     }
 
     room.delay("runLabs");
@@ -101,11 +98,12 @@ function runLabBoost(room: RoomInfo) {
     if (room.structRcl < 6) return;
     const info = room.state.lab;
     const labs = room.structures.labs;
-    if (info.boostExpires && info.boostExpires < Game.time) {
+    const labsForBoost = _.take(labs.output, info.boost.length);
+    if ('boostExpires' in info && info.boostExpires < Game.time) {
+        labsForBoost.forEach(l => clearLab(l, room));
         info.boost = [];
         delete info.boostExpires;
     }
-    const labsForBoost = _.take(labs.output, info.boost.length);
     for (let i = 0; i < labsForBoost.length; i++) {
         let lab = labsForBoost[i];
         if (lab.store.getFreeCapacity(RESOURCE_ENERGY) > 1000) {
