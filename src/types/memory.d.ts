@@ -1,23 +1,10 @@
 interface CreepMemory {
-    _move?: {
-        dest: { x: number, y: number, room: string };
-        time: number;
-        path: string;
-    }
     role: CreepRole;
     target?: string;
     roleId?: string;
     room?: string;
     group?: string;
     boost?: MineralBoostConstant[];
-}
-
-interface PowerCreepMemory {
-    _move?: {
-        dest: { x: number, y: number, room: string };
-        time: number;
-        path: string;
-    }
 }
 
 interface PowerBankInfo {
