@@ -2,6 +2,7 @@ import { classicDesignRoom, upgradeDesign } from "room/designer/classic";
 import { getCreepCost as calcCreepCost, globalDelay } from "utils";
 import Logger from "utils";
 import cfg from "config";
+import { roleBodies } from "creep/body";
 
 let roomRoutineStore: { [type in RoomRoutine]?: (room: RoomInfo, ...param: any) => void } = {};
 export function registerRoomRoutine(type: RoomRoutine, func: (room: RoomInfo, ...param: any) => void) {
@@ -127,8 +128,9 @@ export class RoomInfo {
         this.delay("fullCheckConstruction", 0);
         this.delay("checkRoads", 0);
         this.delay("updateCreepCount", 0);
-        this.delay("runLabs", 1);
-        this.delay("fetchLabWork", 1);
+        this.delay("runLabs");
+        this.delay("runBoost");
+        this.delay("fetchLabWork");
         this.delay("fetchWall", 1);
     }
 
@@ -298,13 +300,14 @@ export class RoomInfo {
 
     _store: { [type in ResourceConstant]?: number } = {};
 
-    public requestSpawn(role: CreepRole, body: BodyPartDescription, {
+    public requestSpawn(role: CreepRole, {
+        body = roleBodies[role],
         roleId,
         group,
         room,
         name = `${this.name}-${roleId || role}-${Game.time}`,
         memory,
-    }: { roleId?: string, name?: string, group?: string, memory?: CreepMemory, room?: string}) {
+    }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string}) {
         const cost = calcCreepCost(body);
         if (Game.creeps[name]) {
             Logger.error(`${this.name}: Cannot spawn creep ${name}: Existed.`);
@@ -321,14 +324,14 @@ export class RoomInfo {
                 this.requestResource(part[2], LAB_BOOST_MINERAL * part[1]);
             }
         })
-        memory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
+        let fullMemory: CreepMemory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
         if (boostInfo.length) {
             this.state.lab.boost = _.union(this.state.lab.boost, boostInfo);
             this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + 500]);
             this.delay("runBoost", 1);
         }
         this.spawnQueue.push({
-            name, body, memory, cost
+            name, body, memory: fullMemory, cost
         });
         return true;
     }

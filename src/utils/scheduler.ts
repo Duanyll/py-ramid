@@ -35,7 +35,7 @@ export function globalDelay(type: GlobalRoutine, time?: number) {
 global.delay = globalDelay;
 
 let taskStore: { [type in GlobalTask]?: (param: any) => void } = {};
-export function registerTask(type: GlobalTask, func: (param: any) => void) {
+export function registerTask<TTask extends GlobalTask>(type: TTask, func: (param: GlobalTaskParam[TTask]) => void) {
     taskStore[type] = func;
 }
 
@@ -49,7 +49,7 @@ export function initTasks() {
     Memory.tasks = tasks;
 }
 
-export function schedule(type: GlobalTask, delay: number, param: any) {
+export function schedule<TTask extends GlobalTask>(type: TTask, delay: number, param: GlobalTaskParam[TTask]) {
     const tasks = Memory.tasks;
     if (!taskStore[type]) {
         Logger.error(`Unknown task ${type}`);

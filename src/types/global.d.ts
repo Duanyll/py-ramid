@@ -3,6 +3,7 @@ declare namespace NodeJS {
     * global 对象上挂载的方法用于在 console 中直接调用
     */
     interface Global {
+        schedule: <TTask extends GlobalTask>(type: TTask, delay: number, param: GlobalTaskParam[TTask]) => void;
         lastException: number;
         autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
         produce: (type: ResourceConstant, amount: number, noBuffer?: boolean) => boolean;
@@ -10,7 +11,6 @@ declare namespace NodeJS {
         store: import("industry/store").GlobalStoreManager;
         unclaim: (roomName: string, keep: boolean) => void;
         yes: (key: number) => void;
-        schedule: (type: GlobalTask, delay: number, param: any) => void;
         delay: (type: GlobalRoutine, time: number) => void;
         pbMining: (rooms: string[] | "clear") => void;
         burnPower: (roomName: string, amount: number | false | "auto") => void;

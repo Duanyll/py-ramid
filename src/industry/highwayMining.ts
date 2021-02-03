@@ -1,5 +1,5 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { globalDelay, registerGlobalRoutine, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import { estimateDistance, objToPos, posToObj } from "utils";
 import Logger from "utils";
@@ -111,47 +111,39 @@ export function onPBHarvesterArrive(creep: Creep, info: PowerBankInfo, id: strin
 function spawnPowerBankHarvestGroup(time: number, id: string, room: string, wave: number) {
     const idShort = id.substr(7, 8);
     const groupName = `pbHarv-${idShort}-${wave}`;
-    global.schedule("spawnCreep", time, {
-        room: room, info: {
+    schedule("spawnCreep", time, {
+        room,
+        role: "pbHarv",
+        param: {
+            roleId: "attack",
             name: `${groupName}-attack`,
-            body: roleBodies["pbHarv"],
-            memory: {
-                role: "pbHarv",
-                roleId: "attack",
-                group: groupName,
-                target: id
-            }
+            memory: { target: id },
+            group: groupName
         }
     });
     for (let i = 1; i <= 2; i++) {
-        global.schedule("spawnCreep", time + 55, {
-            room: room,
-            info: {
+        schedule("spawnCreep", time + 55, {
+            room,
+            role: "pbHeal",
+            param: {
+                roleId: `heal${i}`,
                 name: `${groupName}-heal${i}`,
-                body: roleBodies["pbHeal"],
-                memory: {
-                    role: "pbHeal",
-                    roleId: `heal${i}`,
-                    group: groupName,
-                    target: id
-                }
-            } as SpawnRequest
+                memory: { target: id },
+                group: groupName
+            }
         })
     }
 }
 function spawnPowerBankCarryGroup(time: number, id: string, room: string, groupName: string, count: number) {
     for (let i = 1; i <= count; i++) {
-        global.schedule("spawnCreep", time, {
-            room: room, info: {
+        schedule("spawnCreep", time, {
+            room,
+            role: "pbCarry",
+            param: {
+                roleId: `carry${i}`,
                 name: `${groupName}-carry${i}`,
-                body: roleBodies["pbCarry"],
-                memory: {
-                    role: "pbCarry",
-                    roleId: `carry${i}`,
-                    group: groupName,
-                    target: id,
-                    state: "go"
-                } as CreepMemory
+                memory: { target: id, home: room, state: "go" } as any,
+                group: groupName
             }
         })
     }

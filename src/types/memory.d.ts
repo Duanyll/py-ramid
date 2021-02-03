@@ -81,17 +81,6 @@ interface Memory {
     version: number;
 }
 
-type BodyPartDescription = [BodyPartConstant, number, MineralBoostConstant?][];
-
-interface SpawnRequest {
-    memory: CreepMemory;
-    body: BodyPartDescription;
-    cost?: number;
-    name: string;
-}
-
-type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
-
 interface RoomState {
     status: "normal" | "energy-emergency";
     // energyMode: "upgrade" | "power" | "battery" | "wall",
@@ -119,7 +108,6 @@ interface RoomState {
     mineralToTransport?: number;
 }
 
-interface PointInRoom { x: number, y: number }
 interface RoomDesign {
     version: number;
     rclDone: number;

@@ -86,7 +86,7 @@ export function runLootCarrier(creep: Creep) {
 
 registerCreepRole({ "rCarry": runLootCarrier });
 
-function checkLootJob(param: { flag: string, home: string, creepRun: number }) {
+registerTask("checkLoot", (param) => {
     const flag = Game.flags[param.flag];
     if (!flag) {
         Logger.report(`Loot ${flag.name} compelete.`);
@@ -105,7 +105,7 @@ function checkLootJob(param: { flag: string, home: string, creepRun: number }) {
             }
             if (continueLoot) {
                 Logger.debug(`Continue looting ${flag.name}`)
-                myRooms[param.home].requestSpawn("rCarry", [[CARRY, 25], [MOVE, 25]], {
+                myRooms[param.home].requestSpawn("rCarry", {
                     name: `loot-${flag.name}-${Game.time}`,
                     memory: {
                         role: "rCarry",
@@ -121,8 +121,7 @@ function checkLootJob(param: { flag: string, home: string, creepRun: number }) {
             }
         })
     }
-}
-registerTask("checkLoot", checkLootJob);
+});
 
 global.loot = (flag: string, home: string, creepRun: number) => {
     schedule("checkLoot", 1, { flag, home, creepRun });

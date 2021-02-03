@@ -17,7 +17,7 @@ function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescript
     }
     if (needSpawn) {
         if (spawnRoom.spawnQueue.find(r => r.memory.roleId == roleId)) return;
-        spawnRoom.requestSpawn(role, body, { roleId, room: room.name })
+        spawnRoom.requestSpawn(role, { body, roleId, room: room.name })
     }
 }
 
@@ -54,7 +54,7 @@ export function tickSpawn(room: RoomInfo) {
         let dir: DirectionConstant;
         if (req.memory.role == "manage") {
             spawn = room.structures.centerSpawn;
-            if (spawn.spawning) return;
+            if (spawn && spawn.spawning) return;
             dir = spawn.pos.getDirectionTo(room.design.center.x, room.design.center.y);
         } else {
             spawn = _.find(room.structures.spawns, s => !s.spawning);
@@ -101,7 +101,6 @@ function checkRefillState(room: RoomInfo) {
 }
 registerRoomRoutine("checkRefill", checkRefillState);
 
-function spawnOnce(param: { room: string, info: SpawnRequest }) {
-    myRooms[param.room].requestSpawn(param.info.memory.role, param.info.body, { memory: param.info.memory });
-}
-registerTask("spawnCreep", spawnOnce);
+registerTask("spawnCreep", (param) => {
+    myRooms[param.room].requestSpawn(param.role, param.param);
+});

@@ -1,4 +1,4 @@
-export const commonWorkerBody: Record<number, BodyPartDescription> = {
+export const workerBody: Record<number, BodyPartDescription> = {
     1: [[WORK, 1], [CARRY, 2], [MOVE, 2]],
     2: [[WORK, 2], [CARRY, 2], [MOVE, 4]],
     3: [[WORK, 3], [CARRY, 5], [MOVE, 4]],
@@ -18,36 +18,36 @@ export const roomBasicCreepConfig: {
     }
 } = {
     1: {
-        work1: { role: "work", body: commonWorkerBody[1] },
-        work2: { role: "work", body: commonWorkerBody[1] },
-        work3: { role: "work", body: commonWorkerBody[1] },
-        work4: { role: "work", body: commonWorkerBody[1] },
-        upgr1: { role: "upgrade", body: commonWorkerBody[1] },
-        upgr2: { role: "upgrade", body: commonWorkerBody[1] },
+        work1: { role: "work", body: workerBody[1] },
+        work2: { role: "work", body: workerBody[1] },
+        work3: { role: "work", body: workerBody[1] },
+        work4: { role: "work", body: workerBody[1] },
+        upgr1: { role: "upgrade", body: workerBody[1] },
+        upgr2: { role: "upgrade", body: workerBody[1] },
     },
     2: {
-        work1: { role: "work", body: commonWorkerBody[2] },
-        work2: { role: "work", body: commonWorkerBody[2] },
-        work3: { role: "work", body: commonWorkerBody[2] },
-        work4: { role: "work", body: commonWorkerBody[2] },
-        upgr1: { role: "upgrade", body: commonWorkerBody[2] },
-        upgr2: { role: "upgrade", body: commonWorkerBody[2] },
+        work1: { role: "work", body: workerBody[2] },
+        work2: { role: "work", body: workerBody[2] },
+        work3: { role: "work", body: workerBody[2] },
+        work4: { role: "work", body: workerBody[2] },
+        upgr1: { role: "upgrade", body: workerBody[2] },
+        upgr2: { role: "upgrade", body: workerBody[2] },
     },
     3: {
-        work1: { role: "work", body: commonWorkerBody[3] },
-        work2: { role: "work", body: commonWorkerBody[3] },
-        work3: { role: "work", body: commonWorkerBody[3] },
-        work4: { role: "work", body: commonWorkerBody[3] },
-        upgr1: { role: "upgrade", body: commonWorkerBody[3] },
-        upgr2: { role: "upgrade", body: commonWorkerBody[3] },
+        work1: { role: "work", body: workerBody[3] },
+        work2: { role: "work", body: workerBody[3] },
+        work3: { role: "work", body: workerBody[3] },
+        work4: { role: "work", body: workerBody[3] },
+        upgr1: { role: "upgrade", body: workerBody[3] },
+        upgr2: { role: "upgrade", body: workerBody[3] },
     },
     4: {
-        harv1: { role: "harvest", body: commonWorkerBody[4] },
-        harv2: { role: "harvest", body: commonWorkerBody[4] },
-        build1: { role: "build", body: commonWorkerBody[4] },
-        build2: { role: "build", body: commonWorkerBody[4] },
+        harv1: { role: "harvest", body: workerBody[4] },
+        harv2: { role: "harvest", body: workerBody[4] },
+        build1: { role: "build", body: workerBody[4] },
+        build2: { role: "build", body: workerBody[4] },
         carry1: { role: "carry", body: [[CARRY, 16], [MOVE, 8]] },
-        upgr1: { role: "upgrade", body: commonWorkerBody[4] },
+        upgr1: { role: "upgrade", body: workerBody[4] },
     },
     5: {
         harv1: { role: "harvest", body: [[WORK, 8], [CARRY, 4], [MOVE, 6]] },
@@ -108,8 +108,14 @@ export const roleBodies: Partial<Record<CreepRole, BodyPartDescription>> = {
     "pbHeal": [[MOVE, 16], [HEAL, 16]],
     "pbCarry": [[CARRY, 25], [MOVE, 25]],
 
-    "emergency": commonWorkerBody[0],
+    "emergency": workerBody[0],
     "mine": [[WORK, 12], [MOVE, 6]],
+
+    "claim": [[MOVE, 5], [CLAIM, 1]],
+    "dismantle": [[MOVE, 25], [WORK, 25]],
+    "attack": [[MOVE, 25], [ATTACK, 25]],
+
+    "rCarry": [[MOVE, 25], [CARRY, 25]]
 }
 
 export const roomHelperCreepConfig: {
@@ -118,10 +124,10 @@ export const roomHelperCreepConfig: {
         body: BodyPartDescription
     }
 } = {
-    3: { count: 4, body: commonWorkerBody[3] },
-    4: { count: 2, body: commonWorkerBody[4] },
-    5: { count: 2, body: commonWorkerBody[5] },
-    6: { count: 2, body: commonWorkerBody[6] },
-    7: { count: 2, body: commonWorkerBody[7] },
-    8: { count: 2, body: commonWorkerBody[8] },
+    3: { count: 4, body: workerBody[3] },
+    4: { count: 2, body: workerBody[4] },
+    5: { count: 2, body: workerBody[5] },
+    6: { count: 2, body: workerBody[6] },
+    7: { count: 2, body: workerBody[7] },
+    8: { count: 2, body: workerBody[8] },
 }

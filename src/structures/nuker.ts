@@ -2,7 +2,7 @@ import { myRooms } from "room/roomInfo";
 import { registerTask, schedule } from "utils";
 import Logger from "utils";
 
-function launchNuke(param: { from: string, room: string, x: number, y: number }) {
+registerTask("launchNuke", (param) => {
     let nuker = myRooms[param.from]?.structures.nuker;
     if (nuker) {
         if (nuker.launchNuke(new RoomPosition(param.x, param.y, param.room)) == OK) {
@@ -11,8 +11,7 @@ function launchNuke(param: { from: string, room: string, x: number, y: number })
     } else {
         Logger.error(`No nuker in ${param.from}!`);
     }
-}
-registerTask("launchNuke", launchNuke);
+});
 
 global.nuke = (time: number, from: string, room: string, x: number, y: number) => {
     if (myRooms[room]) {

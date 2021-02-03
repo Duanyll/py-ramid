@@ -10,7 +10,7 @@ function sendClaimer(roomName: string, target: string) {
         return;
     }
     Memory.rooms[target] = { helperRoom: roomName } as RoomMemory;
-    room.requestSpawn("claim", [[CLAIM, 1], [MOVE, 5]], {
+    room.requestSpawn("claim", {
         name: `${target}-claim`, memory: {
             role: "claim", target: target
         },
@@ -23,7 +23,7 @@ function sendDismantler(roomName: string, target: string) {
         Logger.error("unknown room.");
         return;
     }
-    room.requestSpawn("dismantle", [[WORK, 25], [MOVE, 25]], {
+    room.requestSpawn("dismantle", {
         name: `${target}-dismantle`, memory: {
             role: "dismantle", target: target
         },
@@ -36,7 +36,7 @@ function sendAttaker(roomName: string, target: string) {
         Logger.error("unknown room.");
         return;
     }
-    room.requestSpawn("attack", [[ATTACK, 25], [MOVE, 25]], {
+    room.requestSpawn("attack", {
         name: `${target}-attack`, memory: {
             role: "attack", target: target
         },

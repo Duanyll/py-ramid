@@ -65,10 +65,9 @@ export function tickTower(room: RoomInfo) {
     }
 }
 
-function setTowerState(param: { room: string, state: boolean }) {
+registerTask("setTowerState", (param) => {
     myRooms[param.room].state.disableTower = param.state;
-}
-registerTask("setTowerState", setTowerState)
+})
 
 global.disableTower = (room: string, time: number = 1500) => {
     myRooms[room].state.disableTower = true;

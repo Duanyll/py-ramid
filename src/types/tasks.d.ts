@@ -3,9 +3,6 @@ type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" |
     | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
     | "pbHarv" | "pbHeal" | "pbCarry";
 
-type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
-
-
 type RoomRoutine =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runBoost" | "runLinks" | "updateCreepCount" |
@@ -15,6 +12,30 @@ type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank" |
     "countStore" | "fetchAutoDealOrders";
 
-type GlobalTask = "launchNuke" | "spawnCreep" | "checkLoot" | "setTowerState";
 
 type EnergyWork = "upgrade" | "builder" | "power" | "battery"
+
+interface GlobalTaskParam {
+    launchNuke: {
+        from: string,
+        room: string,
+        x: number,
+        y: number
+    },
+    spawnCreep: {
+        room: string,
+        role: CreepRole,
+        body?: BodyPartDescription,
+        param: Parameters<import("room/roomInfo").RoomInfo["requestSpawn"]>[1]
+    },
+    checkLoot: {
+        flag: string,
+        home: string,
+        creepRun: number
+    },
+    setTowerState: {
+        room: string,
+        state: boolean
+    }
+}
+type GlobalTask = keyof GlobalTaskParam;
