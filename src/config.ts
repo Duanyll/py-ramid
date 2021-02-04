@@ -4,6 +4,7 @@ const cfg = {
     TERMINAL_STORE_ENERGY: 50000,
     TERMINAL_MINERAL: 150000,
     ROOM_RESERVE_T3: 10000,
+    ROOM_RESERVE_OPS: 20000,
     TERMINAL_EXPORT_AMOUNT: 8000,
     WALL_BUILD_STEP: 30000,
     DEFAULT_CONTROLLER_SIGN: `🔺Py-Ramid🔺`,
@@ -30,7 +31,8 @@ const cfg = {
         "setConstruction": 1000,
         "updateCreepCount": 100,
         "runLabs": 200,
-        "runBoost": 20
+        "runBoost": 20,
+        "checkPower": 50
     } as Partial<Record<RoomRoutine, number>>,
     SEGMENTS: {
         stats: 50,

@@ -7,6 +7,12 @@ interface CreepMemory {
     boost?: MineralBoostConstant[];
 }
 
+interface PowerCreepMemory {
+    room: string;
+    state: "moveToRoom" | "usePower" | "pickOps" | "putOps" | "renew" | "idle" | "enablePower";
+    target: string;
+}
+
 interface PowerBankInfo {
     discoverTime: number,
     decayTime: number,

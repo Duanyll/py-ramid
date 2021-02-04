@@ -151,7 +151,8 @@ global.resetResource = (roomName: string) => {
         XZH2O: cfg.ROOM_RESERVE_T3,
         XZHO2: cfg.ROOM_RESERVE_T3,
         XGHO2: cfg.ROOM_RESERVE_T3,
-        G: cfg.ROOM_RESERVE_T3
+        G: cfg.ROOM_RESERVE_T3,
+        ops: cfg.ROOM_RESERVE_OPS
     };
     room.resource.import = {};
     room.resource.export = {

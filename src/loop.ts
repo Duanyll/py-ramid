@@ -1,6 +1,6 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
 import { tickNormalRoom } from "room";
-import { prepareMoveHelper, tickMoveHelper } from "creep/movement";
+import { prepareMoveHelper as prepareMovement, tickMoveHelper as tickMovement } from "creep/movement";
 import { loadCreeps, globalCreeps } from "creep/creepInfo";
 import { runCreep } from "creep";
 import { tickConstruction } from "room/construction";
@@ -17,6 +17,7 @@ import "stats"
 import cfg from "config";
 import { checkMigrateDone, initMigrate } from "migrate";
 import { tickSegmentRequest } from "utils/rawMemory";
+import { runPowerCreep } from "creep/powerCreep";
 
 function loadRooms() {
     for (const name in Game.rooms) {
@@ -26,6 +27,14 @@ function loadRooms() {
         }
     }
     loadCreeps();
+
+    for (const name in Game.powerCreeps) {
+        const pc = Game.powerCreeps[name];
+        if (pc.memory.room && pc.room) {
+            myRooms[pc.memory.room].registerPowerCreep(pc);
+        }
+    }
+    
     global.store = new GlobalStoreManager();
 }
 
@@ -96,12 +105,14 @@ export const runLoop = ErrorMapper.wrap(() => {
     }
 
     loadCreeps();
-    prepareMoveHelper();
+    prepareMovement();
     for (const name in myRooms) {
         ErrorMapper.wrap(() => tickNormalRoom(myRooms[name]), `room ${name}`)();
     }
     _.values(globalCreeps).forEach(l => l.forEach(c => runCreep(c)));
-    tickMoveHelper();
+    _.values(Game.powerCreeps).forEach(pc => runPowerCreep(pc));
+
+    tickMovement();
     tickConstruction();
 
     tickGlobalRoutine();

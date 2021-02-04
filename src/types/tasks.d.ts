@@ -6,7 +6,7 @@ type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" |
 type RoomRoutine =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runBoost" | "runLinks" | "updateCreepCount" |
-    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore";
+    "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore" | "checkPower";
 
 type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank" |

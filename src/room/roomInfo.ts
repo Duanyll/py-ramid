@@ -132,6 +132,7 @@ export class RoomInfo {
         this.delay("runBoost");
         this.delay("fetchLabWork");
         this.delay("fetchWall", 1);
+        this.delay("checkPower", 1);
     }
 
     loadStructures() {
@@ -307,7 +308,7 @@ export class RoomInfo {
         room,
         name = `${this.name}-${roleId || role}-${Game.time}`,
         memory,
-    }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string}) {
+    }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
         const cost = calcCreepCost(body);
         if (Game.creeps[name]) {
             Logger.error(`${this.name}: Cannot spawn creep ${name}: Existed.`);
@@ -334,6 +335,26 @@ export class RoomInfo {
             name, body, memory: fullMemory, cost
         });
         return true;
+    }
+
+    powerRequests: Record<string, { type: PowerConstant, level?: number }> = {};
+    powerAvaliable: Partial<Record<PowerConstant, number[]>> = {};
+    registerPowerCreep(pc: PowerCreep) {
+        _.forIn(pc.powers, (power, id) => {
+            const powerId = Number(id) as PowerConstant;
+            if (powerId in this.powerAvaliable) {
+                this.powerAvaliable[powerId].push(power.level);
+            } else {
+                this.powerAvaliable[powerId] = [power.level];
+            }
+        });
+    }
+    requestPower(s: RoomObject & { id: string }, powerId: PowerConstant, level?: number) {
+        if (_.find(s.effects, e => e.effect == powerId && e.ticksRemaining >= 100)) return;
+        if (this.powerAvaliable[powerId]) {
+            if (level !== undefined && _.find(this.powerAvaliable[powerId], i => i == level) === undefined) return;
+            this.powerRequests[s.id] = { type: powerId, level };
+        }
     }
 }
 

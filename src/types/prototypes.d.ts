@@ -64,7 +64,9 @@ interface PowerCreep {
     movement: CreepMovement,
     exitInfo: CreepExitInfo,
     moveInfo: CreepMoveInfo,
-    posLock: boolean
+    posLock: boolean,
+
+    powerUsed: boolean;
 }
 
 interface StructureTerminal {

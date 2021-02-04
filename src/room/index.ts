@@ -125,3 +125,18 @@ global.unclaim = (roomName: string, keep?: boolean) => {
         )
     }
 }
+
+function checkRoomPower(room: RoomInfo) {
+    let nextRun = false;
+    if (room.powerAvaliable[PWR_REGEN_SOURCE]) {
+        _.forEach(room.structures.sources, s => room.requestPower(s, PWR_REGEN_SOURCE));
+        nextRun = true;
+    }
+    if (room.powerAvaliable[PWR_REGEN_MINERAL]) {
+        if (!room.structures.mineral.ticksToRegeneration)
+            room.requestPower(room.structures.mineral, PWR_REGEN_MINERAL);
+        nextRun = true;
+    }
+    if (nextRun) room.delay("checkPower");
+}
+registerRoomRoutine("checkPower", checkRoomPower);

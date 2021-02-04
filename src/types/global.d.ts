@@ -3,6 +3,7 @@ declare namespace NodeJS {
     * global 对象上挂载的方法用于在 console 中直接调用
     */
     interface Global {
+        assignPC: (name: string, room: string) => void;
         autoBuy: (type: ResourceConstant, price: number | false, minAmount?: number) => void;
         schedule: <TTask extends GlobalTask>(type: TTask, delay: number, param: GlobalTaskParam[TTask]) => void;
         lastException: number;

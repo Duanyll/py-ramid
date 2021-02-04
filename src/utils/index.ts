@@ -85,7 +85,7 @@ function getDistanceByPath(from: RoomPosition, type: FindConstant) {
 export function estimateDistance(a: RoomPosition, b: RoomPosition) {
     if (a.roomName == b.roomName) {
         const path = PathFinder.search(a, b);
-        return path.cost
+        return path.cost;
     } else {
         let longPath = Game.map.findRoute(a.roomName, b.roomName, { routeCallback: findRouteCallback });
         if (longPath == ERR_NO_PATH) return Infinity;

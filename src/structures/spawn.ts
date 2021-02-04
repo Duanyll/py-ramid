@@ -38,6 +38,9 @@ export function tickSpawn(room: RoomInfo) {
     _.forIn(room.creepRoleDefs, (info, roleId) => checkCreepHealth(room, roleId, info.body, info.role));
 
     if (room.spawnQueue.length == 0) return;
+    if (room.spawnQueue.length >= 3) {
+        _.forEach(room.structures.spawns, s => room.requestPower(s, PWR_OPERATE_SPAWN));
+    }
     let req = room.spawnQueue[0];
     if (Game.creeps[req.name]) {
         Logger.error(`Room ${room.name}: Trying to spawn a existing creep.`);
@@ -86,16 +89,23 @@ export function tickSpawn(room: RoomInfo) {
 }
 
 function checkRefillState(room: RoomInfo) {
+    let totalRefill = 0;
     function f(s: RefillableStructure) {
         if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
             delete room.refillTargets[s.id];
         } else {
             room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+            totalRefill += room.refillTargets[s.id];
         }
     }
     room.structures.extensions.forEach(f);
     room.structures.spawns.forEach(f);
-    room.structures.towers.forEach(f);
+    // room.structures.towers.forEach(f);
+    if (totalRefill > 1000) {
+        room.requestPower(room.structures.storage, PWR_OPERATE_EXTENSION);
+    } else {
+        delete room.powerRequests[room.structures.storage.id];
+    }
 
     room.delay("checkRefill");
 }

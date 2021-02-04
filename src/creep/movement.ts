@@ -136,7 +136,7 @@ export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPositio
 }
 
 let moveInfo: Record<string, CreepMoveInfo> = {}
-export function doMoveCreepTo(creep: Creep, opts: MoveToPosOpts) {
+export function doMoveCreepTo(creep: AnyCreep, opts: MoveToPosOpts) {
     const pathReuse = (creep.pos.inRangeTo(opts.pos, 5)) ? 5 : 15;
 
     if (!creep.moveInfo || !creep.moveInfo.dest.isEqualTo(opts.pos) || creep.moveInfo.time + pathReuse < Game.time) {
@@ -174,7 +174,7 @@ export function lockCreepPosition(creep: Creep) {
 
 export function tickMoveHelper() {
     _.forIn(movingCreeps, (pos, name) => {
-        const creep = Game.creeps[name];
+        const creep = Game.creeps[name] || Game.powerCreeps[name];
         if ('room' in pos) {
             doMoveCreepToRoom(creep, pos.room);
         } else {
@@ -190,7 +190,7 @@ export function moveCreepToRoom(creep: Creep, room: string) {
    creep.movement = { room };
 }
 
-function doMoveCreepToRoom(creep: Creep, room: string) {
+function doMoveCreepToRoom(creep: AnyCreep, room: string) {
     if (!creep.exitInfo || creep.exitInfo.target != room || !creep.exitInfo.route) {
         let route = Game.map.findRoute(creep.room, room, {
             routeCallback: findRouteCallback
@@ -206,7 +206,7 @@ function doMoveCreepToRoom(creep: Creep, room: string) {
         let exits = Game.map.describeExits(creep.room.name);
         if (!exit || exit.room != exits[exit.exit]) {
             delete creep.exitInfo;
-            moveCreepToRoom(creep, room);
+            doMoveCreepToRoom(creep, room);
             return;
         }
         creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit);

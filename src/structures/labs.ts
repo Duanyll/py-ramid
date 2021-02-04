@@ -11,6 +11,15 @@ function clearLab(l: StructureLab, room: RoomInfo) {
     }
 }
 
+function getLabReactionAmount(lab: StructureLab) {
+    let power = _.find(lab.effects, { effect: PWR_OPERATE_LAB }) as PowerEffect;
+    if (power) {
+        return POWER_INFO[PWR_OPERATE_LAB].effect[power.level] + LAB_REACTION_AMOUNT;
+    } else {
+        return LAB_REACTION_AMOUNT;
+    }
+}
+
 function runLabs(room: RoomInfo) {
     if (room.structRcl < 6) return;
     const info = room.state.lab;
@@ -43,6 +52,8 @@ function runLabs(room: RoomInfo) {
         room.labRunning = (inputAmount >= LAB_REACTION_AMOUNT);
         for (let i = 0; i < outputLabs.length; i++) {
             let lab = outputLabs[i];
+            let amount = getLabReactionAmount(lab);
+            room.requestPower(lab, PWR_OPERATE_LAB);
             if (lab.mineralType && lab.mineralType != info.product
                 || lab.store[lab.mineralType] > 1000) {
                 room.moveRequests.out[lab.id] = {
@@ -50,14 +61,14 @@ function runLabs(room: RoomInfo) {
                     amount: lab.store[lab.mineralType]
                 }
             }
-            if (inputAmount >= LAB_REACTION_AMOUNT) {
+            if (inputAmount >= amount) {
                 if (lab.runReaction(input0, input1) == OK) {
-                    inputAmount -= LAB_REACTION_AMOUNT;
-                    global.store.logReaction(room, info.product, LAB_REACTION_AMOUNT);
-                    if (info.remain <= 0) {
-                        Logger.info(`${room.name} reaction done. `)
-                        info.remain = 0;
-                        room.delay("fetchLabWork", 1);
+                    inputAmount -= amount;
+                    global.store.logReaction(room, info.product, amount);
+
+                    // 多出来的 10 个是给 Power 垫底的
+                    if (info.remain <= 10) {
+                        reactionDone(room);
                         return;
                     }
                 }
@@ -74,6 +85,18 @@ function runLabs(room: RoomInfo) {
     room.delay("runLabs");
 }
 registerRoomRoutine("runLabs", runLabs);
+
+function reactionDone(room: RoomInfo) {
+    let info = room.state.lab;
+    Logger.info(`${room.name} reaction done. `);
+    _.forEach(LAB_RECIPE[info.product], r => {
+        room.resource.lock[r] -= info.remain;
+        global.store.materialLock[r] -= info.remain;
+    })
+    global.store.productLock[info.product] -= info.remain;
+    info.remain = 0;
+    room.delay("fetchLabWork", 1);
+}
 
 function fetchLabWork(room: RoomInfo) {
     if (room.structRcl < 7 || room.state.lab.boost.length >= 7) {
