@@ -66,3 +66,10 @@ interface PowerCreep {
     moveInfo: CreepMoveInfo,
     posLock: boolean
 }
+
+interface StructureTerminal {
+    /**
+     * 本 tick 内该 Terminal 是否发送给资源或进行过 deal 动作
+     */
+    worked: boolean;
+}

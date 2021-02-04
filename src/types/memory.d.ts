@@ -59,6 +59,14 @@ interface Memory {
                 orders?: string[],
                 updateTime: number
             }
+        },
+        autoBuy: {
+            [type in ResourceConstant]?: {
+                maxPrice: number,
+                minAmount: number,
+                orders?: string[]
+                updateTime: number
+            }
         }
     },
     playerWhiteList: Record<string, boolean>;

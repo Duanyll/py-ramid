@@ -3,7 +3,6 @@ import { globalDelay, registerGlobalRoutine, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import { estimateDistance, objToPos, posToObj } from "utils";
 import Logger from "utils";
-import { roleBodies } from "creep/body";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,
