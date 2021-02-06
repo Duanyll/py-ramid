@@ -32,13 +32,16 @@ const cfg = {
         "updateCreepCount": 100,
         "runLabs": 200,
         "runBoost": 20,
-        "checkPower": 50
+        "checkPower": 50,
+        "runFactory": 50,
     } as Partial<Record<RoomRoutine, number>>,
     SEGMENTS: {
         stats: 50,
         roomDesign: [10, 11, 12, 13, 14]
     },
-    BUILD_TIME: buildTime
+    BUILD_TIME: buildTime,
+    FACTORY_COMPONENT_AMOUNT: 5000,
+    FACTORY_BATTERY_THRESHOLD: 300000
 }
 
 export default cfg;

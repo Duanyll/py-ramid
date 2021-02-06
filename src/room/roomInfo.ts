@@ -133,6 +133,7 @@ export class RoomInfo {
         this.delay("fetchLabWork");
         this.delay("fetchWall", 1);
         this.delay("checkPower", 1);
+        this.delay("runFactory", 1);
     }
 
     loadStructures() {
@@ -229,6 +230,9 @@ export class RoomInfo {
                 lab: {
                     boost: [],
                     remain: 0
+                },
+                factory: {
+                    level: 0,
                 },
                 mineralToTransport: 0
             },
@@ -356,6 +360,8 @@ export class RoomInfo {
             this.powerRequests[s.id] = { type: powerId, level };
         }
     }
+
+    factoryRequests: Partial<Record<ResourceConstant, number>> = {};
 }
 
 export let myRooms: { [name: string]: RoomInfo } = {}

@@ -14,7 +14,7 @@ function clearLab(l: StructureLab, room: RoomInfo) {
 function getLabReactionAmount(lab: StructureLab) {
     let power = _.find(lab.effects, { effect: PWR_OPERATE_LAB }) as PowerEffect;
     if (power) {
-        return POWER_INFO[PWR_OPERATE_LAB].effect[power.level] + LAB_REACTION_AMOUNT;
+        return POWER_INFO[PWR_OPERATE_LAB].effect[power.level - 1] + LAB_REACTION_AMOUNT;
     } else {
         return LAB_REACTION_AMOUNT;
     }
@@ -53,7 +53,7 @@ function runLabs(room: RoomInfo) {
         for (let i = 0; i < outputLabs.length; i++) {
             let lab = outputLabs[i];
             let amount = getLabReactionAmount(lab);
-            room.requestPower(lab, PWR_OPERATE_LAB);
+            if (info.allowPower) room.requestPower(lab, PWR_OPERATE_LAB);
             if (lab.mineralType && lab.mineralType != info.product
                 || lab.store[lab.mineralType] > 1000) {
                 room.moveRequests.out[lab.id] = {
@@ -66,8 +66,7 @@ function runLabs(room: RoomInfo) {
                     inputAmount -= amount;
                     global.store.logReaction(room, info.product, amount);
 
-                    // 多出来的 10 个是给 Power 垫底的
-                    if (info.remain <= 10) {
+                    if ((info.allowPower && info.remain <= 10) || info.remain <= 0) {
                         reactionDone(room);
                         return;
                     }

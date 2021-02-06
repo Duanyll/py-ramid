@@ -6,3 +6,4 @@ import "./powerSpawn";
 import "./spawn";
 import "./terminal";
 import "./tower";
+import "./factory";

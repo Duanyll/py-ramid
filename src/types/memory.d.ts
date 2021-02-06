@@ -101,7 +101,14 @@ interface RoomState {
         boost: ResourceConstant[],
         product?: ResourceConstant,
         remain?: number,
-        boostExpires?: number
+        boostExpires?: number,
+        allowPower?: boolean
+    },
+    factory: {
+        level: number,
+        product?: ResourceConstant,
+        remain?: number,
+        needUnlock?: boolean;
     }
     chargeNuker: boolean,
     autoProcessPower: boolean,

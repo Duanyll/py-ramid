@@ -45,6 +45,7 @@ function reportLab(room: RoomInfo) {
     if (room.state.lab.boost.length) {
         res += `boost: [${room.state.lab.boost.join(',')}]`;
     }
+    return res;
 }
 
 function summaryRoom(room: RoomInfo): RoomStats {

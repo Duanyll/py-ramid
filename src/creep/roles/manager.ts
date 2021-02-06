@@ -77,7 +77,19 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                 return {
                     from: storage,
                     to: room.structures.terminal,
-                    type: RESOURCE_ENERGY
+                    type: RESOURCE_ENERGY,
+                    amount: cfg.TERMINAL_STORE_ENERGY - room.structures.terminal.store.energy
+                }
+            }
+            return false;
+        },
+        (room, storage) => {
+            if (room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) > cfg.TERMINAL_STORE_ENERGY) {
+                return {
+                    from: room.structures.terminal,
+                    to: storage,
+                    type: RESOURCE_ENERGY,
+                    amount: room.structures.terminal.store.energy - cfg.TERMINAL_STORE_ENERGY
                 }
             }
             return false;
@@ -133,6 +145,46 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                         type: RESOURCE_POWER
                     }
                 }
+            return false;
+        },
+        (room, storage, capacity) => {
+            const factory = room.structures.factory;
+            if (!factory) return false;
+            for (const res in factory.store) {
+                const amount = factory.store[res as ResourceConstant];
+                if (!(room.factoryRequests[res as ResourceConstant])) {
+                    if (amount > capacity || res != room.state.factory.product) {
+                        return {
+                            from: factory,
+                            to: storage,
+                            type: res as ResourceConstant
+                        }
+                    }
+                }
+            }
+            for (const r in room.factoryRequests) {
+                const res = r as ResourceConstant;
+                if (factory.store[res] >= cfg.FACTORY_COMPONENT_AMOUNT) continue;
+                if (storage.store[res] > 0) {
+                    const amount = Math.min(capacity, storage.store[res], room.factoryRequests[res]);
+                    room.factoryRequests[res] -= amount;
+                    return {
+                        from: storage,
+                        to: factory,
+                        type: res,
+                        amount
+                    }
+                } else if (room.structures.terminal?.store[res] > 0) {
+                    const amount = Math.min(capacity, room.structures.terminal.store[res], room.factoryRequests[res]);
+                    room.factoryRequests[res] -= amount;
+                    return {
+                        from: room.structures.terminal,
+                        to: factory,
+                        type: res,
+                        amount
+                    }
+                }
+            }
             return false;
         }
     ]

@@ -3,7 +3,7 @@ import Logger from "utils";
 import { LAB_RECIPE } from "../utils/constants";
 
 export function produceCompound(product: ResourceConstant, amount: number, fromBuffer?: boolean) {
-    amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT + 10; // 多生产 10 个，保证使用 Power 时也能反应完
+    amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT + 10;
     let recipe = LAB_RECIPE[product];
     if (!recipe) return;
     recipe.forEach(r => {
@@ -36,6 +36,7 @@ global.reaction = (roomName: string, product: ResourceConstant, amount?: number)
     room.requestResource(content[1], amount);
     room.state.lab.product = product;
     room.state.lab.remain = amount;
+    if (room.powerAvaliable[PWR_OPERATE_LAB]) room.state.lab.allowPower = true;
     room.resource.export[product] = 10000;
 
     room.delay("runLabs", 1);
