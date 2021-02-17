@@ -17,12 +17,12 @@ function runFactory(room: RoomInfo) {
         }
 
 
-        room.factoryRequests = {};
-        _.forIn(recipe.components, (amount, r) => {
-            const res = r as ResourceConstant;
-            let req = _.ceil(amount * (info.remain / recipe.amount) - (factory.store[res]));
-            if (req > 0) room.factoryRequests[res] = req;
-        });
+        // room.factoryRequests = {};
+        // _.forIn(recipe.components, (amount, r) => {
+        //     const res = r as ResourceConstant;
+        //     let req = _.ceil(amount * (info.remain / recipe.amount) - (factory.store[res]));
+        //     if (req > 0) room.factoryRequests[res] = req;
+        // });
 
         if (factory.cooldown) {
             room.delay("runFactory", factory.cooldown);
@@ -34,12 +34,10 @@ function runFactory(room: RoomInfo) {
             if (info.needUnlock) {
                 _.forIn(recipe.components, (amount, r) => {
                     const res = r as ResourceConstant;
-                    room.logStore(res, -amount, true);
-                    global.store.materialLock[res] -= amount;
+                    room.logConsume(res, amount, true);
                 });
-                room.logStore(info.product, recipe.amount);
-                global.store.productLock[info.product] += recipe.amount;
             }
+            room.logProduce(info.product, recipe.amount);
             if (info.remain <= 0) {
                 info.remain = 0;
                 delete info.product;
@@ -48,7 +46,7 @@ function runFactory(room: RoomInfo) {
         }
 
     } else {
-        if (room.structures.storage.store.energy > cfg.FACTORY_BATTERY_THRESHOLD) {
+        if (room.structures.storage.store.energy > cfg.ENERGY.FORCE_BATTERY) {
             info.product = "battery";
             info.remain = 10000;
             info.needUnlock = false;
@@ -62,6 +60,11 @@ function runFactory(room: RoomInfo) {
         //     return;
         // }
     }
-    room.delay("runFactory");
 }
-registerRoomRoutine("runFactory", runFactory);
+registerRoomRoutine({
+    id: "runFactory",
+    dependsOn: ["countStore"],
+    // TODO: factory init
+    init: () => { },
+    invoke: runFactory,
+});

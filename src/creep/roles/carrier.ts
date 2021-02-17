@@ -1,5 +1,6 @@
 import { RoomInfo } from "room/roomInfo";
 import { moveCreepTo } from "creep/movement";
+import { whereToGet, whereToPut } from "./manager";
 
 function selectRefillTarget(creep: Creep, room: RoomInfo) {
     let target = "";
@@ -72,148 +73,199 @@ export function goRefill(creep: Creep, room: RoomInfo) {
     return false;
 }
 
+// 需要将 runRefiller 逻辑完全独立出来，以便其他 creep 顶替 carrier
 export function runRefiller(creep: Creep, room: RoomInfo) {
     if (creep.store.energy == 0) {
-        let target = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 100 && t.creep.my)[0]
+        let target = room.tombstones.filter(t => t.store.energy > 100 && t.creep.my)[0]
             || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0]
             || room.structures.storage;
         if (creep.pos.isNearTo(target)) {
             creep.withdraw(target, RESOURCE_ENERGY);
         } else {
-            moveCreepTo(creep, target);
+            creep.goTo(target);
         }
-
+        return true;
     } else {
-        goRefill(creep, room);
+        return goRefill(creep, room);
     }
 }
 
 interface CarrierMemory extends CreepMemory {
-    state: "pick" | "fill" | "idle",
-    // 没有 type 表示取走所有资源
+    /**
+     * - pick: 取货
+     * - fill: 放下
+     * - refill: 填 extension
+     * - pickToFill: 从 storage 或 terminal 取货，target 是要放入的对象，需要有 amount 参数
+     * - idle: 闲置
+     */
+    state: "pick" | "fill" | "refill" | "pickToFill" | "idle",
+    /** 没有 type 表示取走或放下所有资源 */
     type?: ResourceConstant,
     amount?: number
 }
 
-export function runCarrier(creep: Creep, room: RoomInfo) {
-    let m = creep.memory as CarrierMemory;
-    m.state = m.state || "idle";
+function nextCarrierAction(creep: Creep, room: RoomInfo) {
+    const m = creep.memory as CarrierMemory;
     const storage = room.structures.storage;
     const terminal = room.structures.terminal;
-    if (m.state == "idle") {
-        let needRefill = _.size(room.refillTargets) > 0;
-        // 优先填 spawn
-        if (needRefill) {
-            runRefiller(creep, room);
-        } else if (creep.store.getUsedCapacity()) {
-            // 返还身上多余能量
-            if (creep.pos.isNearTo(storage)) {
-                for (const resourceType in creep.store) {
-                    creep.transfer(storage, resourceType as ResourceConstant);
-                }
-            } else {
-                moveCreepTo(creep, storage);
-            }
-        } else {
-            // 先看看有没有需要取出的
-            let pickTarget = _.findKey(room.moveRequests.out);
-            if (pickTarget) {
-                m.state = "pick";
-                m.target = pickTarget;
-                m.type = room.moveRequests.out[pickTarget].type;
-                m.amount = room.moveRequests.out[pickTarget].amount;
-            } else {
-                // 再根据放入的需求去仓库拿
-                let fillTarget = _.findKey(room.moveRequests.in, (info) => {
-                    return storage.store[info.type] > 0 || terminal.store[info.type] > 0;
-                });
-                if (fillTarget) {
-                    m.state = "pick";
-                    m.type = room.moveRequests.in[fillTarget].type;
-                    m.target = (terminal.store[m.type] > 0) ? terminal.id : storage.id;
-                    m.amount = room.moveRequests.in[fillTarget].amount;
-                }
-            }
-        }
-    } else if (m.state == "pick") {
-        let target = Game.getObjectById(m.target) as AnyStoreStructure;
-        // 判断 target 丢失的情况
-        if (!target || (m.target != storage.id && m.target != terminal.id && !room.moveRequests.out[m.target])) {
-            m.state = "idle";
+
+    // 装满了
+    if (m.type && creep.store.free() <= 100) {
+        m.target = whereToPut(room, m.type).id;
+        m.type = null;
+        m.state = "fill";
+        creep.say("🔙")
+        return;
+    }
+    // 无类型的取货任务直接返回，也可能是才填过 extension 的情况
+    if (!m.type && creep.store.tot()) {
+        m.target = room.structures.storage.id;
+        m.state = "fill";
+        creep.say("🔙")
+        return;
+    }
+
+    // 填 extension
+    if (!_.isEmpty(room.refillTargets)) {
+        m.type = null;
+        m.state = "refill";
+        m.target = null;
+        creep.say("🟡")
+        return;
+    }
+
+    // 取货任务，尝试取同种货物
+    if (m.type) {
+        const target = _.find(room.moveOutReqs, i => {
+            if (i.center) return false;
+            if (i.type != m.type) return false;
+            let s = Game.getObjectById(i.id) as AnyStoreStructure;
+            return s?.store[i.type] > i.max;
+        });
+        if (target) {
+            // 还有同种类型的取货任务
+            m.target = target.id;
+            m.state = "pick";
+            creep.say("🚚")
             return;
         } else {
-            if (creep.pos.isNearTo(target)) {
-                let actualAmount = 0;
-                if (m.type) {
-                    actualAmount = Math.min(m.amount, creep.store.getFreeCapacity(), target.store[m.type]);
-                    creep.withdraw(target, m.type, actualAmount);
-                    if (room.moveRequests.out[m.target]) {
-                        room.moveRequests.out[m.target].amount -= actualAmount;
-                        if (room.moveRequests.out[m.target].amount <= 0) {
-                            delete room.moveRequests.out[m.target];
-                        }
-                    }
-                } else {
-                    for (const type in target.store) {
-                        creep.withdraw(target, type as ResourceConstant);
-                    }
-                    if (_.sum(_.values(target.store)) <= creep.store.getFreeCapacity())
-                        delete room.moveRequests.out[m.target];
-                }
-
-                // 找一个需要该资源的建筑，没有就放进仓库
-                let fillTarget = terminal?.id || storage.id as string;
-                if (m.type) {
-                    let directfill = _.findKey(room.moveRequests.in, (info) => {
-                        return info.type == m.type;
-                    });
-                    if (directfill) fillTarget = directfill;
-                }
-                m.target = fillTarget;
-                m.state = "fill";
-                m.amount = actualAmount;
-                return;
-            } else {
-                moveCreepTo(creep, target);
-            }
+            // 没有了，放回去
+            m.target = whereToPut(room, m.type).id;
+            m.type = null;
+            m.state = "fill";
+            creep.say("🔙")
+            return;
         }
-    } else {
-        let target = Game.getObjectById(m.target) as AnyStoreStructure;
-        // 如果目标丢失就放进仓库
-        if (!target || (m.target != storage.id && !room.moveRequests.in[m.target])) {
-            m.target = storage.id;
-            target = storage;
-        }
+    }
 
-        if (creep.pos.isNearTo(target)) {
-            let actualAmount = 0;
-            if (m.type) {
-                actualAmount = room.moveRequests.in[m.target] ?
-                    Math.min(room.moveRequests.in[m.target].amount, creep.store[m.type]) :
-                    creep.store[m.type];
-                creep.transfer(target, m.type, actualAmount);
-                if (room.moveRequests.in[m.target]) {
-                    room.moveRequests.in[m.target].amount -= actualAmount;
-                    if (room.moveRequests.in[m.target].amount <= 0) {
-                        delete room.moveRequests.in[m.target];
-                    }
-                }
-            } else {
-                for (const type in creep.store) {
-                    creep.transfer(target, type as ResourceConstant);
-                }
-                delete room.moveRequests.in[m.target];
-            }
-            // 取到的太多的也要放回仓库
-            if (m.type && actualAmount < creep.store[m.type]) {
-                m.target = storage.id;
-                delete m.type;
-            } else {
+    // 尝试获取新的取货任务
+    const pickTask = _.find(room.moveOutReqs, i => {
+        if (i.center) return false;
+        let s = Game.getObjectById(i.id) as AnyStoreStructure;
+        return i.type ? (s?.store[i.type] > i.max) : (s != null);
+    });
+    if (pickTask) {
+        m.state = "pick";
+        m.target = pickTask.id;
+        m.type = pickTask.type;
+        creep.say("🚚")
+        return;
+    }
+
+    // 执行装填任务
+    const pickToFillTask = _.find(room.moveInReqs, i => {
+        if (i.center) return false;
+        if (i.remain <= 0) return false;
+        if (storage.store[i.type] + terminal.store[i.type] <= 0) return false;
+        const s = Game.getObjectById(i.id) as AnyStoreStructure;
+        return s.store[i.type] < i.min;
+    });
+    if (pickToFillTask) {
+        m.state = "pickToFill";
+        creep.say("🧱");
+        m.type = pickToFillTask.type;
+        m.target = pickToFillTask.id;
+        const s = Game.getObjectById(pickToFillTask.id) as AnyStoreStructure;
+        m.amount = Math.min((pickToFillTask.max ?? s.store.cap(m.type)) - s.store[m.type], pickToFillTask.remain);
+        return;
+    }
+}
+
+export function runCarrier(creep: Creep, room: RoomInfo) {
+    const m = creep.memory as CarrierMemory;
+    if (!m.state || m.state == "idle") {
+        nextCarrierAction(creep, room);
+    }
+    switch (m.state) {
+        case "refill":
+            if (!runRefiller(creep, room)) m.state = "idle";
+            break;
+        case "fill": {
+            const s = Game.getObjectById(m.target) as AnyStoreStructure;
+            if (!s) {
                 m.state = "idle";
+                break;
             }
-            return;
-        } else {
-            moveCreepTo(creep, target);
+            if (creep.goTo(s)) {
+                if (m.type) {
+                    const amount = Math.min(creep.store[m.type], s.store.free(m.type));
+                    creep.transfer(s, m.type, amount);
+                    let req = _.find(room.moveInReqs, i => i.id == s.id && i.type == m.type);
+                    if (req) {
+                        req.remain -= amount;
+                        if (req.remain <= 0) _.pull(room.moveInReqs, req);
+                    }
+                    m.type = null;
+                    m.state = "idle";
+                } else {
+                    const type = _.findKey(creep.store) as ResourceConstant;
+                    if (!type) { m.state = "idle"; break; }
+                    creep.transfer(s, type);
+                    if (creep.store[type] == creep.store.tot()) m.state = "idle";
+                }
+            }
+            break;
+        }
+        case "pick": {
+            const s = Game.getObjectById(m.target) as AnyStoreStructure;
+            if (!s) {
+                m.state = "idle";
+                break;
+            }
+            if (creep.goTo(s)) {
+                if (m.type) {
+                    const amount = Math.min(creep.store.free(m.type), s.store[m.type]);
+                    creep.withdraw(s, m.type, amount);
+                    if (amount == s.store[m.type]) {
+                        _.remove(room.moveOutReqs, i => i.id == s.id && i.type == m.type && i.max == 0);
+                    }
+                    m.state = "idle";
+                } else {
+                    const type = _.findKey(s.store) as ResourceConstant;
+                    if (!type) { m.state = "idle"; break; }
+                    const amount = Math.min(creep.store.free(type), s.store[type]);
+                    creep.withdraw(s, type, amount);
+                    if (amount == s.store.tot()) {
+                        m.state = "idle"
+                        _.remove(room.moveOutReqs, i => i.id == s.id);
+                    };
+                }
+            }
+            break;
+        }
+        case "pickToFill": {
+            const s = whereToGet(room, m.type);
+            if (!s) {
+                m.state = "idle";
+                break;
+            }
+            if (creep.goTo(s)) {
+                const amount = Math.min(creep.store.free(m.type), s.store[m.type], m.amount || Infinity);
+                creep.withdraw(s, m.type, amount);
+                m.state = "fill";
+                creep.say("🚚");
+            }
+            break;
         }
     }
 }

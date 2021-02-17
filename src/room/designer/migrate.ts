@@ -1,39 +1,7 @@
 import cfg from "config";
 import Logger, { RMManager } from "utils";
+import { RoomDesignOld } from "./classic";
 
-interface RoomDesignOld {
-    version: number;
-    matrix: string[];
-    center: [number, number];
-    currentStage: number;
-    stages: {
-        rcl: number;
-        list: {
-            type: BuildableStructureConstant;
-            x: number;
-            y: number;
-            name?: string;
-        }[]
-    }[],
-    links: {
-        sourceLink: [number, number][];
-        centerLink: [number, number];
-        controllerLink: [number, number];
-    },
-    sources: [number, number][],
-    centerSpawn: [number, number];
-    remoteSources: {
-        sources: { x: number, y: number, room: string }[];
-        containers: { x: number, y: number, room: string }[];
-        route: {
-            [room: string]: { x: number, y: number }[];
-        }
-    },
-    labs: [number, number][],
-    mineralContainer: [number, number],
-    walls: { x: number, y: number }[],
-    ramparts: { x: number, y: number }[]
-}
 
 function getSegment(roomName: string) {
     const existSegment = _.find(cfg.SEGMENTS.roomDesign, id => _.includes(Memory.rawMemoryIndex[id], roomName));

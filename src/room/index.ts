@@ -43,14 +43,19 @@ function decideRoomEnergyUsage(room: RoomInfo) {
         let secondary = findSecondaryWork();
         if (secondary) {
             config.usage[secondary] = true;
-            config.activeCount = 2;
+            return end();
+        }
+    }
+
+    if (!config.storeMode && storeEnergy > 200000) {
+        if (!config.usage.upgrade) {
+            config.usage.upgrade = true;
             return end();
         }
     }
 }
 
 export function tickNormalRoom(room: RoomInfo) {
-    room.loadStructures();
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
         onRclUpgrade(room);
     }
@@ -84,7 +89,7 @@ function updateRoomCreepCount(room: RoomInfo) {
         delete room.creepRoleDefs["build1"];
     }
     if (room.structRcl >= 6 && room.state.enableMining && room.structures.mineral.mineralAmount
-        && room.countStore(room.structures.mineral.mineralType) < cfg.TERMINAL_MINERAL) {
+        && room.storeCurrent.get(room.structures.mineral.mineralType) < cfg.TERMINAL_MINERAL) {
         room.creepRoleDefs["mine1"] = {
             body: roleBodies["mine"],
             role: "mine"
@@ -96,9 +101,13 @@ function updateRoomCreepCount(room: RoomInfo) {
             role: "upgrade"
         }
     }
-    room.delay("updateCreepCount");
 }
-registerRoomRoutine("updateCreepCount", updateRoomCreepCount);
+registerRoomRoutine({
+    id: "updateCreepCount",
+    dependsOn: ["countStore"],
+    init: updateRoomCreepCount,
+    invoke: updateRoomCreepCount,
+});
 
 
 global.unclaim = (roomName: string, keep?: boolean) => {
@@ -139,4 +148,8 @@ function checkRoomPower(room: RoomInfo) {
     }
     if (nextRun) room.delay("checkPower");
 }
-registerRoomRoutine("checkPower", checkRoomPower);
+registerRoomRoutine({
+    id: "checkPower",
+    init: checkRoomPower,
+    invoke: checkRoomPower
+});

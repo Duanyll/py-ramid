@@ -20,4 +20,7 @@ function runLinks(room: RoomInfo) {
         }
     });
 }
-registerRoomRoutine("runLinks", runLinks)
+registerRoomRoutine({
+    id: "runLinks",
+    invoke: runLinks
+})

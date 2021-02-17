@@ -1,15 +1,37 @@
 import cfg from "config";
 import { RoomInfo } from "room/roomInfo";
 import Logger from "utils";
+import { CENTER_STRUCTURES } from "utils/constants";
 
-const CENTER_STRUCTURES: { [type: string]: boolean } = {
-    [STRUCTURE_STORAGE]: true,
-    [STRUCTURE_TERMINAL]: true,
-    [STRUCTURE_FACTORY]: true,
-    [STRUCTURE_POWER_SPAWN]: true,
-    [STRUCTURE_NUKER]: true,
-    [STRUCTURE_LINK]: true
-};
+export function whereToPut(room: RoomInfo, res: ResourceConstant) {
+    const storage = room.structures.storage;
+    const terminal = room.structures.terminal;
+    if (!terminal) return storage;
+    if (res != RESOURCE_ENERGY) {
+        const reserveAmount = room.resource.reserve[res] ?? 0;
+        if (storage.store[res] < reserveAmount) return storage;
+        const exportAmount = room.resource.export[res] || cfg.TERMINAL_EXPORT_AMOUNT;
+        if (terminal.store[res] < exportAmount) return terminal;
+        return storage;
+    } else {
+        if (storage.store.energy < cfg.ENERGY.LOW) return storage;
+        if (terminal.store.energy < cfg.ENERGY.TERMINAL) return terminal;
+        return storage;
+    }
+}
+
+export function whereToGet(room: RoomInfo, res: ResourceConstant) {
+    const storage = room.structures.storage;
+    const terminal = room.structures.terminal;
+    if (res == RESOURCE_ENERGY) return storage;
+    if (!terminal || terminal.store[res] <= 0) return storage.store[res] ? storage : undefined;
+    const reserveAmount = room.resource.reserve[res] ?? 0;
+    if (storage.store[res] > reserveAmount) {
+        return storage;
+    } else {
+        return terminal;
+    }
+}
 
 let lastStorageScannedTime: { [room: string]: number } = {};
 
@@ -73,23 +95,23 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
         },
         (room, storage) => {
             if (!room.state.energy.storeMode
-                && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < cfg.TERMINAL_STORE_ENERGY) {
+                && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < cfg.ENERGY.TERMINAL) {
                 return {
                     from: storage,
                     to: room.structures.terminal,
                     type: RESOURCE_ENERGY,
-                    amount: cfg.TERMINAL_STORE_ENERGY - room.structures.terminal.store.energy
+                    amount: cfg.ENERGY.TERMINAL - room.structures.terminal.store.energy
                 }
             }
             return false;
         },
         (room, storage) => {
-            if (room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) > cfg.TERMINAL_STORE_ENERGY) {
+            if (room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) > cfg.ENERGY.TERMINAL) {
                 return {
                     from: room.structures.terminal,
                     to: storage,
                     type: RESOURCE_ENERGY,
-                    amount: room.structures.terminal.store.energy - cfg.TERMINAL_STORE_ENERGY
+                    amount: room.structures.terminal.store.energy - cfg.ENERGY.TERMINAL
                 }
             }
             return false;
@@ -195,7 +217,7 @@ export function runManager(creep: Creep, room: RoomInfo) {
     const storage = room.structures.storage;
     if (m.target) {
         let target = Game.getObjectById(m.target) as AnyStoreStructure;
-        if (!CENTER_STRUCTURES[target.structureType]) {
+        if (!(target.structureType in CENTER_STRUCTURES)) {
             Logger.error(`${room.name}: Manager error.`);
             target = room.structures.storage;
         }

@@ -104,8 +104,8 @@ export function tryDealResource(terminal: StructureTerminal, res: ResourceConsta
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} sold at price ${order.price}`);
         terminal.worked = true;
         orderCache[order.id].order.amount -= dealAmount;
-        room.logStore(res, -dealAmount);
-        let required = Memory.market.autoDeal[res].reserveAmount - global.store.getFree(res);
+        room.storeCurrent.add(res, -dealAmount);
+        let required = Memory.market.autoDeal[res].reserveAmount - global.store.free(res);
         if (required > 0) global.produce(res, required);
         return true;
     } else {
@@ -122,8 +122,7 @@ export function tryBuyResource(terminal: StructureTerminal, res: ResourceConstan
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} bought at price ${order.price}`);
         terminal.worked = true;
         orderCache[order.id].order.amount -= dealAmount;
-        room.logStore(res, dealAmount);
-        room.resource.import[res] -= dealAmount;
+        room.storeCurrent.add(res, dealAmount);
         return true;
     } else {
         return false;

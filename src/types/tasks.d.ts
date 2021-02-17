@@ -3,7 +3,7 @@ type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" |
     | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
     | "pbHarv" | "pbHeal" | "pbCarry";
 
-type RoomRoutine =
+type RoomRoutineType =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runBoost" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore" | "checkPower" |
@@ -13,8 +13,9 @@ type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank" |
     "countStore" | "fetchAutoDealOrders";
 
-
 type EnergyWork = "upgrade" | "builder" | "power" | "battery"
+
+type RoomResourceTask = "refill" | "boost" | "lab" | "factory"
 
 interface GlobalTaskParam {
     launchNuke: {

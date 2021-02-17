@@ -1,6 +1,40 @@
 import { Queue, createMatrix, printMatrix } from "utils";
 import Logger from "utils";
 
+export interface RoomDesignOld {
+    version: number;
+    matrix: string[];
+    center: [number, number];
+    currentStage: number;
+    stages: {
+        rcl: number;
+        list: {
+            type: BuildableStructureConstant;
+            x: number;
+            y: number;
+            name?: string;
+        }[]
+    }[],
+    links: {
+        sourceLink: [number, number][];
+        centerLink: [number, number];
+        controllerLink: [number, number];
+    },
+    sources: [number, number][],
+    centerSpawn: [number, number];
+    remoteSources: {
+        sources: { x: number, y: number, room: string }[];
+        containers: { x: number, y: number, room: string }[];
+        route: {
+            [room: string]: { x: number, y: number }[];
+        }
+    },
+    labs: [number, number][],
+    mineralContainer: [number, number],
+    walls: { x: number, y: number }[],
+    ramparts: { x: number, y: number }[]
+}
+
 function posToId(x: number, y: number) { return x * 50 + y; }
 function idToPos(id: number) { return [Math.floor(id / 50), id % 50]; }
 

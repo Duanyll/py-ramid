@@ -8,7 +8,6 @@
     "lint": "eslint -c .eslintrc.js --ext .ts \"src/**/*.ts\"",
     "build": "rollup -c",
     "push-main": "rollup -c --environment DEST:main",
-    "push-local": "pwsh ./push-to-localhost.ps1",
     "test": "npm run test-unit && npm run test-integration",
     "test-unit": "rollup -c rollup.test-unit-config.js && mocha dist/test-unit.bundle.js",
     "test-integration": "npm run build && rollup -c rollup.test-integration-config.js && mocha dist/test-integration.bundle.js"

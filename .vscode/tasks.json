@@ -6,12 +6,15 @@
         {
             "label": "Push to Localhost",
             "type": "shell",
-            "command": "pwsh ./push-to-localhost.ps1",
+            "windows": {
+                "command": "cmd /C \"copy /Y dist %userprofile%\\appdata\\local\\screeps\\scripts\\127_0_0_1___21025\\default\""
+            },
             "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "dependsOn": "npm: build"
         }
     ]
 }

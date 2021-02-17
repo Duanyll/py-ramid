@@ -79,7 +79,7 @@ export const roomBasicCreepConfig: {
         build1: { role: "build", body: [[WORK, 16], [CARRY, 16], [MOVE, 16]] },
         carry1: { role: "carry", body: [[CARRY, 32], [MOVE, 16]] },
         center: { role: "manage", body: [[CARRY, 16]] },
-        upgr1: { role: "upgrade", body: [[WORK, 12], [CARRY, 4], [MOVE, 8]] },
+        upgr1: { role: "upgrade", body: [[WORK, 15], [CARRY, 5], [MOVE, 10]] },
     },
 }
 

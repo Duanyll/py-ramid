@@ -20,7 +20,7 @@ export function runTerminals() {
         if (!terminal || terminal.cooldown) return;
         for (const res in terminal.store) {
             let amount = Math.min(
-                room.countStore(res as ResourceConstant) - (room.resource.reserve[res] || 0) - (room.resource.lock[res] || 0),
+                room.storeCurrent.get(res as ResourceConstant) - room.storeBook.get(res as ResourceConstant),
                 terminal.store[res as ResourceConstant]
             );
             if (amount > 0) {
@@ -34,30 +34,26 @@ export function runTerminals() {
     _.forIn(myRooms, (dest) => {
         const destTerminal = dest.structures.terminal;
         if (!destTerminal) return;
-        for (const res in dest.resource.import) {
-            if (dest.resource.import[res] <= 0) continue;
+        dest.storeBook.forIn((amount, res) => {
+            let importAmount = amount - dest.storeCurrent.get(res);
+            if (importAmount <= 0) return;
             continueToRun = true;
             let source = _.find(sourceTerminals[res], i => !i.terminal.worked && i.terminal.id != destTerminal.id);
             if (source) {
-                let transAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, dest.resource.import[res], source.amount);
+                let transAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, importAmount, source.amount);
                 if (source.terminal.send(res as ResourceConstant, transAmount, dest.name) == OK) {
                     Logger.silly(`Send ${transAmount} * ${res} from ${source.terminal.room.name} to ${dest.name}`);
 
-                    myRooms[source.terminal.room.name].logStore(res as ResourceConstant, -transAmount);
-                    dest.logStore(res as ResourceConstant, transAmount);
-                    dest.resource.import[res] -= transAmount;
-                    if (dest.resource.import[res] <= 0) {
-                        delete dest.resource.import[res];
-                        continue;
-                    }
+                    myRooms[source.terminal.room.name].storeCurrent.add(res, -transAmount);
+                    dest.storeCurrent.add(res, transAmount);
                 }
             } else {
-                let buyInfo = Memory.market.autoBuy[res as ResourceConstant];
-                if (-global.store.getFree(res as ResourceConstant) >= buyInfo?.minAmount) {
-                    tryBuyResource(destTerminal, res as ResourceConstant, dest.resource.import[res]);
+                let buyInfo = Memory.market.autoBuy[res];
+                if (-global.store.free(res) >= buyInfo?.minAmount) {
+                    tryBuyResource(destTerminal, res, importAmount);
                 }
             }
-        }
+        })
     });
 
     if (Memory.market.enableAutoDeal) {

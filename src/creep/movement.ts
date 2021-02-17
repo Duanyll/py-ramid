@@ -2,18 +2,106 @@ import { myRooms } from "room/roomInfo";
 import Logger from "utils";
 import { findRouteCallback, objToPos } from "utils";
 
-Memory.roomsToAvoid ||= {};
-Memory.roomCost ||= {};
+/* -------------------------------------------------------------------------- */
+/*                             movement info cache                            */
+/* -------------------------------------------------------------------------- */
+
+interface CreepExitInfo {
+    target: string,
+    exitPos?: RoomPosition,
+    route: { room: string, exit: ExitConstant }[] | ERR_NO_PATH
+}
+
+interface CreepMoveInfo {
+    dest: RoomPosition;
+    time: number;
+    path: PathStep[];
+}
+
+declare global {
+    interface Creep {
+        exitInfo: CreepExitInfo,
+        moveInfo: CreepMoveInfo,
+    }
+
+    interface PowerCreep {
+        exitInfo: CreepExitInfo,
+        moveInfo: CreepMoveInfo,
+    }
+}
+
 
 let movingCreeps: Record<string, CreepMovement>;
+let moveInfo: Record<string, CreepMoveInfo> = {};
+let exitInfo: Record<string, CreepExitInfo> = {};
 let matrixWithCreepsCache: Record<string, CostMatrix>;
+export function clearCreepMoveCache(name?: string) {
+    if (name) {
+        delete exitInfo[name];
+        delete moveInfo[name];
+    } else {
+        exitInfo = {};
+        moveInfo = {};
+    }
+}
+
+const movementCacheExtensions = {
+    movement: {
+        get: function (this: AnyCreep) {
+            return movingCreeps[this.name];
+        },
+        set: function (this: AnyCreep, v: CreepMovement) {
+            if (!this.my) return;
+            if ('room' in v && v.room == this.room.name) return;
+            movingCreeps[this.name] = v;
+        },
+        enumerable: false,
+        configurable: true
+    },
+    exitInfo: {
+        get: function (this: AnyCreep) {
+            return exitInfo[this.name];
+        },
+        set: function (this: AnyCreep, v: CreepExitInfo) {
+            exitInfo[this.name] = v;
+        },
+        enumerable: false,
+        configurable: true
+    },
+    posLock: {
+        get: function (this: AnyCreep) {
+            return creepPostionLock[this.name];
+        },
+        set: function (this: AnyCreep, v: boolean) {
+            creepPostionLock[this.name] = v;
+        },
+        enumerable: false,
+        configurable: true
+    },
+    moveInfo: {
+        get: function (this: AnyCreep) {
+            return moveInfo[this.name];
+        },
+        set: function (this: AnyCreep, v: CreepMoveInfo) {
+            moveInfo[this.name] = v;
+        },
+        enumerable: false,
+        configurable: true
+    }
+}
+Object.defineProperties(Creep.prototype, movementCacheExtensions);
+Object.defineProperties(PowerCreep.prototype, movementCacheExtensions);
+
+/* -------------------------------------------------------------------------- */
+/*                                 pathfinding                                */
+/* -------------------------------------------------------------------------- */
+
 const blockedRoomMatrix: CostMatrix = new PathFinder.CostMatrix();
 for (let i = 0; i < 50; i++) {
     for (let j = 0; j < 50; j++) {
         blockedRoomMatrix.set(i, j, 0xff);
     }
 }
-let creepPostionLock: Record<string, boolean> = {};
 
 function getRoomCostMatrix(room: string): CostMatrix {
     if (!matrixWithCreepsCache[room]) {
@@ -30,31 +118,8 @@ function getRoomCostMatrix(room: string): CostMatrix {
     return matrixWithCreepsCache[room];
 }
 
-export function prepareMoveHelper() {
-    movingCreeps = {}
-    matrixWithCreepsCache = {};
-    creepPostionLock = {};
-}
-
-function canBypassCreep(creep: AnyCreep) {
-    if (!creep.my) return false;
-    // @ts-ignore
-    if (creep.memory.role == "manage") return false;
-    if (movingCreeps[creep.name]) return true;
-    if (creepPostionLock[creep.name]) return false;
-    return true;
-}
-
-function shouldDoBypassCreep(creep: AnyCreep) {
-    // @ts-ignore
-    if (creep.fatigue) return false;
-    if (!creep.my) return false;
-    // @ts-ignore
-    if (creep.memory.role == "manage") return false;
-    if (movingCreeps[creep.name] || creepPostionLock[creep.name]) return false;
-    return true;
-}
-
+Memory.roomsToAvoid ||= {};
+Memory.roomCost ||= {};
 function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpts {
     const sameRoom = (!opts.crossRoom) && (creep.room.name == opts.pos.roomName);
 
@@ -65,7 +130,7 @@ function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpt
             if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
             if (Game.rooms[room]) {
                 Game.rooms[room].find(FIND_CREEPS).forEach((c) => {
-                    if (!canBypassCreep(c)) {
+                    if (!canBypassCreep(creep, c)) {
                         matrix.set(c.pos.x, c.pos.y, 0xff);
                     }
                 });
@@ -73,6 +138,29 @@ function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpt
         },
         range: opts.range
     };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 move bypass                                */
+/* -------------------------------------------------------------------------- */
+
+function canBypassCreep(i: AnyCreep, creep: AnyCreep) {
+    if (!creep.my) return false;
+    if (creep.memory.role == "manage") return false;
+    if (i.memory.role == creep.memory.role) return false;
+    if (movingCreeps[creep.name]) return true;
+    if (creepPostionLock[creep.name]) return false;
+    return true;
+}
+
+function shouldDoBypassCreep(i: AnyCreep, creep: AnyCreep) {
+    // @ts-ignore
+    if (creep.fatigue) return false;
+    if (!creep.my) return false;
+    if (creep.memory.role == "manage") return false;
+    if (i.memory.role == creep.memory.role) return false;
+    if (movingCreeps[creep.name] || creepPostionLock[creep.name]) return false;
+    return true;
 }
 
 const offsetsByDirection = {
@@ -98,7 +186,7 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
         if (tarpos) {
             let targetCreep = tarpos.lookFor(LOOK_CREEPS)[0] || tarpos.lookFor(LOOK_POWER_CREEPS)[0];
             if (targetCreep) {
-                if (shouldDoBypassCreep(targetCreep)) {
+                if (shouldDoBypassCreep(this, targetCreep)) {
                     // @ts-ignore 2345
                     defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
                 } else if (Game.time & 1 && this.moveInfo && this.moveInfo.dest) {
@@ -129,13 +217,85 @@ PowerCreep.prototype.move = function (this: PowerCreep, target: DirectionConstan
     return moveBypass.call(this, target);
 }
 
+let creepPostionLock: Record<string, boolean> = {};
+function wrapPositionLockFunc(funcName: keyof Creep["prototype"]) {
+    const func = Creep.prototype[funcName] as (this: Creep, ...param: any) => ScreepsReturnCode;
+    // @ts-expect-error 2540
+    Creep.prototype[funcName] = function (this: Creep, ...param) {
+        let res = func.call(this, ...param);
+        if (res == OK) {
+            this.posLock = true;
+        }
+        return res;
+    }
+}
+// wrapPositionLockFunc("build");
+// wrapPositionLockFunc("repair");
+wrapPositionLockFunc("upgradeController");
+wrapPositionLockFunc("harvest");
+wrapPositionLockFunc("reserveController");
+
 /** @deprecated */
-export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPosition }, range?: number) {
-    if (!(pos instanceof RoomPosition)) pos = pos.pos;
-    creep.movement = { pos, range };
+export function lockCreepPosition(creep: Creep) {
+    creep.posLock = true;
 }
 
-let moveInfo: Record<string, CreepMoveInfo> = {}
+/* -------------------------------------------------------------------------- */
+/*                              movement process                              */
+/* -------------------------------------------------------------------------- */
+
+const movementExtensions = {
+    goTo: {
+        value: function (this: AnyCreep, target: RoomPosition | { pos: RoomPosition }, range = 1) {
+            let pos = (target instanceof RoomPosition) ? target : target.pos;
+            if (this.pos.inRangeTo(pos, range)) {
+                return true;
+            } else {
+                this.movement = { pos, range };
+                return false;
+            }
+        },
+        configurable: true,
+        enumerable: false
+    },
+    goToRoom: {
+        value: function (this: AnyCreep, room: string) {
+            if (this.room.name == room) {
+                return true;
+            } else {
+                this.movement = { room };
+                return false;
+            }
+        },
+        configurable: true,
+        enumerable: false
+    }
+};
+Object.defineProperties(Creep.prototype, movementExtensions);
+Object.defineProperties(PowerCreep.prototype, movementExtensions);
+
+export function prepareMoveHelper() {
+    movingCreeps = {}
+    matrixWithCreepsCache = {};
+    creepPostionLock = {};
+}
+
+export function tickMoveHelper() {
+    _.forIn(movingCreeps, (pos, name) => {
+        const creep = Game.creeps[name] || Game.powerCreeps[name];
+        if ('room' in pos) {
+            doMoveCreepToRoom(creep, pos.room);
+        } else {
+            doMoveCreepTo(creep, pos);
+        }
+    })
+}
+
+/** @deprecated use `creep.goTo` */
+export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPosition }, range?: number) {
+    creep.goTo(pos, range);
+}
+
 export function doMoveCreepTo(creep: AnyCreep, opts: MoveToPosOpts) {
     const pathReuse = (creep.pos.inRangeTo(opts.pos, 5)) ? 5 : 15;
 
@@ -150,123 +310,35 @@ export function doMoveCreepTo(creep: AnyCreep, opts: MoveToPosOpts) {
     creep.moveByPath(creep.moveInfo.path);
 }
 
-function wrapPositionLockFunc(funcName: keyof Creep["prototype"]) {
-    const func = Creep.prototype[funcName] as (this: Creep, ...param: any) => ScreepsReturnCode;
-    // @ts-expect-error 2540
-    Creep.prototype[funcName] = function (this: Creep, ...param) {
-        let res = func.call(this, ...param);
-        if (res == OK) {
-            this.posLock = true;
-        }
-        return res;
-    }
-}
-wrapPositionLockFunc("build");
-wrapPositionLockFunc("repair");
-wrapPositionLockFunc("upgradeController");
-wrapPositionLockFunc("harvest");
-wrapPositionLockFunc("reserveController")
-
-/** @deprecated */
-export function lockCreepPosition(creep: Creep) {
-    creep.posLock = true;
-}
-
-export function tickMoveHelper() {
-    _.forIn(movingCreeps, (pos, name) => {
-        const creep = Game.creeps[name] || Game.powerCreeps[name];
-        if ('room' in pos) {
-            doMoveCreepToRoom(creep, pos.room);
-        } else {
-            doMoveCreepTo(creep, pos);
-        }
-    })
-}
-
-let exitInfo: Record<string, CreepExitInfo> = {}
-
-/** @deprecated */
+/** @deprecated use `creep.goToRoom` */
 export function moveCreepToRoom(creep: Creep, room: string) {
-   creep.movement = { room };
+    creep.goToRoom(room);
 }
 
 function doMoveCreepToRoom(creep: AnyCreep, room: string) {
-    if (!creep.exitInfo || creep.exitInfo.target != room || !creep.exitInfo.route) {
+    function reFindPath() {
         let route = Game.map.findRoute(creep.room, room, {
             routeCallback: findRouteCallback
         });
         if (route == ERR_NO_PATH) {
-            Logger.error(`${creep.name}: No path to ${room}!`)
+            Logger.error(`${creep.name}: No path to ${room}!`);
+            return false;
         }
         creep.exitInfo = { target: room, route }
+        return true;
+    }
+    if (!creep.exitInfo || creep.exitInfo.target != room || !creep.exitInfo.route) {
+        if (!reFindPath()) return;
     }
     if (creep.exitInfo.exitPos?.roomName != creep.room.name) {
         if (creep.exitInfo.route == ERR_NO_PATH) return;
         let exit = creep.exitInfo.route.shift();
         let exits = Game.map.describeExits(creep.room.name);
         if (!exit || exit.room != exits[exit.exit]) {
-            delete creep.exitInfo;
-            doMoveCreepToRoom(creep, room);
-            return;
+            if (!reFindPath()) return;
+            exit = creep.exitInfo.route.shift();
         }
         creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit);
     }
     doMoveCreepTo(creep, { pos: creep.exitInfo.exitPos });
 }
-
-export function clearCreepMoveCache(name?: string) {
-    if (name) {
-        delete exitInfo[name];
-        delete moveInfo[name];
-    } else {
-        exitInfo = {};
-        moveInfo = {};
-    }
-}
-
-const movementExtensions = {
-    movement: {
-        get: function (this: Creep) {
-            return movingCreeps[this.name];
-        },
-        set: function (this: Creep, v: CreepMovement) {
-            if (!this.my) return;
-            if ('room' in v && v.room == this.room.name) return;
-            movingCreeps[this.name] = v;
-        },
-        enumerable: false,
-        configurable: true
-    },
-    exitInfo: {
-        get: function (this: Creep) {
-            return exitInfo[this.name];
-        },
-        set: function (this: Creep, v: CreepExitInfo) {
-            exitInfo[this.name] = v;
-        },
-        enumerable: false,
-        configurable: true
-    },
-    posLock: {
-        get: function (this: Creep) {
-            return creepPostionLock[this.name];
-        },
-        set: function (this: Creep, v: boolean) {
-            creepPostionLock[this.name] = v;
-        },
-        enumerable: false,
-        configurable: true
-    },
-    moveInfo: {
-        get: function (this: Creep) {
-            return moveInfo[this.name];
-        },
-        set: function (this: Creep, v: CreepMoveInfo) {
-            moveInfo[this.name] = v;
-        },
-        enumerable: false,
-        configurable: true
-    }
-}
-Object.defineProperties(Creep.prototype, movementExtensions);
-Object.defineProperties(PowerCreep.prototype, movementExtensions);

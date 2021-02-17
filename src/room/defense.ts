@@ -4,8 +4,6 @@ import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { RMManager } from "utils";
 
 function fetchWallTask(room: RoomInfo) {
-    room.delay("fetchWall");
-
     RMManager.read(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
         let detail = segment[room.name];
         if (room.wallBuildRequest.size > 0) {
@@ -49,7 +47,11 @@ function fetchWallTask(room: RoomInfo) {
         }
     })
 }
-registerRoomRoutine("fetchWall", fetchWallTask);
+registerRoomRoutine({
+    id: "fetchWall",
+    init: fetchWallTask,
+    invoke: fetchWallTask,
+});
 
 global.recordWallDesign = (roomName: string, x1 = 0, y1 = 0, x2 = 49, y2 = 49) => {
     let room = myRooms[roomName];

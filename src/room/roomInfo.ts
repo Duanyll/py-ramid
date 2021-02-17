@@ -3,11 +3,35 @@ import { getCreepCost as calcCreepCost, globalDelay } from "utils";
 import Logger from "utils";
 import cfg from "config";
 import { roleBodies } from "creep/body";
+import { StoreRegister } from "utils/storeRegister";
+import { CENTER_STRUCTURES } from "utils/constants";
 
-let roomRoutineStore: { [type in RoomRoutine]?: (room: RoomInfo, ...param: any) => void } = {};
-export function registerRoomRoutine(type: RoomRoutine, func: (room: RoomInfo, ...param: any) => void) {
-    // console.log(`Registering callback ${type}`)
-    roomRoutineStore[type] = func;
+export interface RoomRoutineConfig {
+    id: RoomRoutineType;
+    /**
+     * 要求先行 init 的 routine
+     */
+    dependsOn?: RoomRoutineType[];
+    /**
+     * 在房间初始化后，载入 memory 和 store 后调用
+     * @param room
+     */
+    init?(room: RoomInfo): void;
+    /**
+     * 由 delay 方法调用
+     * @param room
+     */
+    invoke?(room: RoomInfo): void;
+    /**
+     * 两次 invoke 的最大时间间隔,
+     * `cfg.ROOM_ROUTINE_DELAY` 是默认值
+     */
+    defaultDelay?: number;
+}
+let roomRoutineStore: { [type in RoomRoutineType]?: RoomRoutineConfig } = {};
+export function registerRoomRoutine(config: RoomRoutineConfig) {
+    config.defaultDelay = cfg.ROOM_ROUTINE_DELAY[config.id];
+    roomRoutineStore[config.id] = config;
 }
 
 class RoomStructures {
@@ -40,8 +64,12 @@ class RoomStructures {
     centerSpawn: StructureSpawn;
 }
 
-// 结构化存储房间内缓存
 export class RoomInfo {
+
+    /* -------------------------------------------------------------------------- */
+    /*                                 basic info                                 */
+    /* -------------------------------------------------------------------------- */
+
     name: string;
     detail: Room;
     helperRoom: string;
@@ -54,55 +82,10 @@ export class RoomInfo {
 
     public get spawnQueue(): SpawnRequest[] {
         return this.detail.memory.spawnQueue;
-    }
-
-    refillTargets: { [id: string]: number } = {};
-    roadToRepair: string[] = [];
-    wallBuildRequest: Map<string, number> = new Map();
-    wallHits: number;
-    moveRequests: {
-        in: {
-            [id: string]: {
-                type: ResourceConstant,
-                amount: number
-            }
-        },
-        out: {
-            [id: string]: {
-                type?: ResourceConstant,
-                amount?: number
-            }
-        }
-    } = { in: {}, out: {} }
-    tombstones: Tombstone[];
-
-    labRunning: boolean;
+    };
 
     public get state(): RoomState {
         return this.detail.memory.state;
-    }
-
-    // 必须每 tick 重建
-    creeps: Creep[];
-    creepForRole: { [roleId: string]: Creep[] };
-
-    creepRoleDefs: {
-        [roleId: string]: {
-            role: CreepRole,
-            body: BodyPartDescription,
-            target?: string
-        };
-    }
-
-    private _structures?: RoomStructures;
-    private _structuresLoadTime = 0;
-    private getLink(pos: PointInRoom) {
-        return this.detail.lookForAt(LOOK_STRUCTURES, pos.x, pos.y)
-            .filter(s => s.structureType == STRUCTURE_LINK)[0] as StructureLink;
-    }
-    public get structures() {
-        if (!this._structures) this.loadStructures();
-        return this._structures;
     }
 
     public get design() {
@@ -117,26 +100,55 @@ export class RoomInfo {
         return this.design.rclDone;
     }
 
-    public constructor(roomName: string) {
-        this.name = roomName;
-        this.detail = Game.rooms[this.name];
-        this.initMemory();
-        this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
+    /* -------------------------------------------------------------------------- */
+    /*                                    stats                                   */
+    /* -------------------------------------------------------------------------- */
 
-        this.loadStructures();
+    labRunning: boolean;
+    wallHits: number;
 
-        this.delay("fullCheckConstruction", 0);
-        this.delay("checkRoads", 0);
-        this.delay("updateCreepCount", 0);
-        this.delay("runLabs");
-        this.delay("runBoost");
-        this.delay("fetchLabWork");
-        this.delay("fetchWall", 1);
-        this.delay("checkPower", 1);
-        this.delay("runFactory", 1);
+    /* -------------------------------------------------------------------------- */
+    /*                                 task cache                                 */
+    /* -------------------------------------------------------------------------- */
+
+    refillTargets: Record<string, number> = {};
+    roadToRepair: string[] = [];
+    wallBuildRequest: Map<string, number> = new Map();
+
+
+    /* -------------------------------------------------------------------------- */
+    /*                            structure and creeps                            */
+    /* -------------------------------------------------------------------------- */
+
+    creeps: Creep[];
+    /** 快速查找某个职位的 creep */
+    creepForRole: { [roleId: string]: Creep[] };
+
+    /** 需要自动生成的 creep 配置 */
+    creepRoleDefs: {
+        [roleId: string]: {
+            role: CreepRole,
+            body: BodyPartDescription,
+            target?: string
+        };
+    }
+    tombstones: Tombstone[];
+
+    private _structures?: RoomStructures;
+    private _structuresLoadTime = 0;
+    private getLink(pos: PointInRoom) {
+        return this.detail.lookForAt(LOOK_STRUCTURES, pos.x, pos.y)
+            .filter(s => s.structureType == STRUCTURE_LINK)[0] as StructureLink;
+    }
+    public get structures() {
+        if (!this._structures || this._structuresLoadTime != Game.time) {
+            this._structuresLoadTime = Game.time;
+            this.loadStructures();
+        }
+        return this._structures;
     }
 
-    loadStructures() {
+    private loadStructures() {
         this._structures = new RoomStructures();
         this.detail = Game.rooms[this.name];
         let strobj = this._structures;
@@ -201,11 +213,19 @@ export class RoomInfo {
             .find(s => s.structureType == STRUCTURE_CONTAINER) as StructureContainer;
 
         this.tombstones = this.detail.find(FIND_TOMBSTONES);
-        this.tombstones.forEach(t => {
-            if (t.creep.my && _.sum(_.values(t.store)) - (t.store.energy || 0)) {
-                this.moveRequests.out[t.id] = {};
-            }
-        })
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                 initialize                                 */
+    /* -------------------------------------------------------------------------- */
+
+    public constructor(roomName: string) {
+        this.name = roomName;
+        this.detail = Game.rooms[this.name];
+        this.initMemory();
+        this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
+
+        this.initTasks();
     }
 
     initMemory() {
@@ -229,32 +249,50 @@ export class RoomInfo {
                 },
                 lab: {
                     boost: [],
-                    remain: 0
+                    remain: 0,
+                    queue: []
                 },
                 factory: {
                     level: 0,
                 },
-                mineralToTransport: 0
             },
             resource: {
                 reserve: {},
-                import: {},
                 export: {},
-                lock: {},
-                produce: {}
             }
         } as RoomMemory)
         this.helperRoom = this.detail.memory.helperRoom;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                               room scheduler                               */
+    /* -------------------------------------------------------------------------- */
+
+    private initTasks() {
+        let vis = {} as Record<RoomRoutineType, boolean>;
+        const doInit = (routine: RoomRoutineType) => {
+            if (vis[routine]) return;
+            vis[routine] = true;
+            let config = roomRoutineStore[routine];
+            config.dependsOn?.forEach(doInit);
+            config.init?.(this);
+            if (config.defaultDelay) this.delay(routine, config.defaultDelay);
+        }
+        (_.keys(roomRoutineStore) as RoomRoutineType[]).forEach(doInit);
+    }
+
     public tickTasks(): void {
         _.forIn(this.tasks, (next, name) => {
-            if (next == Game.time) roomRoutineStore[name as RoomRoutine](this);
+            if (next == Game.time) {
+                let config = roomRoutineStore[name as RoomRoutineType];
+                roomRoutineStore[name as RoomRoutineType].invoke?.(this);
+                if (config.defaultDelay) this.delay(config.id, config.defaultDelay);
+            }
         })
     }
 
-    public delay(type: RoomRoutine, time?: number) {
-        time ??= cfg.ROOM_ROUTINE_DELAY[type];
+    public delay(type: RoomRoutineType, time?: number) {
+        time ??= roomRoutineStore[type].defaultDelay;
         if (!this.tasks[type] || this.tasks[type] <= Game.time) {
             this.tasks[type] = Game.time + time;
         } else {
@@ -262,48 +300,96 @@ export class RoomInfo {
         }
     }
 
-    public requestResource(type: ResourceConstant, amount: number, dontLock?: boolean) {
-        if (!dontLock) {
-            this.resource.lock[type] = (this.resource.lock[type] + amount) || amount;
-        }
-        if (!this.resource.produce[type]) {
-            let required = (this.resource.reserve[type] || 0) + (this.resource.lock[type] || 0)
-                - this.countStore(type as ResourceConstant) - (this.resource.import[type] || 0);
-            if (required > 0) {
-                this.resource.import[type] = required;
-                globalDelay("runTerminal", 1);
-            }
-        }
+    /* -------------------------------------------------------------------------- */
+    /*                              resource manager                              */
+    /* -------------------------------------------------------------------------- */
+
+    storeSection: typeof global.store; // 防止循环引用
+    storeCurrent: StoreRegister;
+    storeBook: StoreRegister;
+    incomingProduct: StoreRegister;
+
+    // 鉴于房间内搬运请求不会超过 20 个，Array 应当不会太影响查找性能，但是更好写
+    moveInReqs: { id: string, type: ResourceConstant, remain: number, min: number, max?: number, center?: boolean }[] = [];
+    moveOutReqs: { id: string, type?: ResourceConstant, max?: number, center?: boolean }[] = [];
+    /**
+     * 预定一定量资源，若房间内不够则尝试从各处调配
+     * @param res 资源种类
+     * @param amount 要增加预定的量
+     */
+    public bookResource(res: ResourceConstant, amount: number) {
+        this.storeBook.add(res, amount);
     }
 
-    public countStore(type: ResourceConstant): number {
-        return this._store[type] || 0;
+    /**
+     * 登记消耗的资源
+     * @param res 资源种类
+     * @param amount 正数，当前操作一次消耗的量
+     * @param booked 是否预定过本次消耗的资源（其实没有预定也不需要登记消耗）
+     */
+    public logConsume(res: ResourceConstant, amount: number, booked = true) {
+        this.storeCurrent.add(res, -amount);
+        if (booked) this.storeBook.add(res, -amount);
     }
 
-    public logStore(type: ResourceConstant, amount: number, unlock?: boolean) {
-        this._store[type] ||= 0;
-        if (this._store[type] + amount < 0) {
-            Logger.error(`Invalid room store registeration: ${this.name}, ${type}, ${amount}`);
+    /**
+     * 登记产出的资源
+     * @param res 资源种类
+     * @param amount 正数，产出资源的量
+     */
+    public logProduce(res: ResourceConstant, amount: number) {
+        this.storeCurrent.add(res, amount);
+        this.incomingProduct.add(res, -amount);
+    }
+
+    /**
+     * 要求将一定总量的资源放入该建筑（默认只使用房间内的资源，如果允许调货，单独使用 `bookResource`）
+     *
+     * 会覆盖同种建筑同种资源的请求
+     * @param s 要放入的建筑
+     * @param res 资源种类
+     * @param amount 总共还需要消耗的量（不包括建筑内该资源的现有量）
+     * @param minAmount 补充的最小限额。当建筑内该资源大于此量时，暂缓补货。剩余补充量少于该参数时忽略该参数
+     * @param maxAmount 该资源最多占用多少空间
+     */
+    public putToStructure(s: AnyStoreStructure, res: ResourceConstant, amount: number, minAmount = 1000, maxAmount?: number) {
+        if (amount <= 0) return;
+        let cur = _.find(this.moveInReqs, { id: s.id, type: res });
+        let req = { id: s.id, type: res, remain: amount, min: minAmount, max: maxAmount, center: s.structureType in CENTER_STRUCTURES };
+        if (cur) {
+            _.assign(cur, req);
         } else {
-            this._store[type] += amount;
-            global.store.current[type] ||= 0;
-            global.store.current[type] += amount;
+            this.moveInReqs.push(req);
         }
-        if (unlock) {
-            if (this.resource.lock[type] + amount < 0) {
-                Logger.error(`Invalid room resource unlock: ${this.name}, ${type}, ${amount}`);
-                this.resource.lock[type] = 0;
-            } else {
-                this.resource.lock[type] += amount;
-            }
+        _.remove(this.moveOutReqs, i => i.id == s.id && i.type == res);
+    }
+
+    /**
+     * 要求从该建筑中取出产品（产品在产出时就应该用 `logProduce` 登记）
+     *
+     * 会覆盖同种建筑同种资源的请求
+     * @param s 要取出的建筑
+     * @param res 资源种类
+     * @param keepAmount 允许缓存此量资源. 为 0 立即全部取出，并删除此项任务.
+     */
+    public pickFromStructure(s: AnyStoreStructure, res?: ResourceConstant, maxAmount = 1000) {
+        let cur = _.find(this.moveOutReqs, { id: s.id, type: res });
+        let req = { id: s.id, type: res, max: maxAmount, center: s.structureType in CENTER_STRUCTURES };
+        if (cur) {
+            _.assign(cur, req);
+        } else {
+            this.moveOutReqs.push(req);
         }
+        _.remove(this.moveInReqs, i => i.id == s.id && i.type == res);
     }
 
     public get energy() {
         return this.structures.storage.store.energy;
     }
 
-    _store: { [type in ResourceConstant]?: number } = {};
+    /* -------------------------------------------------------------------------- */
+    /*                                    spawn                                   */
+    /* -------------------------------------------------------------------------- */
 
     public requestSpawn(role: CreepRole, {
         body = roleBodies[role],
@@ -326,12 +412,17 @@ export class RoomInfo {
         body.forEach(part => {
             if (part[2]) {
                 boostInfo.push(part[2]);
-                this.requestResource(part[2], LAB_BOOST_MINERAL * part[1]);
+                this.bookResource(part[2], LAB_BOOST_MINERAL * part[1]);
+                const x = _.find(this.state.lab.boost, { type: part[2] });
+                if (x) {
+                    x.amount += LAB_BOOST_MINERAL * part[1];
+                } else {
+                    this.state.lab.boost.push({ type: part[2], amount: LAB_BOOST_MINERAL * part[1] });
+                }
             }
         })
         let fullMemory: CreepMemory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
         if (boostInfo.length) {
-            this.state.lab.boost = _.union(this.state.lab.boost, boostInfo);
             this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + 500]);
             this.delay("runBoost", 1);
         }
@@ -340,6 +431,10 @@ export class RoomInfo {
         });
         return true;
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                    power                                   */
+    /* -------------------------------------------------------------------------- */
 
     powerRequests: Record<string, { type: PowerConstant, level?: number }> = {};
     powerAvaliable: Partial<Record<PowerConstant, number[]>> = {};
@@ -373,10 +468,3 @@ Object.defineProperty(Room.prototype, 'info', {
     enumerable: false,
     configurable: true
 })
-
-global.logMoveRequest = (roomName: string) => {
-    const room = myRooms[roomName];
-    _.forIn(room.moveRequests, (info, id) => {
-        Logger.report(`${id}: ${JSON.stringify(info)}`);
-    })
-}

@@ -3,6 +3,7 @@ import Logger from "utils";
 import { registerTask } from "utils";
 import { expandBodypart, getCreepCost, getCreepSpawnTime } from "utils";
 import { roleBodies, roomHelperCreepConfig } from "creep/body";
+import cfg from "config";
 
 function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
     let needSpawn = true;
@@ -106,10 +107,12 @@ function checkRefillState(room: RoomInfo) {
     } else {
         delete room.powerRequests[room.structures.storage.id];
     }
-
-    room.delay("checkRefill");
 }
-registerRoomRoutine("checkRefill", checkRefillState);
+registerRoomRoutine({
+    id: "checkRefill",
+    init: checkRefillState,
+    invoke: checkRefillState,
+});
 
 registerTask("spawnCreep", (param) => {
     myRooms[param.room].requestSpawn(param.role, param.param);

@@ -1,7 +1,6 @@
 import buildTime from "consts:buildTime";
 
 const cfg = {
-    TERMINAL_STORE_ENERGY: 50000,
     TERMINAL_MINERAL: 150000,
     ROOM_RESERVE_T3: 10000,
     ROOM_RESERVE_OPS: 20000,
@@ -34,14 +33,23 @@ const cfg = {
         "runBoost": 20,
         "checkPower": 50,
         "runFactory": 50,
-    } as Partial<Record<RoomRoutine, number>>,
+        "countStore": 2000
+    } as Partial<Record<RoomRoutineType, number>>,
     SEGMENTS: {
         stats: 50,
         roomDesign: [10, 11, 12, 13, 14]
     },
     BUILD_TIME: buildTime,
     FACTORY_COMPONENT_AMOUNT: 5000,
-    FACTORY_BATTERY_THRESHOLD: 300000
+    ENERGY: {
+        TERMINAL: 50_000,
+        REDLINE: 80_000,
+        LOW: 100_000,
+        PRIMARY_WORK: 120_000,
+        SECONDARY_WORK: 140_000,
+        FORCE_UPGRADE: 200_000,
+        FORCE_BATTERY: 300_000
+    }
 }
 
 export default cfg;

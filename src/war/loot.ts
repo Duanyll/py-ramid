@@ -65,7 +65,7 @@ export function runLootCarrier(creep: Creep) {
         if (creep.pos.isNearTo(terminal)) {
             for (const type in creep.store) {
                 creep.transfer(terminal, type as ResourceConstant);
-                room.logStore(type as ResourceConstant, creep.store[type as ResourceConstant]);
+                room.storeCurrent.add(type as ResourceConstant, creep.store[type as ResourceConstant]);
                 return;
             }
             if (m.remainRun > 0) {

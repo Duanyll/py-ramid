@@ -6,7 +6,7 @@ import { runCreep } from "creep";
 import { tickConstruction } from "room/construction";
 import Logger from "utils";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "utils";
-import { GlobalStoreManager } from "industry/store";
+import { SectionStore } from "industry/store";
 import { ErrorMapper } from "utils";
 
 import "utils"
@@ -34,8 +34,6 @@ function loadRooms() {
             myRooms[pc.memory.room].registerPowerCreep(pc);
         }
     }
-    
-    global.store = new GlobalStoreManager();
 }
 
 function loadScript() {

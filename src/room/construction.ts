@@ -1,3 +1,5 @@
+import cfg from "config";
+import { invoke } from "lodash";
 import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
 import Logger, { RMManager } from "utils";
 
@@ -66,11 +68,11 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         }
     })
 }
-registerRoomRoutine("setConstruction", setConstruction);
-registerRoomRoutine("fullCheckConstruction", (room) => {
-    setConstruction(room, true);
-    room.delay("fullCheckConstruction");
-})
+registerRoomRoutine({
+    id: "setConstruction",
+    init: (room) => setConstruction(room, true),
+    invoke: setConstruction,
+});
 
 export function tickConstruction() {
     let remain = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);

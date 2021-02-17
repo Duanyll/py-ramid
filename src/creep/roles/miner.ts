@@ -6,18 +6,13 @@ export function runMiner(creep: Creep, room: RoomInfo) {
     let container = room.structures.mineralContainer;
     if (!container) return;
     if (!creep.pos.isEqualTo(container.pos)) {
-        moveCreepTo(creep, container);
+        creep.goTo(container, 0);
     } else {
         if (creep.harvest(mineral) == OK) {
             const amount = HARVEST_MINERAL_POWER * creep.getActiveBodyparts(WORK);
-            room.state.mineralToTransport += amount;
-            if (room.state.mineralToTransport > 1000) {
-                room.state.mineralToTransport = 0;
-                room.moveRequests.out[container.id] = {
-                    type: mineral.mineralType,
-                    amount: container.store[mineral.mineralType]
-                };
-                room.logStore(mineral.mineralType, container.store[mineral.mineralType]);
+            room.storeCurrent.add(mineral.mineralType, amount);
+            if (container.store.free() < 500) {
+                room.pickFromStructure(container, mineral.mineralType, 1000);
             }
         }
     }

@@ -10,12 +10,12 @@ declare namespace NodeJS {
         autoSell: (type: ResourceConstant, price: number | false, reserve?: number) => void;
         produce: (type: ResourceConstant, amount: number, noBuffer?: boolean) => boolean;
         cancelLab: (roomName: string) => void;
-        store: import("industry/store").GlobalStoreManager;
+        store: import("industry/store").SectionStore;
         unclaim: (roomName: string, keep: boolean) => void;
         yes: (key: number) => void;
         delay: (type: GlobalRoutine, time: number) => void;
         pbMining: (rooms: string[] | "clear") => void;
-        burnPower: (roomName: string, amount: number | false | "auto") => void;
+        burnPower: (roomName: string, enable: boolean) => void;
         disableTower: (room: string, time?: number) => void;
         loot: (flag: string, home: string, creepRun: number) => void;
         nuke: (delay: number, from: string, room: string, x: number, y: number) => void;

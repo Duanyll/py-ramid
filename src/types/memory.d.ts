@@ -11,6 +11,7 @@ interface PowerCreepMemory {
     room: string;
     state: "moveToRoom" | "usePower" | "pickOps" | "putOps" | "renew" | "idle" | "enablePower";
     target: string;
+    role: undefined;
 }
 
 interface PowerBankInfo {
@@ -36,7 +37,7 @@ interface Memory {
     labQueue: {
         product: ResourceConstant,
         amount: number
-    }[],
+    }[][],
     labQueueBuffer: Partial<Record<ResourceConstant, number>>;
     routine: { [type in GlobalRoutine]?: number };
     tasks: {
@@ -98,11 +99,16 @@ interface RoomState {
     enableMining: boolean;
     refillFailTime?: number,
     lab: {
-        boost: ResourceConstant[],
+        boost: { type: ResourceConstant, amount: number }[],
+        boostExpires?: number,
         product?: ResourceConstant,
         remain?: number,
-        boostExpires?: number,
-        allowPower?: boolean
+        total?: number,
+        allowPower?: boolean,
+        queue: {
+            product: ResourceConstant,
+            amount: number
+        }[],
     },
     factory: {
         level: number,
@@ -113,7 +119,6 @@ interface RoomState {
     chargeNuker: boolean,
     autoProcessPower: boolean,
     disableTower?: boolean,
-    mineralToTransport?: number;
 }
 
 interface RoomDesign {
@@ -155,18 +160,14 @@ interface RoomDesignDetail {
 interface RoomResource {
     // 在 storage 里长期储备垫底的资源
     reserve: { [type: string]: number },
-    // 需要传送到当前房间的资源
-    import: { [type: string]: number },
     // 在 terminal 里面放置相应数量资源以供出口
     export: { [type: string]: number },
     // 这些资源已经被房间内的需求预定，不要出口
-    lock: { [type: string]: number },
-    produce: { [type: string]: boolean }
 }
 
 interface RoomMemory {
     tasks: {
-        [name in RoomRoutine]?: number;
+        [name in RoomRoutineType]?: number;
     }
     spawnQueue: SpawnRequest[];
     design: RoomDesign;

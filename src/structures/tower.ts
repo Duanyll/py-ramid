@@ -13,7 +13,11 @@ function checkRoads(room: RoomInfo) {
         roads.forEach((r) => room.roadToRepair.push(r.id));
     }
 }
-registerRoomRoutine("checkRoads", checkRoads)
+registerRoomRoutine({
+    id: "checkRoads",
+    init: checkRoads,
+    invoke: checkRoads,
+})
 
 function getTowerAttackHits(range: number) {
     if (range <= 5) return 600;

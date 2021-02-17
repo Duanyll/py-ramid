@@ -1,180 +1,147 @@
-import { produceCompound } from "industry/compounds";
 import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
+import { StoreRegister } from "utils/storeRegister";
 
-function countRoomStore(room: RoomInfo) {
-    room._store = {};
-    function processStructure(st: AnyStoreStructure | Creep) {
-        if (!st) return;
-        // @ts-ignore
-        _.forIn(st.store, (amount: number, type: ResourceConstant) => {
-            if (amount > 0) {
-                room._store[type] ||= 0;
-                room._store[type] += amount;
-            }
-        });
-    }
+function updateRoomStore(room: RoomInfo) {
     const s = room.structures;
     const c = room.creepForRole;
     _.concat<AnyStoreStructure | Creep>(
-        s.labs.input, s.labs.output, s.terminal, s.storage, s.factory, s.powerSpawn, c["center"], c["carry1"]
-    ).forEach(processStructure);
-    // room.delay("countStore", 1000);
-}
-registerRoomRoutine("countStore", countRoomStore);
-
-export function countGlobalStore() {
-    global.store.refresh();
-    global.store.fixLock();
-    globalDelay("countStore");
-}
-registerGlobalRoutine("countStore", countGlobalStore);
-
-export class GlobalStoreManager {
-    current: Partial<Record<ResourceConstant, number>> = {};
-    reserveLock: Partial<Record<ResourceConstant, number>> = {};
-    materialLock: Partial<Record<ResourceConstant, number>> = {};
-    productLock: Partial<Record<ResourceConstant, number>> = {};
-
-    refresh() {
-        Logger.silly("Recounting store ...");
-        this.current = {};
-        this.reserveLock = {};
-        this.materialLock = {};
-        this.productLock = {};
-        _.forIn(myRooms, (room) => {
-            countRoomStore(room);
-            // @ts-ignore
-            _.forIn(room._store, (amount: number, type: ResourceConstant) => {
-                this.current[type] ||= 0;
-                this.current[type] += amount;
-            });
-
-            // @ts-ignore
-            _.forIn(room.resource.reserve, (amount: number, type: ResourceConstant) => {
-                this.reserveLock[type] ||= 0;
-                this.reserveLock[type] += amount;
-            });
-
-            if (room.state.lab.remain) {
-                const recipe = LAB_RECIPE[room.state.lab.product];
-                const amount = room.state.lab.remain;
-                const product: ResourceConstant = room.state.lab.product;
-                recipe.forEach(r => {
-                    this.materialLock[r] ||= 0;
-                    this.materialLock[r] += amount;
-                });
-                this.productLock[product] ||= 0;
-                this.productLock[product] += amount;
-            }
+        s.labs.input, s.labs.output, s.terminal, s.storage, s.factory, s.powerSpawn, s.mineralContainer, room.detail.find(FIND_MY_CREEPS)
+    ).forEach(s => {
+        _.forIn(s?.store, (amount, res) => {
+            room.storeCurrent.add(res as ResourceConstant, amount as number);
         });
+    });
+}
+registerRoomRoutine({
+    id: "countStore",
+    init: (room) => {
+        room.storeSection = globalStore;
+        room.storeSection.rooms.push(room);
+        room.storeCurrent = new StoreRegister(globalStore.current);
+        room.storeBook = new StoreRegister(globalStore.book);
+        room.incomingProduct = new StoreRegister(globalStore.product);
 
-        Memory.labQueue.forEach(req => {
-            LAB_RECIPE[req.product].forEach(r => {
-                this.materialLock[r] ||= 0;
-                this.materialLock[r] += req.amount;
-            });
-            this.productLock[req.product] ||= 0;
-            this.productLock[req.product] += req.amount;
-        });
+        updateRoomStore(room);
 
-        _.forIn(Memory.labQueueBuffer, (amount, res) => {
-            this.productLock[res as ResourceConstant] ||= 0;
-            this.productLock[res as ResourceConstant] += amount;
+        _.forIn(room.resource.reserve, (amount, res) => {
+            room.storeBook.add(res as ResourceConstant, amount);
+        })
+    },
+
+    invoke: (room) => {
+        room.storeCurrent.clear();
+        updateRoomStore(room);
+    }
+});
+
+registerGlobalRoutine("countStore", () => { });
+
+/**
+ * 统计一定范围内的资源储量
+ */
+export class SectionStore {
+    /**
+     * 现有储量
+     */
+    current: StoreRegister;
+    /**
+     * 预定的将要消耗的储量
+     */
+    book: StoreRegister;
+    /**
+     * 即将生成出来的储量
+     */
+    product: StoreRegister;
+
+    parent: SectionStore;
+    rooms: RoomInfo[] = [];
+
+    get labQueue() { return Memory.labQueue; }
+    get labQueueBuffer() { return Memory.labQueueBuffer; }
+
+    constructor(parent?: SectionStore) {
+        this.parent = parent;
+        this.current = new StoreRegister(parent?.current);
+        this.book = new StoreRegister(parent?.book);
+        this.product = new StoreRegister(parent?.product);
+
+        this.labQueue.forEach(a => a.forEach(i => {
+            this.product.add(i.product, i.amount);
+            LAB_RECIPE[i.product].forEach(r => this.book.add(r, i.amount));
+        }));
+        _.forIn(this.labQueueBuffer, (amount, type) => {
+            this.product.add(type as ResourceConstant, amount);
         })
     }
 
-    constructor() {
-        this.refresh();
-        global.delay("countStore", 5000);
-    }
-
-    logReaction(room: RoomInfo, product: ResourceConstant, amount: number) {
-        room.state.lab.remain -= amount;
-        room.logStore(product, amount);
-        this.productLock[product] -= amount;
-        LAB_RECIPE[product].forEach(c => {
-            room.logStore(c, -amount, true);
-            this.materialLock[product] -= amount;
-        })
-    }
-
-    getFree(res: ResourceConstant) {
-        return (this.current[res] || 0) + (this.productLock[res] || 0)
-            - (this.reserveLock[res] || 0) - (this.materialLock[res] || 0);
-    }
-
-    fixLock() {
-        _.forIn(myRooms, (room) => {
-            _.forIn(room.resource.reserve, (amount, type) => {
-                room.requestResource(type as ResourceConstant, 0, true);
-            })
-        });
-
-
-        _.forIn(myRooms, (room) => {
-            _.forIn(room.resource.lock, (amount, type) => {
-                room.requestResource(type as ResourceConstant, 0, true);
-            })
-        });
-
-        // @ts-ignore
-        _.forIn(this.materialLock, (amount, type: ResourceConstant) => {
-            if (this.getFree(type) < 0) {
-                global.produce(type, -this.getFree(type), true);
-            }
-        });
+    free(res: ResourceConstant) {
+        return this.current.get(res) + this.product.get(res) - this.book.get(res);
     }
 
     flushBuffer() {
-        _.forIn(Memory.labQueueBuffer, (amount, type) => {
-            produceCompound(type as ResourceConstant, amount, true);
+        _.forIn(this.labQueueBuffer, (amount, type) => {
+            this.produceCompound(type as ResourceConstant, amount, true);
+            this.labQueueBuffer[type as ResourceConstant] = 0;
         })
-        Memory.labQueueBuffer = {};
+    }
+
+    private getCompoundTask(product: ResourceConstant, amount: number,
+        fromBuffer?: boolean, queue: { product: ResourceConstant, amount: number }[] = []) {
+        amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT + 10;
+        let recipe = LAB_RECIPE[product];
+        if (!recipe) return queue;
+        recipe.forEach(r => {
+            if (!LAB_RECIPE[r]) return;
+            let free = this.free(r) - amount;
+            if (free < 0) this.getCompoundTask(r, -free, false, queue);
+            this.book.add(r, amount);
+        });
+        if (!fromBuffer) {
+            this.product.add(product, amount);
+        }
+        queue.push({ product, amount });
+        return queue;
+    }
+
+    produceCompound(product: ResourceConstant, amount: number, fromBuffer?: boolean) {
+        while (amount >= cfg.TERMINAL_EXPORT_AMOUNT * 2) {
+            amount -= cfg.TERMINAL_EXPORT_AMOUNT;
+            Memory.labQueue.push(this.getCompoundTask(product, cfg.TERMINAL_EXPORT_AMOUNT, fromBuffer));
+        }
+        if (amount > 0) this.labQueue.push(this.getCompoundTask(product, amount, fromBuffer));
+        this.rooms.forEach(r => r.delay("fetchLabWork", 1));
+    }
+
+    produce(type: ResourceConstant, amount: number, noBuffer: boolean) {
+        if (LAB_RECIPE[type]) {
+            this.labQueueBuffer[type] ||= 0;
+            this.labQueueBuffer[type] += amount;
+            this.product.add(type, amount);
+            if (this.labQueueBuffer[type] >= cfg.TERMINAL_EXPORT_AMOUNT || noBuffer) {
+                this.produceCompound(type, this.labQueueBuffer[type], true);
+                this.labQueueBuffer[type] = 0;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    produceBook() {
+        this.book.forIn((amount, res) => {
+            let req = -this.free(res);
+            if (req > 0) global.produce(res, req);
+        })
     }
 }
 
-global.resetResource = (roomName: string) => {
-    let room = myRooms[roomName];
-    room.resource.produce = {
-        [room.structures.mineral.mineralType]: true
-    };
-    room.resource.reserve = {
-        XUH2O: cfg.ROOM_RESERVE_T3,
-        XKH2O: cfg.ROOM_RESERVE_T3,
-        XKHO2: cfg.ROOM_RESERVE_T3,
-        XLH2O: cfg.ROOM_RESERVE_T3,
-        XLHO2: cfg.ROOM_RESERVE_T3,
-        XZH2O: cfg.ROOM_RESERVE_T3,
-        XZHO2: cfg.ROOM_RESERVE_T3,
-        XGHO2: cfg.ROOM_RESERVE_T3,
-        G: cfg.ROOM_RESERVE_T3,
-        ops: cfg.ROOM_RESERVE_OPS
-    };
-    room.resource.import = {};
-    room.resource.export = {
-        [room.structures.mineral.mineralType]: 10000
-    };
-    room.resource.lock = {};
-}
+const globalStore = new SectionStore();
+global.store = globalStore;
 
 Memory.labQueueBuffer ||= {};
 
-global.produce = (type: ResourceConstant, amount: number, noBuffer: boolean) => {
-    if (LAB_RECIPE[type]) {
-        Memory.labQueueBuffer[type] ||= 0;
-        Memory.labQueueBuffer[type] += amount;
-        global.store.productLock[type] ||= 0;
-        global.store.productLock[type] += amount;
-        if (Memory.labQueueBuffer[type] >= cfg.LAB_CLEAR_THRESHOLD || noBuffer) {
-            produceCompound(type, Memory.labQueueBuffer[type], true);
-            delete Memory.labQueueBuffer[type];
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
+global.produce = globalStore.produce.bind(globalStore);

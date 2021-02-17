@@ -114,7 +114,7 @@ export function runPowerCarrier(creep: Creep) {
                 moveCreepTo(creep, storage);
             } else {
                 creep.transfer(storage, RESOURCE_POWER);
-                room.logStore(RESOURCE_POWER, creep.store.getUsedCapacity(RESOURCE_POWER));
+                room.storeCurrent.add(RESOURCE_POWER, creep.store.power);
                 creep.suicide();
             }
         }
