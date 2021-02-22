@@ -330,7 +330,7 @@ function doMoveCreepToRoom(creep: AnyCreep, room: string) {
     if (!creep.exitInfo || creep.exitInfo.target != room || !creep.exitInfo.route) {
         if (!reFindPath()) return;
     }
-    if (creep.exitInfo.exitPos?.roomName != creep.room.name) {
+    if (!creep.exitInfo.exitPos || creep.exitInfo.exitPos.roomName != creep.room.name) {
         if (creep.exitInfo.route == ERR_NO_PATH) return;
         let exit = creep.exitInfo.route.shift();
         let exits = Game.map.describeExits(creep.room.name);
@@ -338,7 +338,7 @@ function doMoveCreepToRoom(creep: AnyCreep, room: string) {
             if (!reFindPath()) return;
             exit = creep.exitInfo.route.shift();
         }
-        creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit);
+        creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit, { ignoreCreeps: true });
     }
     doMoveCreepTo(creep, { pos: creep.exitInfo.exitPos });
 }

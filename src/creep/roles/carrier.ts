@@ -1,22 +1,7 @@
 import { RoomInfo } from "room/roomInfo";
 import { moveCreepTo } from "creep/movement";
 import { whereToGet, whereToPut } from "./manager";
-
-function selectRefillTarget(creep: Creep, room: RoomInfo) {
-    let target = "";
-    let dis = Infinity;
-    for (const id in room.refillTargets) {
-        if (room.refillTargets[id] == 0) {
-            continue;
-        }
-        const cur = (Game.getObjectById(id) as RoomObject).pos.getRangeTo(creep);
-        if (cur < dis) {
-            dis = cur;
-            target = id;
-        }
-    }
-    return target;
-}
+import { LAB_RECIPE } from "utils/constants";
 
 export function goRefill(creep: Creep, room: RoomInfo) {
     let refilled = false;
@@ -98,29 +83,94 @@ interface CarrierMemory extends CreepMemory {
      * - pickToFill: 从 storage 或 terminal 取货，target 是要放入的对象，需要有 amount 参数
      * - idle: 闲置
      */
-    state: "pick" | "fill" | "refill" | "pickToFill" | "idle",
-    /** 没有 type 表示取走或放下所有资源 */
+    state: "pick" | "fill" | "refill" | "pickToFill" | "idle" | "return",
+    /** pick 时可选, fill 可选, pickToFill 必选 */
     type?: ResourceConstant,
     amount?: number
 }
 
+function getPickTask(room: RoomInfo): { id: string, type?: ResourceConstant } {
+    const labInfo = room.state.lab;
+    for (let i = 0; i < room.structures.labs.input.length; i++) {
+        const lab = room.structures.labs.input[i];
+        if (labInfo.remain <= 0) {
+            if (lab.mineralType)
+                return { id: lab.id, type: lab.mineralType };
+        } else {
+            let recipe = LAB_RECIPE[labInfo.product][i];
+            if (lab.mineralType && lab.mineralType != recipe) {
+                return { id: lab.id, type: lab.mineralType };
+            }
+        }
+    }
+
+    for (let i = 0; i < room.structures.labs.output.length; i++) {
+        const lab = room.structures.labs.output[i];
+        if (i < labInfo.boost.length) {
+            let res = labInfo.boost[i].type;
+            if (lab.mineralType && lab.mineralType != res) {
+                return { id: lab.id, type: lab.mineralType };
+            }
+        } else {
+            if (labInfo.remain <= 0) {
+                if (lab.mineralType)
+                    return { id: lab.id, type: lab.mineralType };
+            } else {
+                if (lab.mineralType && lab.mineralType != labInfo.product) {
+                    return { id: lab.id, type: lab.mineralType };
+                } else if (lab.store[lab.mineralType] >= 800) {
+                    return { id: lab.id, type: lab.mineralType };
+                }
+            }
+        }
+    }
+
+    if (room.structures.mineralContainer?.store.tot() > 1000) {
+        return { id: room.structures.mineralContainer.id };
+    }
+
+    return null;
+}
+
+function getFillTask(room: RoomInfo): { id: string, type: ResourceConstant, amount: number } {
+    function hasRes(res: ResourceConstant) {
+        return (room.structures.storage?.store[res] || 0) + (room.structures.terminal?.store[res] || 0) > 0;
+    }
+    const labInfo = room.state.lab;
+    for (let i = 0; i < room.structures.labs.input.length; i++) {
+        const lab = room.structures.labs.input[i];
+        if (labInfo.remain > 0) {
+            let recipe = LAB_RECIPE[labInfo.product][i];
+            if (!lab.mineralType || lab.mineralType == recipe) {
+                const amount = labInfo.remain - lab.store[recipe];
+                if ((amount > 1000 || labInfo.remain < 1000 && amount > 0) && hasRes(recipe))
+                    return { id: lab.id, type: recipe, amount };
+            }
+        }
+    }
+
+    for (let i = 0; i < room.structures.labs.output.length; i++) {
+        const lab = room.structures.labs.output[i];
+        if (i < labInfo.boost.length) {
+            let res = labInfo.boost[i].type;
+            if (!lab.mineralType || lab.mineralType == res) {
+                const amount = labInfo.boost[i].amount - lab.store[res];
+                if (amount > 0 && hasRes(res))
+                    return { id: lab.id, type: res, amount };
+            }
+        } else break;
+    }
+
+    return null;
+}
+
 function nextCarrierAction(creep: Creep, room: RoomInfo) {
     const m = creep.memory as CarrierMemory;
-    const storage = room.structures.storage;
-    const terminal = room.structures.terminal;
 
     // 装满了
-    if (m.type && creep.store.free() <= 100) {
-        m.target = whereToPut(room, m.type).id;
+    if (creep.store.free() <= 100) {
         m.type = null;
-        m.state = "fill";
-        creep.say("🔙")
-        return;
-    }
-    // 无类型的取货任务直接返回，也可能是才填过 extension 的情况
-    if (!m.type && creep.store.tot()) {
-        m.target = room.structures.storage.id;
-        m.state = "fill";
+        m.state = "return";
         creep.say("🔙")
         return;
     }
@@ -134,59 +184,29 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
         return;
     }
 
-    // 取货任务，尝试取同种货物
-    if (m.type) {
-        const target = _.find(room.moveOutReqs, i => {
-            if (i.center) return false;
-            if (i.type != m.type) return false;
-            let s = Game.getObjectById(i.id) as AnyStoreStructure;
-            return s?.store[i.type] > i.max;
-        });
-        if (target) {
-            // 还有同种类型的取货任务
-            m.target = target.id;
-            m.state = "pick";
-            creep.say("🚚")
-            return;
-        } else {
-            // 没有了，放回去
-            m.target = whereToPut(room, m.type).id;
-            m.type = null;
-            m.state = "fill";
-            creep.say("🔙")
-            return;
-        }
-    }
-
     // 尝试获取新的取货任务
-    const pickTask = _.find(room.moveOutReqs, i => {
-        if (i.center) return false;
-        let s = Game.getObjectById(i.id) as AnyStoreStructure;
-        return i.type ? (s?.store[i.type] > i.max) : (s != null);
-    });
+    const pickTask = getPickTask(room);
     if (pickTask) {
         m.state = "pick";
         m.target = pickTask.id;
         m.type = pickTask.type;
         creep.say("🚚")
         return;
+    } else if (creep.store.tot()) {
+        m.type = null;
+        m.state = "return";
+        creep.say("🔙");
     }
 
     // 执行装填任务
-    const pickToFillTask = _.find(room.moveInReqs, i => {
-        if (i.center) return false;
-        if (i.remain <= 0) return false;
-        if (storage.store[i.type] + terminal.store[i.type] <= 0) return false;
-        const s = Game.getObjectById(i.id) as AnyStoreStructure;
-        return s.store[i.type] < i.min;
-    });
+    const pickToFillTask = getFillTask(room);
     if (pickToFillTask) {
         m.state = "pickToFill";
         creep.say("🧱");
         m.type = pickToFillTask.type;
         m.target = pickToFillTask.id;
         const s = Game.getObjectById(pickToFillTask.id) as AnyStoreStructure;
-        m.amount = Math.min((pickToFillTask.max ?? s.store.cap(m.type)) - s.store[m.type], pickToFillTask.remain);
+        m.amount = pickToFillTask.amount;
         return;
     }
 }
@@ -198,8 +218,27 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
     }
     switch (m.state) {
         case "refill":
-            if (!runRefiller(creep, room)) m.state = "idle";
+            if (!runRefiller(creep, room)) m.state = "return";
             break;
+        case "return": {
+            if (!m.type || !creep.store[m.type])
+                m.type = _.findKey(creep.store) as ResourceConstant;
+            if (!m.type) {
+                m.state = "idle";
+                break;
+            }
+            const s = whereToPut(room, m.type);
+            if (creep.goTo(s)) {
+                const amount = Math.min(creep.store[m.type], s.store.free(m.type));
+                creep.transfer(s, m.type, amount);
+                if (amount == creep.store.tot()) {
+                    m.state = "idle";
+                } else if (amount == creep.store[m.type]) {
+                    m.type = null;
+                }
+            }
+            break;
+        }
         case "fill": {
             const s = Game.getObjectById(m.target) as AnyStoreStructure;
             if (!s) {
@@ -210,11 +249,6 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
                 if (m.type) {
                     const amount = Math.min(creep.store[m.type], s.store.free(m.type));
                     creep.transfer(s, m.type, amount);
-                    let req = _.find(room.moveInReqs, i => i.id == s.id && i.type == m.type);
-                    if (req) {
-                        req.remain -= amount;
-                        if (req.remain <= 0) _.pull(room.moveInReqs, req);
-                    }
                     m.type = null;
                     m.state = "idle";
                 } else {
@@ -236,19 +270,13 @@ export function runCarrier(creep: Creep, room: RoomInfo) {
                 if (m.type) {
                     const amount = Math.min(creep.store.free(m.type), s.store[m.type]);
                     creep.withdraw(s, m.type, amount);
-                    if (amount == s.store[m.type]) {
-                        _.remove(room.moveOutReqs, i => i.id == s.id && i.type == m.type && i.max == 0);
-                    }
                     m.state = "idle";
                 } else {
                     const type = _.findKey(s.store) as ResourceConstant;
                     if (!type) { m.state = "idle"; break; }
                     const amount = Math.min(creep.store.free(type), s.store[type]);
                     creep.withdraw(s, type, amount);
-                    if (amount == s.store.tot()) {
-                        m.state = "idle"
-                        _.remove(room.moveOutReqs, i => i.id == s.id);
-                    };
+                    if (amount == s.store.tot()) m.state = "idle";
                 }
             }
             break;

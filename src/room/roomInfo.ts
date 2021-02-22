@@ -309,9 +309,6 @@ export class RoomInfo {
     storeBook: StoreRegister;
     incomingProduct: StoreRegister;
 
-    // 鉴于房间内搬运请求不会超过 20 个，Array 应当不会太影响查找性能，但是更好写
-    moveInReqs: { id: string, type: ResourceConstant, remain: number, min: number, max?: number, center?: boolean }[] = [];
-    moveOutReqs: { id: string, type?: ResourceConstant, max?: number, center?: boolean }[] = [];
     /**
      * 预定一定量资源，若房间内不够则尝试从各处调配
      * @param res 资源种类
@@ -340,47 +337,6 @@ export class RoomInfo {
     public logProduce(res: ResourceConstant, amount: number) {
         this.storeCurrent.add(res, amount);
         this.incomingProduct.add(res, -amount);
-    }
-
-    /**
-     * 要求将一定总量的资源放入该建筑（默认只使用房间内的资源，如果允许调货，单独使用 `bookResource`）
-     *
-     * 会覆盖同种建筑同种资源的请求
-     * @param s 要放入的建筑
-     * @param res 资源种类
-     * @param amount 总共还需要消耗的量（不包括建筑内该资源的现有量）
-     * @param minAmount 补充的最小限额。当建筑内该资源大于此量时，暂缓补货。剩余补充量少于该参数时忽略该参数
-     * @param maxAmount 该资源最多占用多少空间
-     */
-    public putToStructure(s: AnyStoreStructure, res: ResourceConstant, amount: number, minAmount = 1000, maxAmount?: number) {
-        if (amount <= 0) return;
-        let cur = _.find(this.moveInReqs, { id: s.id, type: res });
-        let req = { id: s.id, type: res, remain: amount, min: minAmount, max: maxAmount, center: s.structureType in CENTER_STRUCTURES };
-        if (cur) {
-            _.assign(cur, req);
-        } else {
-            this.moveInReqs.push(req);
-        }
-        _.remove(this.moveOutReqs, i => i.id == s.id && i.type == res);
-    }
-
-    /**
-     * 要求从该建筑中取出产品（产品在产出时就应该用 `logProduce` 登记）
-     *
-     * 会覆盖同种建筑同种资源的请求
-     * @param s 要取出的建筑
-     * @param res 资源种类
-     * @param keepAmount 允许缓存此量资源. 为 0 立即全部取出，并删除此项任务.
-     */
-    public pickFromStructure(s: AnyStoreStructure, res?: ResourceConstant, maxAmount = 1000) {
-        let cur = _.find(this.moveOutReqs, { id: s.id, type: res });
-        let req = { id: s.id, type: res, max: maxAmount, center: s.structureType in CENTER_STRUCTURES };
-        if (cur) {
-            _.assign(cur, req);
-        } else {
-            this.moveOutReqs.push(req);
-        }
-        _.remove(this.moveInReqs, i => i.id == s.id && i.type == res);
     }
 
     public get energy() {

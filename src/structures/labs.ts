@@ -38,6 +38,9 @@ function runLabs(room: RoomInfo) {
                         reactionDone(room);
                         return;
                     }
+                } else if (info.remain <= amount) {
+                    reactionDone(room);
+                    return;
                 }
             }
         }
@@ -55,31 +58,11 @@ function loadLabRequirement(room: RoomInfo) {
     const recipe = LAB_RECIPE[info.product];
     if (info.remain) {
         for (let i = 0; i < 2; i++) {
-            let lab = labs.input[i];
-            if (lab.mineralType && lab.mineralType != recipe[i]) room.pickFromStructure(lab, lab.mineralType, 0);
-            room.putToStructure(lab, recipe[i], info.remain - lab.store[recipe[i]], 2000);
             room.bookResource(recipe[i], info.remain);
         }
         room.incomingProduct.add(info.product, info.remain);
-        for (let i = 0; i < outputLabs.length; i++) {
-            let lab = outputLabs[i];
-            if (lab.mineralType && lab.mineralType != info.product) room.pickFromStructure(lab, lab.mineralType, 0);
-            room.pickFromStructure(lab, info.product, 1000);
-        }
-        // @ts-ignore
-        let cooldown: number = REACTION_TIME[info.product];
-        room.delay("runLabs", cooldown);
-    } else {
-        labs.input.forEach(l => {
-            if (l.mineralType)
-                room.pickFromStructure(l, l.mineralType, 0)
-        });
-        outputLabs.forEach(l => {
-            if (l.mineralType)
-                room.pickFromStructure(l, l.mineralType, 0)
-        });
     }
-
+    
     room.delay("runLabs");
 }
 
@@ -117,11 +100,12 @@ function fetchLabWork(room: RoomInfo) {
         return false;
     }
     const info = room.state.lab;
-    let next = info.queue.shift();
+    let next = info.queue?.shift();
     if (!next) {
-        info.queue = Memory.labQueue.shift();
-        if (info.queue) Logger.info(`Room ${room.name} takes lab task group: ${_.last(info.queue).amount} * ${_.last(info.queue).product}`);
-        next = info.queue?.shift();
+        info.queue = Memory.labQueue.shift() || [];
+        if (info.queue.length)
+            Logger.info(`Room ${room.name} takes lab task group: ${_.last(info.queue).amount} * ${_.last(info.queue).product}`);
+        next = info.queue.shift();
     }
     if (next) {
         info.product = next.product;
@@ -154,20 +138,8 @@ function runLabBoost(room: RoomInfo) {
     const labs = room.structures.labs;
     const labsForBoost = _.take(labs.output, info.boost.length);
     if ('boostExpires' in info && info.boostExpires < Game.time) {
-        labsForBoost.forEach(l => {
-            if (l.mineralType)
-                room.pickFromStructure(l, l.mineralType, 0)
-        });
         info.boost = [];
         delete info.boostExpires;
-    }
-    for (let i = 0; i < labsForBoost.length; i++) {
-        let lab = labsForBoost[i];
-        if (lab.store.free("energy") > 1000) {
-            room.putToStructure(lab, "energy", 1000, 0);
-        }
-        if (lab.mineralType && lab.mineralType != info.boost[i].type) room.pickFromStructure(lab, lab.mineralType, 0);
-        room.putToStructure(lab, info.boost[i].type, info.boost[i].amount - lab.store[info.boost[i].type]);
     }
     if (labsForBoost.length > 0) room.delay("runBoost");
 }

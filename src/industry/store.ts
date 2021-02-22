@@ -108,9 +108,9 @@ export class SectionStore {
     }
 
     produceCompound(product: ResourceConstant, amount: number, fromBuffer?: boolean) {
-        while (amount >= cfg.TERMINAL_EXPORT_AMOUNT * 2) {
-            amount -= cfg.TERMINAL_EXPORT_AMOUNT;
-            Memory.labQueue.push(this.getCompoundTask(product, cfg.TERMINAL_EXPORT_AMOUNT, fromBuffer));
+        while (amount >= cfg.LAB_REACTION_AMOUNT * 2) {
+            amount -= cfg.LAB_REACTION_AMOUNT;
+            Memory.labQueue.push(this.getCompoundTask(product, cfg.LAB_REACTION_AMOUNT, fromBuffer));
         }
         if (amount > 0) this.labQueue.push(this.getCompoundTask(product, amount, fromBuffer));
         this.rooms.forEach(r => r.delay("fetchLabWork", 1));
@@ -121,7 +121,7 @@ export class SectionStore {
             this.labQueueBuffer[type] ||= 0;
             this.labQueueBuffer[type] += amount;
             this.product.add(type, amount);
-            if (this.labQueueBuffer[type] >= cfg.TERMINAL_EXPORT_AMOUNT || noBuffer) {
+            if (this.labQueueBuffer[type] >= cfg.LAB_REACTION_AMOUNT || noBuffer) {
                 this.produceCompound(type, this.labQueueBuffer[type], true);
                 this.labQueueBuffer[type] = 0;
             }
