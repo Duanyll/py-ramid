@@ -30,9 +30,9 @@ function runLabs(room: RoomInfo) {
                 if (lab.runReaction(input0, input1) == OK) {
                     inputAmount -= amount;
                     info.remain -= amount;
-                    room.logConsume(recipe[0], amount, true);
-                    room.logConsume(recipe[1], amount, true);
-                    room.logProduce(info.product, amount);
+                    room.storeCurrent.add(recipe[0], -amount);
+                    room.storeCurrent.add(recipe[1], -amount);
+                    room.storeCurrent.add(info.product, amount);
 
                     if ((info.allowPower && info.remain <= 10) || info.remain <= 0) {
                         reactionDone(room);
@@ -50,44 +50,17 @@ function runLabs(room: RoomInfo) {
     }
 }
 
-function loadLabRequirement(room: RoomInfo) {
-    if (room.structRcl < 6) return;
-    const info = room.state.lab;
-    const labs = room.structures.labs;
-    const outputLabs = _.drop(labs.output, info.boost.length);
-    const recipe = LAB_RECIPE[info.product];
-    if (info.remain) {
-        for (let i = 0; i < 2; i++) {
-            room.bookResource(recipe[i], info.remain);
-        }
-        room.incomingProduct.add(info.product, info.remain);
-    }
-    
-    room.delay("runLabs");
-}
-
 registerRoomRoutine({
     id: "runLabs",
     dependsOn: ["countStore"],
-    init: (room) => {
-        loadLabRequirement(room);
-        room.state.lab.queue.forEach(i => {
-            room.storeSection.product.add(i.product, i.amount);
-            LAB_RECIPE[i.product].forEach(r => room.storeSection.book.add(r, i.amount));
-        })
-    },
     invoke: runLabs
 });
 
 function reactionDone(room: RoomInfo) {
     let info = room.state.lab;
     Logger.info(`${room.name} reaction done. `);
-    _.forEach(LAB_RECIPE[info.product], r => {
-        room.storeBook.add(r as ResourceConstant, -info.remain);
-    })
-    room.incomingProduct.add(info.product, -info.remain);
     info.remain = 0;
-    if (!fetchLabWork(room)) loadLabRequirement(room);
+    fetchLabWork(room);
 }
 
 function fetchLabWork(room: RoomInfo) {
@@ -112,10 +85,7 @@ function fetchLabWork(room: RoomInfo) {
         info.remain = next.amount;
         info.total = next.amount;
         Logger.info(`Room ${room.name} takes lab task: ${info.total} * ${info.product}`);
-        room.storeSection.product.add(info.product, -info.remain);
-        LAB_RECIPE[info.product].forEach(r => room.storeSection.book.add(r, -info.remain));
         if (room.powerAvaliable[PWR_OPERATE_LAB]) room.state.lab.allowPower = true;
-        loadLabRequirement(room);
         room.delay("runLabs", 1);
         return true;
     } else {
@@ -127,10 +97,6 @@ registerRoomRoutine({
     dependsOn: ["countStore"],
     invoke: fetchLabWork
 });
-
-function initLabBoost(room: RoomInfo) {
-    room.state.lab.boost.forEach(i => room.bookResource(i.type, i.amount));
-}
 
 function runLabBoost(room: RoomInfo) {
     if (room.structRcl < 6) return;
@@ -146,7 +112,6 @@ function runLabBoost(room: RoomInfo) {
 registerRoomRoutine({
     id: "runBoost",
     dependsOn: ["countStore"],
-    init: initLabBoost,
     invoke: runLabBoost
 });
 

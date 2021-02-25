@@ -3,36 +3,6 @@ import { RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 import { CENTER_STRUCTURES } from "utils/constants";
 
-export function whereToPut(room: RoomInfo, res: ResourceConstant) {
-    const storage = room.structures.storage;
-    const terminal = room.structures.terminal;
-    if (!terminal) return storage;
-    if (res != RESOURCE_ENERGY) {
-        const reserveAmount = room.resource.reserve[res] ?? 0;
-        if (storage.store[res] < reserveAmount) return storage;
-        const exportAmount = room.resource.export[res] || cfg.TERMINAL_EXPORT_AMOUNT;
-        if (terminal.store[res] < exportAmount) return terminal;
-        return storage;
-    } else {
-        if (storage.store.energy < cfg.ENERGY.LOW) return storage;
-        if (terminal.store.energy < cfg.ENERGY.TERMINAL) return terminal;
-        return storage;
-    }
-}
-
-export function whereToGet(room: RoomInfo, res: ResourceConstant) {
-    const storage = room.structures.storage;
-    const terminal = room.structures.terminal;
-    if (res == RESOURCE_ENERGY) return storage;
-    if (!terminal || terminal.store[res] <= 0) return storage.store[res] ? storage : undefined;
-    const reserveAmount = room.resource.reserve[res] ?? 0;
-    if (storage.store[res] > reserveAmount) {
-        return storage;
-    } else {
-        return terminal;
-    }
-}
-
 let lastStorageScannedTime: { [room: string]: number } = {};
 
 const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: number) =>
@@ -50,13 +20,12 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
         (room, storage) => {
             if (!lastStorageScannedTime[room.name] || Game.time - lastStorageScannedTime[room.name] > 20) {
                 const terminal = room.structures.terminal;
-                const resInfo = room.resource;
                 // 先把资源从 terminal 放进 storage 里(reserve 或超过了 export 的量)
                 const storageAmount = (res: ResourceConstant) => Math.min(
                     terminal.store.getUsedCapacity(res),
                     Math.max(
-                        (resInfo.reserve[res] || 0) - storage.store.getUsedCapacity(res),
-                        (terminal.store.getUsedCapacity(res) - (resInfo.export[res] || cfg.TERMINAL_EXPORT_AMOUNT))
+                        room.getReserve(res) - storage.store.getUsedCapacity(res),
+                        (terminal.store.getUsedCapacity(res) - room.getExport(res))
                     )
                 )
                 for (const res in terminal.store) {
@@ -74,8 +43,8 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
 
                 // 再从 storage 给 terminal 补货
                 const terminalAmount = (res: ResourceConstant) => Math.min(
-                    storage.store.getUsedCapacity(res) - (resInfo.reserve[res] || 0),
-                    (resInfo.export[res] || cfg.TERMINAL_EXPORT_AMOUNT) - terminal.store.getUsedCapacity(res),
+                    storage.store.getUsedCapacity(res) - room.getReserve(res),
+                    room.getExport(res) - terminal.store.getUsedCapacity(res),
                 );
                 for (const res in storage.store) {
                     if (res == RESOURCE_ENERGY) continue;
@@ -140,70 +109,76 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
             return false;
         },
         (room, storage) => {
-            if (room.structures.nuker?.store.getUsedCapacity(RESOURCE_GHODIUM) < NUKER_GHODIUM_CAPACITY
-                && storage.store.getUsedCapacity(RESOURCE_GHODIUM) > 0) {
-                return {
-                    from: storage,
-                    to: room.structures.nuker,
-                    type: RESOURCE_GHODIUM
-                }
+            if (room.structures.nuker?.store.getUsedCapacity(RESOURCE_GHODIUM) < NUKER_GHODIUM_CAPACITY) {
+                let s = room.whereToGet("G")
+                if (s)
+                    return {
+                        from: s,
+                        to: room.structures.nuker,
+                        type: RESOURCE_GHODIUM
+                    }
             }
             return false;
         },
         (room, storage) => {
-            if (room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_POWER) >= 80)
-                if (storage.store.getUsedCapacity(RESOURCE_POWER) > 0) {
-                    room.delay("runPowerSpawn", 2);
+            if (room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_POWER) >= 80) {
+                let s = room.whereToGet("power")
+                if (s)
                     return {
-                        from: storage,
+                        from: s,
                         to: room.structures.powerSpawn,
-                        type: RESOURCE_POWER
+                        type: "power"
                     }
-                } else if (room.structures.terminal.store.getUsedCapacity(RESOURCE_POWER) > 0) {
-                    room.delay("runPowerSpawn", 2);
-                    return {
-                        from: room.structures.terminal,
-                        to: room.structures.powerSpawn,
-                        type: RESOURCE_POWER
-                    }
-                }
+            }
             return false;
         },
         (room, storage, capacity) => {
             const factory = room.structures.factory;
             if (!factory) return false;
-            for (const res in factory.store) {
-                const amount = factory.store[res as ResourceConstant];
-                if (!(room.factoryRequests[res as ResourceConstant])) {
-                    if (amount > capacity || res != room.state.factory.product) {
+            const info = room.state.factory;
+
+            if (info.remain > 0) {
+                const recipe = COMMODITIES[info.product as CommodityConstant];
+                for (const r in factory.store) {
+                    if (r in recipe.components) continue;
+                    if (r == info.product && factory.store[r as ResourceConstant] < cfg.FACTORY_COMPONENT_AMOUNT) continue;
+                    const s = room.whereToPut(r as ResourceConstant);
+                    if (s) {
                         return {
                             from: factory,
-                            to: storage,
-                            type: res as ResourceConstant
+                            to: s,
+                            type: r as ResourceConstant
+                        }
+                    }
+                }
+            } else {
+                for (const r in factory.store) {
+                    const s = room.whereToPut(r as ResourceConstant);
+                    if (s) {
+                        return {
+                            from: factory,
+                            to: s,
+                            type: r as ResourceConstant
                         }
                     }
                 }
             }
-            for (const r in room.factoryRequests) {
-                const res = r as ResourceConstant;
-                if (factory.store[res] >= cfg.FACTORY_COMPONENT_AMOUNT) continue;
-                if (storage.store[res] > 0) {
-                    const amount = Math.min(capacity, storage.store[res], room.factoryRequests[res]);
-                    room.factoryRequests[res] -= amount;
-                    return {
-                        from: storage,
-                        to: factory,
-                        type: res,
-                        amount
-                    }
-                } else if (room.structures.terminal?.store[res] > 0) {
-                    const amount = Math.min(capacity, room.structures.terminal.store[res], room.factoryRequests[res]);
-                    room.factoryRequests[res] -= amount;
-                    return {
-                        from: room.structures.terminal,
-                        to: factory,
-                        type: res,
-                        amount
+
+            if (info.remain > 0) {
+                const recipe = COMMODITIES[info.product as CommodityConstant];
+                for (const r in recipe.components) {
+                    const remain = (recipe.components as any)[r] * _.ceil(info.remain - recipe.amount);
+                    const transfer = Math.min(remain, cfg.FACTORY_COMPONENT_AMOUNT) - factory.store[r as ResourceConstant];
+                    if (transfer >= capacity || transfer > 0 && remain < cfg.FACTORY_COMPONENT_AMOUNT) {
+                        const s = room.whereToGet(r as ResourceConstant);
+                        if (s) {
+                            return {
+                                from: s,
+                                to: factory,
+                                type: r as ResourceConstant,
+                                amount: transfer
+                            }
+                        }
                     }
                 }
             }

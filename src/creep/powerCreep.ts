@@ -116,7 +116,7 @@ function runOperator(pc: PowerCreep) {
             }
             break;
     }
-    if (storage.store.ops < cfg.ROOM_RESERVE_OPS
+    if (storage.store.ops < cfg.ROOM_RESERVE.ops
         && !pc.powerUsed
         && pc.powers[PWR_GENERATE_OPS]
         && !pc.powers[PWR_GENERATE_OPS].cooldown) {
@@ -141,7 +141,6 @@ global.assignPC = (name: string, room: string) => {
         global.reloadRoomsNextTick = true;
     }
     pc.memory.room = room;
-    myRooms[room].resource.reserve.ops = cfg.ROOM_RESERVE_OPS;
     myRooms[room].delay("checkPower", 1);
 }
 

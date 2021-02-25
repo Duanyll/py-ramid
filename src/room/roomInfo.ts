@@ -4,7 +4,7 @@ import Logger from "utils";
 import cfg from "config";
 import { roleBodies } from "creep/body";
 import { StoreRegister } from "utils/storeRegister";
-import { CENTER_STRUCTURES } from "utils/constants";
+import { CENTER_STRUCTURES, LAB_RECIPE } from "utils/constants";
 
 export interface RoomRoutineConfig {
     id: RoomRoutineType;
@@ -90,10 +90,6 @@ export class RoomInfo {
 
     public get design() {
         return this.detail.memory.design;
-    }
-
-    public get resource() {
-        return this.detail.memory.resource;
     }
 
     public get structRcl() {
@@ -255,10 +251,7 @@ export class RoomInfo {
                 factory: {
                     level: 0,
                 },
-            },
-            resource: {
-                reserve: {},
-                export: {},
+                powerToProcess: 0
             }
         } as RoomMemory)
         this.helperRoom = this.detail.memory.helperRoom;
@@ -306,37 +299,95 @@ export class RoomInfo {
 
     storeSection: typeof global.store; // 防止循环引用
     storeCurrent: StoreRegister;
-    storeBook: StoreRegister;
-    incomingProduct: StoreRegister;
 
-    /**
-     * 预定一定量资源，若房间内不够则尝试从各处调配
-     * @param res 资源种类
-     * @param amount 要增加预定的量
-     */
-    public bookResource(res: ResourceConstant, amount: number) {
-        this.storeBook.add(res, amount);
+    getReserve(res: ResourceConstant): number;
+    getReserve(): Partial<Record<ResourceConstant, number>>;
+    getReserve(res?: ResourceConstant) {
+        if (res) {
+            return cfg.ROOM_RESERVE[res] ?? 0;
+        } else {
+            return cfg.ROOM_RESERVE;
+        }
     }
 
-    /**
-     * 登记消耗的资源
-     * @param res 资源种类
-     * @param amount 正数，当前操作一次消耗的量
-     * @param booked 是否预定过本次消耗的资源（其实没有预定也不需要登记消耗）
-     */
-    public logConsume(res: ResourceConstant, amount: number, booked = true) {
-        this.storeCurrent.add(res, -amount);
-        if (booked) this.storeBook.add(res, -amount);
+    getExport(res: ResourceConstant): number {
+        if (res == this.structures.mineral.mineralType) return cfg.TERMINAL_EXPORT_MINERAL;
+        if (res == RESOURCE_ENERGY) return cfg.ENERGY.TERMINAL;
+        return cfg.TERMINAL_EXPORT_DEFAULT;
     }
 
-    /**
-     * 登记产出的资源
-     * @param res 资源种类
-     * @param amount 正数，产出资源的量
-     */
-    public logProduce(res: ResourceConstant, amount: number) {
-        this.storeCurrent.add(res, amount);
-        this.incomingProduct.add(res, -amount);
+    whereToPut(res: ResourceConstant) {
+        const storage = this.structures.storage;
+        const terminal = this.structures.terminal;
+        if (!terminal) return storage;
+        if (res != RESOURCE_ENERGY) {
+            const reserveAmount = this.getReserve(res);
+            if (storage.store[res] < reserveAmount) return storage;
+            const exportAmount = this.getExport(res);
+            if (terminal.store[res] < exportAmount) return terminal;
+            return storage;
+        } else {
+            if (storage.store.energy < cfg.ENERGY.LOW) return storage;
+            if (terminal.store.energy < cfg.ENERGY.TERMINAL) return terminal;
+            return storage;
+        }
+    }
+
+    whereToGet(res: ResourceConstant) {
+        const storage = this.structures.storage;
+        const terminal = this.structures.terminal;
+        if (res == RESOURCE_ENERGY) return storage;
+        if (!terminal || terminal.store[res] <= 0) return storage.store[res] ? storage : undefined;
+        const reserveAmount = this.getReserve(res);
+        if (storage.store[res] > reserveAmount) {
+            return storage;
+        } else {
+            return terminal;
+        }
+    }
+
+    private _storeBook: StoreRegister;
+    private _storeBookUpd: number;
+    private createStoreBook() {
+        this._storeBook = new StoreRegister();
+
+        // reserve
+        _.forIn(this.getReserve(), (amount, res) => this._storeBook.add(res as ResourceConstant, amount));
+
+        // lab
+        const labTask = (res: ResourceConstant, amount: number) => {
+            LAB_RECIPE[res].forEach(r => this._storeBook.add(r, amount));
+            this._storeBook.add(res, -amount);
+        }
+        if (this.state.lab.remain) {
+            labTask(this.state.lab.product, this.state.lab.remain);
+        }
+        this.state.lab.queue.forEach(i => labTask(i.product, i.amount));
+
+        // boost
+        this.state.lab.boost.forEach(i => this._storeBook.add(i.type, i.amount));
+
+        // powerSpawn
+        this._storeBook.add("power", this.state.powerToProcess);
+
+        // factory
+        const factoryTask = (res: ResourceConstant, remain: number) => {
+            const recipe = COMMODITIES[res as CommodityConstant];
+            _.forIn(recipe.components, (amount, r) => {
+                this._storeBook.add(r as ResourceConstant, amount * _.ceil(remain / recipe.amount));
+            })
+            this._storeBook.add(res, remain);
+        }
+        if (this.state.factory.remain) {
+            factoryTask(this.state.factory.product, this.state.factory.remain);
+        }
+    }
+    public get storeBook() {
+        if (!this._storeBook || this._storeBookUpd != Game.time) {
+            this._storeBookUpd = Game.time;
+            this.createStoreBook();
+        }
+        return this._storeBook;
     }
 
     public get energy() {
@@ -368,7 +419,6 @@ export class RoomInfo {
         body.forEach(part => {
             if (part[2]) {
                 boostInfo.push(part[2]);
-                this.bookResource(part[2], LAB_BOOST_MINERAL * part[1]);
                 const x = _.find(this.state.lab.boost, { type: part[2] });
                 if (x) {
                     x.amount += LAB_BOOST_MINERAL * part[1];
@@ -411,8 +461,6 @@ export class RoomInfo {
             this.powerRequests[s.id] = { type: powerId, level };
         }
     }
-
-    factoryRequests: Partial<Record<ResourceConstant, number>> = {};
 }
 
 export let myRooms: { [name: string]: RoomInfo } = {}

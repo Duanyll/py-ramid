@@ -16,14 +16,6 @@ function runFactory(room: RoomInfo) {
             }
         }
 
-
-        // room.factoryRequests = {};
-        // _.forIn(recipe.components, (amount, r) => {
-        //     const res = r as ResourceConstant;
-        //     let req = _.ceil(amount * (info.remain / recipe.amount) - (factory.store[res]));
-        //     if (req > 0) room.factoryRequests[res] = req;
-        // });
-
         if (factory.cooldown) {
             room.delay("runFactory", factory.cooldown);
             return;
@@ -31,13 +23,12 @@ function runFactory(room: RoomInfo) {
 
         if (factory.produce(info.product as any) == OK) {
             info.remain -= recipe.amount;
-            if (info.needUnlock) {
-                _.forIn(recipe.components, (amount, r) => {
-                    const res = r as ResourceConstant;
-                    room.logConsume(res, amount, true);
-                });
-            }
-            room.logProduce(info.product, recipe.amount);
+            _.forIn(recipe.components, (amount, r) => {
+                const res = r as ResourceConstant;
+                if (res == "energy") return;
+                room.storeCurrent.add(res, -amount);
+            });
+            room.storeCurrent.add(info.product, recipe.amount);
             if (info.remain <= 0) {
                 info.remain = 0;
                 delete info.product;
@@ -64,7 +55,5 @@ function runFactory(room: RoomInfo) {
 registerRoomRoutine({
     id: "runFactory",
     dependsOn: ["countStore"],
-    // TODO: factory init
-    init: () => { },
     invoke: runFactory,
 });

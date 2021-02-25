@@ -118,6 +118,7 @@ interface RoomState {
     }
     chargeNuker: boolean,
     autoProcessPower: boolean,
+    powerToProcess: number,
     disableTower?: boolean,
 }
 
@@ -157,14 +158,6 @@ interface RoomDesignDetail {
     matrix: string[];
 }
 
-interface RoomResource {
-    // 在 storage 里长期储备垫底的资源
-    reserve: { [type: string]: number },
-    // 在 terminal 里面放置相应数量资源以供出口
-    export: { [type: string]: number },
-    // 这些资源已经被房间内的需求预定，不要出口
-}
-
 interface RoomMemory {
     tasks: {
         [name in RoomRoutineType]?: number;
@@ -180,6 +173,5 @@ interface RoomMemory {
             status: "disabled" | "waiting" | "building" | "working"
         }
     },
-    resource: RoomResource,
     sign?: string
 }

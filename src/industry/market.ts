@@ -98,14 +98,14 @@ function getOneSellOrder(type: ResourceConstant): Order {
 export function tryDealResource(terminal: StructureTerminal, res: ResourceConstant, myAmount: number) {
     let order = getOneBuyOrder(res);
     if (!order || order.amount <= 0) return false;
-    let dealAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, myAmount, order.amount);
+    let dealAmount = Math.min(cfg.TERMINAL_EXPORT_DEFAULT, myAmount, order.amount);
     let room = terminal.room.info;
     if (Game.market.deal(order.id, dealAmount, room.name) == OK) {
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} sold at price ${order.price}`);
         terminal.worked = true;
         orderCache[order.id].order.amount -= dealAmount;
         room.storeCurrent.add(res, -dealAmount);
-        let required = Memory.market.autoDeal[res].reserveAmount - global.store.free(res);
+        let required = -global.store.free(res);
         if (required > 0) global.produce(res, required);
         return true;
     } else {
@@ -149,7 +149,7 @@ global.autoBuy = (type: ResourceConstant, price: number | false, minAmount?: num
     } else {
         Memory.market.autoBuy[type] = {
             maxPrice: price,
-            minAmount: minAmount ?? cfg.TERMINAL_EXPORT_AMOUNT,
+            minAmount: minAmount ?? cfg.TERMINAL_EXPORT_DEFAULT,
             updateTime: 0,
             orders: []
         }

@@ -40,14 +40,14 @@ export function runTerminals() {
             continueToRun = true;
             let source = _.find(sourceTerminals[res], i => !i.terminal.worked && i.terminal.id != destTerminal.id);
             if (source) {
-                let transAmount = Math.min(cfg.TERMINAL_EXPORT_AMOUNT, importAmount, source.amount);
+                let transAmount = Math.min(cfg.TERMINAL_EXPORT_DEFAULT, importAmount, source.amount);
                 if (source.terminal.send(res as ResourceConstant, transAmount, dest.name) == OK) {
                     Logger.silly(`Send ${transAmount} * ${res} from ${source.terminal.room.name} to ${dest.name}`);
 
                     myRooms[source.terminal.room.name].storeCurrent.add(res, -transAmount);
                     dest.storeCurrent.add(res, transAmount);
                 }
-            } else {
+            } else if (Memory.market.enableAutoDeal) {
                 let buyInfo = Memory.market.autoBuy[res];
                 if (-global.store.free(res) >= buyInfo?.minAmount) {
                     tryBuyResource(destTerminal, res, importAmount);

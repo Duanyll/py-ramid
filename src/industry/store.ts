@@ -22,14 +22,8 @@ registerRoomRoutine({
         room.storeSection = globalStore;
         room.storeSection.rooms.push(room);
         room.storeCurrent = new StoreRegister(globalStore.current);
-        room.storeBook = new StoreRegister(globalStore.book);
-        room.incomingProduct = new StoreRegister(globalStore.product);
 
         updateRoomStore(room);
-
-        _.forIn(room.resource.reserve, (amount, res) => {
-            room.storeBook.add(res as ResourceConstant, amount);
-        })
     },
 
     invoke: (room) => {
@@ -38,7 +32,9 @@ registerRoomRoutine({
     }
 });
 
-registerGlobalRoutine("countStore", () => { });
+registerGlobalRoutine("countStore", () => {
+    globalStore.produceBook();
+ });
 
 /**
  * 统计一定范围内的资源储量
@@ -48,14 +44,39 @@ export class SectionStore {
      * 现有储量
      */
     current: StoreRegister;
+    _book: StoreRegister;
+    _bookUpd: number;
+    private createBook() {
+        this._book = new StoreRegister();
+
+        this.rooms.forEach(room => {
+            room.storeBook.forIn((amount, res) => this._book.add(res, amount));
+        })
+
+        this.labQueue.forEach(a => a.forEach(i => {
+            this._book.add(i.product, -i.amount);
+            LAB_RECIPE[i.product].forEach(r => this._book.add(r, i.amount));
+        }));
+        _.forIn(this.labQueueBuffer, (amount, type) => {
+            this._book.add(type as ResourceConstant, -amount);
+        })
+
+        if (Memory.market.enableAutoDeal) {
+            _.forIn(Memory.market.autoDeal, (info, res)=> {
+                this._book.add(res as ResourceConstant, info.reserveAmount);
+            })
+        }
+    }
     /**
      * 预定的将要消耗的储量
      */
-    book: StoreRegister;
-    /**
-     * 即将生成出来的储量
-     */
-    product: StoreRegister;
+    get book() {
+        if (!this._book || this._bookUpd != Game.time) {
+            this._bookUpd = Game.time;
+            this.createBook();
+        }
+        return this._book;
+    }
 
     parent: SectionStore;
     rooms: RoomInfo[] = [];
@@ -66,20 +87,10 @@ export class SectionStore {
     constructor(parent?: SectionStore) {
         this.parent = parent;
         this.current = new StoreRegister(parent?.current);
-        this.book = new StoreRegister(parent?.book);
-        this.product = new StoreRegister(parent?.product);
-
-        this.labQueue.forEach(a => a.forEach(i => {
-            this.product.add(i.product, i.amount);
-            LAB_RECIPE[i.product].forEach(r => this.book.add(r, i.amount));
-        }));
-        _.forIn(this.labQueueBuffer, (amount, type) => {
-            this.product.add(type as ResourceConstant, amount);
-        })
     }
 
     free(res: ResourceConstant) {
-        return this.current.get(res) + this.product.get(res) - this.book.get(res);
+        return this.current.get(res) - this.book.get(res);
     }
 
     flushBuffer() {
@@ -101,7 +112,7 @@ export class SectionStore {
             this.book.add(r, amount);
         });
         if (!fromBuffer) {
-            this.product.add(product, amount);
+            this.book.add(product, -amount);
         }
         queue.push({ product, amount });
         return queue;
@@ -120,7 +131,7 @@ export class SectionStore {
         if (LAB_RECIPE[type]) {
             this.labQueueBuffer[type] ||= 0;
             this.labQueueBuffer[type] += amount;
-            this.product.add(type, amount);
+            this.book.add(type, -amount);
             if (this.labQueueBuffer[type] >= cfg.LAB_REACTION_AMOUNT || noBuffer) {
                 this.produceCompound(type, this.labQueueBuffer[type], true);
                 this.labQueueBuffer[type] = 0;
@@ -134,7 +145,7 @@ export class SectionStore {
     produceBook() {
         this.book.forIn((amount, res) => {
             let req = -this.free(res);
-            if (req > 0) global.produce(res, req);
+            if (req > 0) global.produce(res, req, true);
         })
     }
 }

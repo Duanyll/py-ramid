@@ -22,7 +22,11 @@ function getCreepBoosted(creep: Creep) {
                 && lab.store["energy"] >= count * LAB_BOOST_ENERGY) {
                 if (lab.boostCreep(creep, count) == OK) {
                     creep.memory.boost.pop();
-                    room.logConsume(mineral, count * LAB_BOOST_MINERAL, true);
+                    room.storeCurrent.add(mineral, -count * LAB_BOOST_MINERAL);
+                    let info = room.state.lab.boost.find(i => i.type == mineral);
+                    if (info) {
+                        info.amount -= count * LAB_BOOST_MINERAL;
+                    }
                     Logger.silly(`${room.name}: Boost creep ${creep.name} with ${mineral}.`);
                     return;
                 }
