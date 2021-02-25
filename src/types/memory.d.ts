@@ -63,7 +63,6 @@ interface Memory {
             [type in ResourceConstant]?: {
                 basePrice: number,
                 reserveAmount: number,
-                orders?: string[],
                 updateTime: number
             }
         },
@@ -71,7 +70,6 @@ interface Memory {
             [type in ResourceConstant]?: {
                 maxPrice: number,
                 minAmount: number,
-                orders?: string[]
                 updateTime: number
             }
         }

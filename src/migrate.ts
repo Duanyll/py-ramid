@@ -26,6 +26,35 @@ function migrateLab() {
     })
 }
 
+function cleanMemory() {
+    for (const roomName in Memory.rooms) {
+        const mem = Memory.rooms[roomName] as any;
+        delete mem.moveQueue;
+        delete mem.remoteSources;
+        delete mem.state.roleSpawnStatus;
+        delete mem.state.refillState;
+        delete mem.state.wallHits;
+        delete mem.state.roadToRepair;
+        delete mem.state.energyState;
+        delete mem.state.rampartHits;
+        delete mem.state.rampartHitsTarget;
+        delete mem.state.energyMode;
+        delete mem.state.mineralToTransport;
+        delete mem.resource;
+    }
+    const m = Memory as any;
+    delete m.roomsToClaim;
+    delete m.mining.power.from;
+    for (const res in Memory.market.autoDeal) {
+        const mem = Memory.market.autoDeal[res as ResourceConstant] as any;
+        delete mem.orders;
+    }
+    for (const res in Memory.market.autoBuy) {
+        const mem = Memory.market.autoBuy[res as ResourceConstant] as any;
+        delete mem.orders;
+    }
+}
+
 export function initMigrate() {
     let operated = false;
     for (const roomName in Memory.rooms) {
@@ -37,6 +66,10 @@ export function initMigrate() {
     if (!Memory.version || Memory.version < 1) {
         migrateLab();
         Memory.version = 1;
+    }
+    if (Memory.version < 2) {
+        cleanMemory();
+        Memory.version = 2;
     }
     return operated;
 }

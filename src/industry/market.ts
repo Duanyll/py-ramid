@@ -11,6 +11,8 @@ _.defaultsDeep(Memory.market, {
 } as typeof Memory.market);
 
 let orderCache: Record<string, { update: number, order: Order }> = {};
+let sellOrdersList = {} as Record<ResourceConstant, string[]>;
+let buyOrdersList = {} as Record<ResourceConstant, string[]>;
 function getMarketOrder(id: string) {
     if (!id) return undefined;
     if (orderCache[id] && orderCache[id].update == Game.time) {
@@ -26,32 +28,32 @@ function getMarketOrder(id: string) {
 
 function fetchAutoDealOrders() {
     _.forIn(Memory.market.autoDeal, (info, type: ResourceConstant) => {
-        info.orders = [];
+        buyOrdersList[type] = [];
         info.updateTime = Game.time;
         let orders = Game.market.getAllOrders({ type: ORDER_BUY, resourceType: type });
         orders.forEach(o => {
             if (o.price >= info.basePrice && o.amount > 0) {
-                info.orders.push(o.id);
+                buyOrdersList[type].push(o.id);
                 orderCache[o.id] = {
                     order: o, update: Game.time
                 }
             }
         });
-        info.orders = _.sortBy(info.orders, (o => -getMarketOrder(o).price));
+        buyOrdersList[type] = _.sortBy(buyOrdersList[type], (o => -getMarketOrder(o).price));
     });
     _.forIn(Memory.market.autoBuy, (info, type: ResourceConstant) => {
-        info.orders = [];
+        sellOrdersList[type] = [];
         info.updateTime = Game.time;
         let orders = Game.market.getAllOrders({ type: ORDER_SELL, resourceType: type });
         orders.forEach(o => {
             if (o.price <= info.maxPrice && o.amount > 0) {
-                info.orders.push(o.id);
+                sellOrdersList[type].push(o.id);
                 orderCache[o.id] = {
                     order: o, update: Game.time
                 }
             }
         });
-        info.orders = _.sortBy(info.orders, (o => getMarketOrder(o).price));
+        sellOrdersList[type] = _.sortBy(sellOrdersList[type], (o => getMarketOrder(o).price));
     });
     globalDelay("fetchAutoDealOrders");
 }
@@ -63,7 +65,8 @@ function getOneBuyOrder(type: ResourceConstant): Order {
     info.updateTime = Game.time;
     let avalList: string[] = [];
     let res: Order;
-    info.orders.forEach(id => {
+    if (!buyOrdersList[type]) return undefined;
+    buyOrdersList[type].forEach(id => {
         let order = getMarketOrder(id);
         if (!order) return;
         if (order.price >= info.basePrice && order.amount > 0) {
@@ -71,7 +74,7 @@ function getOneBuyOrder(type: ResourceConstant): Order {
             if (!res) res = order;
         }
     });
-    info.orders = avalList;
+    buyOrdersList[type] = avalList;
     return res;
 }
 
@@ -81,7 +84,8 @@ function getOneSellOrder(type: ResourceConstant): Order {
     info.updateTime = Game.time;
     let avalList: string[] = [];
     let res: Order;
-    info.orders.forEach(id => {
+    if (!sellOrdersList[type]) return undefined;
+    sellOrdersList[type].forEach(id => {
         let order = getMarketOrder(id);
         if (!order) return;
         if (order.price <= info.maxPrice && order.amount > 0) {
@@ -89,7 +93,7 @@ function getOneSellOrder(type: ResourceConstant): Order {
             if (!res) res = order;
         }
     });
-    info.orders = avalList;
+    sellOrdersList[type] = avalList;
     return res;
 }
 
@@ -139,7 +143,6 @@ registerCommand('autoSell', 'Create or modify a auto sell order.', [
             basePrice: price,
             reserveAmount: cfg.MARKET_RESERVE,
             updateTime: 0,
-            orders: []
         }
         globalDelay("fetchAutoDealOrders", 1);
     }
@@ -156,7 +159,6 @@ registerCommand('autoBuy', 'Create or modify a auto but order.', [
             maxPrice: price,
             minAmount: cfg.TERMINAL_EXPORT_DEFAULT,
             updateTime: 0,
-            orders: []
         }
         globalDelay("fetchAutoDealOrders", 1);
     }
