@@ -2,6 +2,7 @@ import { myRooms } from "room/roomInfo";
 import { moveCreepToRoom, moveCreepTo } from "creep/movement";
 import { registerCreepRole } from "creep/roles";
 import Logger from "utils";
+import { registerCommand } from "utils/console";
 
 function sendClaimer(roomName: string, target: string) {
     let room = myRooms[roomName];
@@ -43,9 +44,20 @@ function sendAttaker(roomName: string, target: string) {
     });
 }
 
-global.sendDismantler = sendDismantler;
-global.sendAttacker = sendAttaker;
-global.sendClaimer = sendClaimer;
+registerCommand('sendClaimer', 'Send a claimer creep to claim target room', [
+    { name: "home", type: "myRoom" },
+    { name: "target", type: "room" }
+], sendClaimer);
+
+registerCommand('sendDismantler', 'Send a unboosted dismantler creep to dismantle target flag. (NOT FOR WAR!)', [
+    { name: "home", type: "myRoom" },
+    { name: "target", type: "string" }
+], sendDismantler);
+
+registerCommand('sendAttacker', 'Send a unboosted atacker creep to attack target flag. (NOT FOR WAR!)', [
+    { name: "home", type: "myRoom" },
+    { name: "target", type: "string" }
+], sendAttaker);
 
 function runClaimer(creep: Creep) {
     if (creep.room.name != creep.memory.target) {

@@ -1,6 +1,7 @@
 import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
 import { isHostile } from "utils";
 import { registerTask, schedule } from "utils";
+import { registerCommand } from "utils/console";
 
 function checkRoads(room: RoomInfo) {
     if (room.roadToRepair.length > 0) return;
@@ -73,7 +74,9 @@ registerTask("setTowerState", (param) => {
     myRooms[param.room].state.disableTower = param.state;
 })
 
-global.disableTower = (room: string, time: number = 1500) => {
+registerCommand('disableTower', 'Temporately disable towers in a room for 1500 ticks. ', [
+    { name: "room", type: "myRoom" }
+], (room: string) => {
     myRooms[room].state.disableTower = true;
-    schedule("setTowerState", time, { room, state: false });
-}
+    schedule("setTowerState", 1500, { room, state: false });
+})

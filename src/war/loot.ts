@@ -1,9 +1,10 @@
 import { registerCreepRole } from "creep/roles";
 import { moveCreepTo, moveCreepToRoom } from "creep/movement";
 import { myRooms } from "room/roomInfo";
-import { registerTask, schedule } from "utils";
+import { estimateDistance, registerTask, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import Logger from "utils";
+import { registerCommand } from "utils/console";
 
 interface RemoteCarrierMemory extends CreepMemory {
     status: "go" | "back",
@@ -123,6 +124,15 @@ registerTask("checkLoot", (param) => {
     }
 });
 
-global.loot = (flag: string, home: string, creepRun: number) => {
-    schedule("checkLoot", 1, { flag, home, creepRun });
+registerCommand("loot", "loot a structure without guards.", [
+    { name: "flag", type: "string", description: "The flag to target." },
+    { name: "home", type: "myRoom", description: "Where to send carriers. " }
+], (flagName: string, home: string) => {
+        const flag = Game.flags[flagName];
+        if (flag) {
+            const creepRun = _.floor((CREEP_LIFE_TIME - 100) / (2 * estimateDistance(
+                flag.pos, new RoomPosition(myRooms[home].design.center.x, myRooms[home].design.center.y, home))))
+            schedule("checkLoot", 1, { flag: flagName, home, creepRun });
+        }
 }
+)

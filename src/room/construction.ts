@@ -23,7 +23,7 @@ export function pushConstructQueue(req: ConstructionRequest) {
 
 export function onSRCLUpgrade(room: RoomInfo) {
     if (room.structRcl >= 5) room.delay("runLinks", 1);
-    if (room.structRcl >= 6) global.mining(room.name, true);
+    if (room.structRcl >= 6) room.state.enableMining = true;
     if (room.structures.nuker) room.state.chargeNuker = true;
 }
 
@@ -78,8 +78,7 @@ export function tickConstruction() {
     let remain = MAX_CONSTRUCTION_SITES - _.size(Game.constructionSites);
     while (remain > 0 && constructionQueue.length > 0) {
         let req = constructionQueue.shift();
-        // @ts-expect-error
-        req.pos.createConstructionSite(req.type, req.name);
+        req.pos.createConstructionSite(req.type as any, req.name);
         constructionQueueLock.delete(consReqToString(req));
     }
 }

@@ -6,6 +6,7 @@ import "room/defense"
 import Logger from "utils";
 import cfg from "config";
 import { roleBodies, roomBasicCreepConfig } from "creep/body";
+import { registerCommand } from "utils/console";
 
 function decideRoomEnergyUsage(room: RoomInfo) {
     if (!room.structures.storage) return;
@@ -110,7 +111,10 @@ registerRoomRoutine({
 });
 
 
-global.unclaim = (roomName: string, keep?: boolean) => {
+registerCommand('unclaim', 'Unclaim the room immediately!', [
+    { name: "room", type: "myRoom" },
+    { name: "keep", type: "boolean", description: 'Should keep structures and memory' }
+], (roomName: string, keep?: boolean) => {
     if (!myRooms[roomName]) {
         Logger.error(`${roomName} is not owned!`);
     } else {
@@ -133,7 +137,7 @@ global.unclaim = (roomName: string, keep?: boolean) => {
             }
         )
     }
-}
+});
 
 function checkRoomPower(room: RoomInfo) {
     let nextRun = false;

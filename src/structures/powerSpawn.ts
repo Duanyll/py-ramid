@@ -1,5 +1,6 @@
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import Logger from "utils";
+import { registerCommand } from "utils/console";
 
 function runPowerSpawn(room: RoomInfo) {
     let s = room.structures.powerSpawn;
@@ -27,7 +28,10 @@ registerRoomRoutine({
     invoke: runPowerSpawn,
 });
 
-global.burnPower = (roomName: string, enable: boolean) => {
+registerCommand('burnPower', 'Enable or disable power burning in a room.', [
+    { name: "room", type: "myRoom" },
+    { name: "enable", type: "boolean" }
+], (roomName: string, enable: boolean) => {
     let room = myRooms[roomName];
     if (!myRooms[roomName]?.structures.powerSpawn) {
         Logger.error(`No powerSpawn in ${roomName}!`);
@@ -41,4 +45,4 @@ global.burnPower = (roomName: string, enable: boolean) => {
         room.state.autoProcessPower = true;
         room.delay("runPowerSpawn", 1);
     }
-}
+})

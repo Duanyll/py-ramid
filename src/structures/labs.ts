@@ -1,6 +1,7 @@
 import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import Logger from "utils";
+import { registerCommand } from "utils/console";
 
 function getLabReactionAmount(lab: StructureLab) {
     let power = _.find(lab.effects, { effect: PWR_OPERATE_LAB }) as PowerEffect;
@@ -115,7 +116,7 @@ registerRoomRoutine({
     invoke: runLabBoost
 });
 
-global.logLabs = () => {
+registerCommand('logLabs', 'Log lab status to console', [], () => {
     for (const name in myRooms) {
         let room = myRooms[name];
         let res = name + ": ";
@@ -130,4 +131,4 @@ global.logLabs = () => {
         }
         Logger.report(res);
     }
-}
+})

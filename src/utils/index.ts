@@ -1,5 +1,5 @@
 import cfg from "config";
-import Logger from "./logger";
+import Logger from "./console";
 import "./rawMemory"
 import RMManager from "./rawMemory";
 
@@ -66,14 +66,11 @@ function getDistanceByPath(from: RoomPosition, type: FindConstant) {
             return 50 - from.x;
         default:
             if (!Game.rooms[from.roomName]) return 25;
-            // @ts-ignore
             let goals = _.map(Game.rooms[from.roomName].find(type), (i) => {
-                // @ts-ignore
-                if (i.pos) i = i.pos as RoomPosition;
+                if ('pos' in i) i = i.pos as RoomPosition;
                 return { range: 1, pos: i };
-            }) as { range: number, pos: RoomPosition };
+            });
             let path = PathFinder.search(from, goals, {
-                // @ts-ignore
                 roomCallback: (name) => {
                     if (name != from.roomName) return false;
                 }

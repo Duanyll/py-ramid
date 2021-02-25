@@ -147,13 +147,3 @@ function spawnPowerBankCarryGroup(time: number, id: string, room: string, groupN
         })
     }
 }
-
-global.pbMining = (rooms: string[] | "clear") => {
-    if (rooms == "clear") {
-        Memory.mining.power.targets = [];
-    } else {
-        Memory.mining.power.targets.push(...rooms);
-        globalDelay("scanPowerBank", 1);
-        globalDelay("processPowerBank", 1);
-    }
-}

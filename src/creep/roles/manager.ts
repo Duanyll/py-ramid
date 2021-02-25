@@ -205,11 +205,9 @@ export function runManager(creep: Creep, room: RoomInfo) {
             const res = task(room, storage, creep.store.getCapacity());
             if (res) {
                 let amount = Math.min(
-                    // @ts-expect-error
-                    res.from.store.getUsedCapacity(res.type),
-                    // @ts-expect-error
-                    res.to.store.getFreeCapacity(res.type),
-                    creep.store.getCapacity(),
+                    res.from.store.tot(res.type),
+                    res.to.store.free(res.type),
+                    creep.store.cap(),
                     res.amount || Infinity
                 );
                 creep.withdraw(res.from, res.type, amount);

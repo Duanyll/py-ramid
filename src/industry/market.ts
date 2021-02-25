@@ -1,6 +1,7 @@
 import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
+import { registerCommand } from "utils/console";
 
 Memory.market ||= {} as any;
 _.defaultsDeep(Memory.market, {
@@ -24,7 +25,6 @@ function getMarketOrder(id: string) {
 }
 
 function fetchAutoDealOrders() {
-    // @ts-ignore
     _.forIn(Memory.market.autoDeal, (info, type: ResourceConstant) => {
         info.orders = [];
         info.updateTime = Game.time;
@@ -39,7 +39,6 @@ function fetchAutoDealOrders() {
         });
         info.orders = _.sortBy(info.orders, (o => -getMarketOrder(o).price));
     });
-    // @ts-ignore
     _.forIn(Memory.market.autoBuy, (info, type: ResourceConstant) => {
         info.orders = [];
         info.updateTime = Game.time;
@@ -106,7 +105,7 @@ export function tryDealResource(terminal: StructureTerminal, res: ResourceConsta
         orderCache[order.id].order.amount -= dealAmount;
         room.storeCurrent.add(res, -dealAmount);
         let required = -global.store.free(res);
-        if (required > 0) global.produce(res, required);
+        if (required > 0) global.store.produce(res, required, false);
         return true;
     } else {
         return false;
@@ -129,30 +128,36 @@ export function tryBuyResource(terminal: StructureTerminal, res: ResourceConstan
     }
 }
 
-global.autoSell = (type: ResourceConstant, price: number | false, reserve?: number) => {
-    if (price === false) {
+registerCommand('autoSell', 'Create or modify a auto sell order.', [
+    { name: 'res', type: 'resource' },
+    { name: 'price', type: 'number', description: "Set to -1 to delete the order. " },
+], (type: ResourceConstant, price: number) => {
+    if (price === -1) {
         delete Memory.market.autoDeal[type];
     } else {
         Memory.market.autoDeal[type] = {
             basePrice: price,
-            reserveAmount: reserve ?? cfg.MARKET_RESERVE,
+            reserveAmount: cfg.MARKET_RESERVE,
             updateTime: 0,
             orders: []
         }
         globalDelay("fetchAutoDealOrders", 1);
     }
-}
+})
 
-global.autoBuy = (type: ResourceConstant, price: number | false, minAmount?: number) => {
-    if (price === false) {
+registerCommand('autoBuy', 'Create or modify a auto but order.', [
+    { name: 'res', type: 'resource' },
+    { name: 'price', type: 'number', description: "Set to -1 to delete the order. " },
+],  (type: ResourceConstant, price: number) => {
+    if (price === -1) {
         delete Memory.market.autoBuy[type];
     } else {
         Memory.market.autoBuy[type] = {
             maxPrice: price,
-            minAmount: minAmount ?? cfg.TERMINAL_EXPORT_DEFAULT,
+            minAmount: cfg.TERMINAL_EXPORT_DEFAULT,
             updateTime: 0,
             orders: []
         }
         globalDelay("fetchAutoDealOrders", 1);
     }
-}
+})

@@ -14,9 +14,3 @@ export function runMiner(creep: Creep, room: RoomInfo) {
         }
     }
 }
-
-global.mining = (roomName: string, enable: boolean) => {
-    let room = myRooms[roomName];
-    room.state.enableMining = enable;
-    room.delay("updateCreepCount", 1);
-}

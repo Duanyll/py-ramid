@@ -1,6 +1,7 @@
 import cfg from "config";
 import { myRooms } from "room/roomInfo";
 import Logger from "utils";
+import { registerCommand } from "utils/console";
 
 let origUsePowerMethod = PowerCreep.prototype.usePower;
 PowerCreep.prototype.usePower = function (
@@ -135,12 +136,15 @@ export function runPowerCreep(pc: PowerCreep) {
     }
 }
 
-global.assignPC = (name: string, room: string) => {
+registerCommand('assignPC', 'Assign PC to a room.', [
+    { name: 'name', type: 'string' },
+    { name: 'room', type: 'room' }
+], (name: string, room: string) => {
     let pc = Game.powerCreeps[name];
     if (pc.memory.room) {
         global.reloadRoomsNextTick = true;
     }
     pc.memory.room = room;
     myRooms[room].delay("checkPower", 1);
-}
+})
 

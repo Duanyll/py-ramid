@@ -27,6 +27,8 @@ declare global {
     interface PowerCreep {
         exitInfo: CreepExitInfo,
         moveInfo: CreepMoveInfo,
+
+        fatigue: undefined;
     }
 }
 
@@ -125,7 +127,6 @@ function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpt
 
     return {
         ignoreCreeps: true,
-        // @ts-ignore 7030
         costCallback: (room: string, matrix: CostMatrix) => {
             if (sameRoom && room != creep.pos.roomName) return blockedRoomMatrix;
             if (Game.rooms[room]) {
@@ -154,7 +155,6 @@ function canBypassCreep(i: AnyCreep, creep: AnyCreep) {
 }
 
 function shouldDoBypassCreep(i: AnyCreep, creep: AnyCreep) {
-    // @ts-ignore
     if (creep.fatigue) return false;
     if (!creep.my) return false;
     if (creep.memory.role == "manage") return false;
@@ -173,7 +173,7 @@ const offsetsByDirection = {
     [LEFT]: [-1, 0],
     [TOP_LEFT]: [-1, -1]
 };
-const defaultCreepMove = Creep.prototype.move;
+const defaultCreepMove = Creep.prototype.move as (dir: number | Creep) => CreepMoveReturnCode;
 function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
     function getTargetpos(pos: RoomPosition, dir: DirectionConstant) {
         let x = pos.x + offsetsByDirection[dir][0];
@@ -187,8 +187,7 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
             let targetCreep = tarpos.lookFor(LOOK_CREEPS)[0] || tarpos.lookFor(LOOK_POWER_CREEPS)[0];
             if (targetCreep) {
                 if (shouldDoBypassCreep(this, targetCreep)) {
-                    // @ts-ignore 2345
-                    defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1) as DirectionConstant);
+                    defaultCreepMove.call(targetCreep, ((target + 3) % 8 + 1));
                 } else if (Game.time & 1 && this.moveInfo && this.moveInfo.dest) {
                     let dest = this.moveInfo.dest;
                     if (!dest.isEqualTo(tarpos)) {
@@ -196,7 +195,6 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
                         if (path.length) {
                             this.moveInfo.time = Game.time;
                             this.moveInfo.path = path;
-                            // @ts-ignore 2345
                             return defaultCreepMove.call(this, path[0].direction);
                         }
                     }
@@ -205,23 +203,27 @@ function moveBypass(this: AnyCreep, target: DirectionConstant | Creep) {
         }
     }
 
-    // @ts-ignore 2345
     return defaultCreepMove.call(this, target);
 }
 
-// @ts-ignore 2322
-Creep.prototype.move = moveBypass;
-// @ts-ignore 2322
-PowerCreep.prototype.move = function (this: PowerCreep, target: DirectionConstant | Creep) {
-    if (!this.room) return ERR_BUSY;
-    return moveBypass.call(this, target);
-}
+Object.defineProperty(Creep.prototype, 'move', {
+    value: moveBypass,
+    enumerable: false,
+    configurable: true
+});
+Object.defineProperty(PowerCreep.prototype, 'move', {
+    value: function (this: PowerCreep, target: DirectionConstant | Creep) {
+        if (!this.room) return ERR_BUSY;
+        return moveBypass.call(this, target);
+    },
+    enumerable: false,
+    configurable: true
+})
 
 let creepPostionLock: Record<string, boolean> = {};
 function wrapPositionLockFunc(funcName: keyof Creep["prototype"]) {
     const func = Creep.prototype[funcName] as (this: Creep, ...param: any) => ScreepsReturnCode;
-    // @ts-expect-error 2540
-    Creep.prototype[funcName] = function (this: Creep, ...param) {
+    (Creep.prototype as any)[funcName] = function (this: Creep, ...param: any) {
         let res = func.call(this, ...param);
         if (res == OK) {
             this.posLock = true;

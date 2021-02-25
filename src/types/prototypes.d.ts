@@ -1,5 +1,10 @@
-declare const _: import("lodash").LoDashStatic;
+declare namespace _ {
+    interface LoDashStatic {
+        forIn<T>(object: T, it: (value: T[keyof T], key: any) => any): T;
+    }
+}
 
+declare const _: typeof import("lodash");
 interface Room {
     /**
      * 该房间对应的 roomInfo 对象

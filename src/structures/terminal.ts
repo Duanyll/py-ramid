@@ -57,7 +57,6 @@ export function runTerminals() {
     });
 
     if (Memory.market.enableAutoDeal) {
-        // @ts-ignore
         _.forIn(Memory.market.autoDeal, (info, type: ResourceConstant) => {
             let readyTerminal = _.find(sourceTerminals[type], i => !i.terminal.worked);
             if (readyTerminal) tryDealResource(readyTerminal.terminal, type, readyTerminal.amount);

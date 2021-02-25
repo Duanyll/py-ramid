@@ -1,6 +1,6 @@
 import cfg from "config";
 import { ErrorMapper } from "./errorMapper";
-import Logger from "./logger";
+import Logger, { registerCommand } from "./console";
 
 let globalRoutineStore: { [type in GlobalRoutine]?: () => void } = {};
 export function registerGlobalRoutine(type: GlobalRoutine, func: () => void) {
@@ -9,7 +9,6 @@ export function registerGlobalRoutine(type: GlobalRoutine, func: () => void) {
 
 Memory.routine ||= {};
 export function tickGlobalRoutine() {
-    // @ts-ignore
     _.forIn(Memory.routine, (next, name: GlobalRoutine) => {
         let routine = globalRoutineStore[name];
         if (!routine) {
@@ -32,7 +31,24 @@ export function globalDelay(type: GlobalRoutine, time?: number) {
         Memory.routine[type] = _.min([Game.time + time, Memory.routine[type]]);
     }
 }
-global.delay = globalDelay;
+registerCommand('delay', 'Set a global routine. ', [
+    { name: "name", type: "string" },
+    { name: "time", type: "string" },
+], (name: string, time: number) => {
+    if (name in globalRoutineStore) {
+        globalDelay(name as GlobalRoutine, time);
+    } else {
+        Logger.error('Unknown routine!');
+    }
+})
+
+registerCommand('logGlobalRoutine', 'log global routine info to console.', [
+], () => {
+    _.forIn(Memory.routine, (time, name) => {
+        Logger.report(`${name}: ${time} (${time > Game.time ? `${time - Game.time} ticks later` : `${Game.time - time} ticks before`})`)
+    })
+})
+
 
 let taskStore: { [type in GlobalTask]?: (param: any) => void } = {};
 export function registerTask<TTask extends GlobalTask>(type: TTask, func: (param: GlobalTaskParam[TTask]) => void) {
@@ -63,7 +79,11 @@ export function schedule<TTask extends GlobalTask>(type: TTask, delay: number, p
     tasks[time] ||= [];
     tasks[time].push({ type, param });
 }
-global.schedule = schedule;
+registerCommand('schedule', 'Schedule a task at specific time. ', [
+    { name: "name", type: "string" },
+    { name: "time", type: "string" },
+    { name: "param", type: "any" }
+], schedule)
 
 export function tickTasks() {
     const tasks = Memory.tasks;

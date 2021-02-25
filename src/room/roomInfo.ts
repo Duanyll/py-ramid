@@ -5,6 +5,7 @@ import cfg from "config";
 import { roleBodies } from "creep/body";
 import { StoreRegister } from "utils/storeRegister";
 import { CENTER_STRUCTURES, LAB_RECIPE } from "utils/constants";
+import { registerCommand } from "utils/console";
 
 export interface RoomRoutineConfig {
     id: RoomRoutineType;
@@ -464,11 +465,19 @@ export class RoomInfo {
 }
 
 export let myRooms: { [name: string]: RoomInfo } = {}
-global.myRooms = myRooms;
+global.myRooms = global.rooms = myRooms;
 Object.defineProperty(Room.prototype, 'info', {
     get: function (this: Room) {
         return myRooms[this.name];
     },
     enumerable: false,
     configurable: true
+})
+
+registerCommand('logRoomRoutine', 'log room routine info to console.', [
+    {name: "room", type: "myRoom"}
+], (room: string) => {
+        _.forIn(myRooms[room].tasks, (time, name) => {
+            Logger.report(`${name}: ${time} (${time > Game.time ? `${time - Game.time} ticks later` : `${Game.time - time} ticks before`})`)
+    })
 })

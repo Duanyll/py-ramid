@@ -145,7 +145,7 @@ export class SectionStore {
     produceBook() {
         this.book.forIn((amount, res) => {
             let req = -this.free(res);
-            if (req > 0) global.produce(res, req, true);
+            if (req > 0) this.produce(res, req, true);
         })
     }
 }
@@ -154,5 +154,3 @@ const globalStore = new SectionStore();
 global.store = globalStore;
 
 Memory.labQueueBuffer ||= {};
-
-global.produce = globalStore.produce.bind(globalStore);
