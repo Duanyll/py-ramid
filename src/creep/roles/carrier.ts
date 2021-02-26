@@ -190,7 +190,7 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
     }
 
     // 填 extension
-    if (!_.isEmpty(room.refillTargets)) {
+    if (creep.store.tot() == 0 && !_.isEmpty(room.refillTargets)) {
         m.type = null;
         m.state = "refill";
         m.target = null;

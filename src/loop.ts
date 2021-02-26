@@ -6,7 +6,6 @@ import { runCreep } from "creep";
 import { tickConstruction } from "room/construction";
 import Logger from "utils";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "utils";
-import { SectionStore } from "industry/store";
 import { ErrorMapper } from "utils";
 
 import "utils"
@@ -23,6 +22,11 @@ function loadRooms() {
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
         if (room.controller?.my) {
+            if (!room.memory.design) {
+                Logger.prompt(
+                    `No room design data for room ${room.name}, skip loading this room. Create design info with command designRoom(${room.name})`);
+                continue;
+            }
             myRooms[name] = new RoomInfo(name);
         }
     }

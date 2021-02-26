@@ -153,6 +153,10 @@ interface RoomDesignDetail {
     }[],
     walls: PointInRoom[],
     ramparts: PointInRoom[],
+    /**
+     * Used for preview design.
+     * First dimension for y coord, second for x.
+     */
     matrix: string[];
 }
 

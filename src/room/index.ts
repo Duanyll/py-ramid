@@ -7,6 +7,7 @@ import Logger from "utils";
 import cfg from "config";
 import { roleBodies, roomBasicCreepConfig } from "creep/body";
 import { registerCommand } from "utils/console";
+import "./designer";
 
 function decideRoomEnergyUsage(room: RoomInfo) {
     if (!room.structures.storage) return;

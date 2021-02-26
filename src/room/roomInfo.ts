@@ -228,9 +228,6 @@ export class RoomInfo {
     initMemory() {
         this.detail.memory = this.detail.memory || {} as RoomMemory;
         let m = this.detail.memory;
-        // TODO: 直接生成 RoomDesign2
-        // m.design = m.design || classicDesignRoom(this.detail);
-        // upgradeDesign(this.detail, m.design);
 
         _.defaultsDeep(m, {
             tasks: {},

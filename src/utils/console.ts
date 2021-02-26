@@ -114,7 +114,7 @@ export function registerCommand(name: string, description: string, paramInfo: Co
     const helpText = _.join([
         shortText,
         description,
-        ..._.map(paramInfo, p => `${p.name}: ${p.description}`)
+        ..._.compact(_.map(paramInfo, p => p.description ? `${p.name}: ${p.description}`: undefined))
     ], '\n');
     const wrapperFunc = function (...param: any[]) {
         if (param.length != paramInfo.length) {

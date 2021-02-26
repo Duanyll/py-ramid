@@ -40,10 +40,10 @@ export function tickSegmentRequest() {
                         i.func(obj);
                         break;
                     case "w":
-                        obj = i.func();
+                        obj = i.func() ?? obj;
                         break;
                     case "rw":
-                        obj = i.func(obj);
+                        let res = i.func(obj) ?? obj;
                         break;
                 }
             });
