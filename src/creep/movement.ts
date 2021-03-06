@@ -122,8 +122,8 @@ function getRoomCostMatrix(room: string): CostMatrix {
 
 Memory.roomsToAvoid ||= {};
 Memory.roomCost ||= {};
-function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpts {
-    const sameRoom = (!opts.crossRoom) && (creep.room.name == opts.pos.roomName);
+function getCreepFindPathOpts(creep: AnyCreep, opts?: MoveToPosOpts): FindPathOpts {
+    const sameRoom = opts && (!opts.crossRoom) && (creep.room.name == opts.pos.roomName);
 
     return {
         ignoreCreeps: true,
@@ -137,7 +137,7 @@ function getCreepFindPathOpts(creep: AnyCreep, opts: MoveToPosOpts): FindPathOpt
                 });
             }
         },
-        range: opts.range
+        range: opts?.range
     };
 }
 
@@ -293,11 +293,6 @@ export function tickMoveHelper() {
     })
 }
 
-/** @deprecated use `creep.goTo` */
-export function moveCreepTo(creep: Creep, pos: RoomPosition | { pos: RoomPosition }, range?: number) {
-    creep.goTo(pos, range);
-}
-
 export function doMoveCreepTo(creep: AnyCreep, opts: MoveToPosOpts) {
     const pathReuse = (creep.pos.inRangeTo(opts.pos, 5)) ? 5 : 15;
 
@@ -310,11 +305,6 @@ export function doMoveCreepTo(creep: AnyCreep, opts: MoveToPosOpts) {
     }
 
     creep.moveByPath(creep.moveInfo.path);
-}
-
-/** @deprecated use `creep.goToRoom` */
-export function moveCreepToRoom(creep: Creep, room: string) {
-    creep.goToRoom(room);
 }
 
 function doMoveCreepToRoom(creep: AnyCreep, room: string) {
@@ -340,7 +330,8 @@ function doMoveCreepToRoom(creep: AnyCreep, room: string) {
             if (!reFindPath()) return;
             exit = creep.exitInfo.route.shift();
         }
-        creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit, { ignoreCreeps: true });
+        creep.exitInfo.exitPos = creep.pos.findClosestByPath(exit.exit, getCreepFindPathOpts(creep, null));
+        if (!creep.exitInfo.exitPos) return;
     }
     doMoveCreepTo(creep, { pos: creep.exitInfo.exitPos });
 }

@@ -1,5 +1,4 @@
 import { RoomInfo } from "room/roomInfo";
-import { moveCreepTo } from "creep/movement";
 import cfg from "config";
 
 interface UpgraderMemory extends CreepMemory {
@@ -22,18 +21,14 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
             target = room.structures.storage;
         }
         if (target) {
-            if (creep.pos.isNearTo(target)) {
+            if (creep.goTo(target)) {
                 creep.withdraw(target, RESOURCE_ENERGY);
-            } else {
-                moveCreepTo(creep, target);
             }
         } else {
             const sourceId = Number(_.last(m.roleId)) % 2;
             const source = room.structures.sources[sourceId];
-            if (creep.pos.isNearTo(source)) {
+            if (creep.goTo(source)) {
                 creep.harvest(source);
-            } else {
-                moveCreepTo(creep, source);
             }
         }
     } else {
@@ -49,21 +44,16 @@ export function goSignRoom(creep: Creep, room: Room) {
     const sign = Memory.rooms[room.name]?.sign || cfg.DEFAULT_CONTROLLER_SIGN;
     let controller = room.controller;
     if (!controller.sign || controller.sign.username != SYSTEM_USERNAME && controller.sign.text != sign) {
-        if (creep.pos.isNearTo(controller)) {
+        if (creep.goTo(controller)) {
             creep.signController(controller, sign);
-        } else {
-            moveCreepTo(creep, controller);
         }
     }
 }
 
 export function goUpgrade(creep: Creep, room: RoomInfo) {
     const c = room.structures.controller;
-    if (creep.pos.inRangeTo(c, 2)) {
+    if (creep.goTo(c, 2)) {
         creep.upgradeController(c);
         goSignRoom(creep, room.detail);
-    }
-    else {
-        moveCreepTo(creep, c);
     }
 }

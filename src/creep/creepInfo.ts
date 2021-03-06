@@ -16,7 +16,6 @@ export function loadCreeps() {
     creepGroups = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
-        // console.log(`Processing creep: ${name}`)
         if (creep.memory.room) {
             let room = myRooms[creep.memory.room];
             room.creeps.push(creep);

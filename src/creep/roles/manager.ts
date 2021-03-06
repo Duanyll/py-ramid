@@ -6,30 +6,35 @@ import { CENTER_STRUCTURES } from "utils/constants";
 let lastStorageScannedTime: { [room: string]: number } = {};
 
 const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: number) =>
-    (false | { from: AnyStoreStructure, to: AnyStoreStructure, type: ResourceConstant, amount?: number }))[] = [
+    { from: AnyStoreStructure, to: AnyStoreStructure, type: ResourceConstant, amount?: number })[] = [
+
+        /* ------------------------------- center link ------------------------------ */
+
         (room, storage) => {
-            if (room.structures.centerLink?.store.getFreeCapacity(RESOURCE_ENERGY) <= 400) {
+            if (room.structures.centerLink?.store.free("energy") <= 400) {
                 return {
                     from: room.structures.centerLink,
                     to: storage,
-                    type: RESOURCE_ENERGY
+                    type: "energy"
                 }
             }
-            return false;
         },
+
+        /* ---------------------------- terminal resource --------------------------- */
+
         (room, storage) => {
             if (!lastStorageScannedTime[room.name] || Game.time - lastStorageScannedTime[room.name] > 20) {
                 const terminal = room.structures.terminal;
                 // 先把资源从 terminal 放进 storage 里(reserve 或超过了 export 的量)
                 const storageAmount = (res: ResourceConstant) => Math.min(
-                    terminal.store.getUsedCapacity(res),
+                    terminal.store.tot(res),
                     Math.max(
-                        room.getReserve(res) - storage.store.getUsedCapacity(res),
-                        (terminal.store.getUsedCapacity(res) - room.getExport(res))
+                        room.getReserve(res) - storage.store.tot(res),
+                        (terminal.store.tot(res) - room.getExport(res))
                     )
                 )
                 for (const res in terminal.store) {
-                    if (res == RESOURCE_ENERGY) continue;
+                    if (res == "energy") continue;
                     let amount = storageAmount(res as ResourceConstant);
                     if (amount > 0) {
                         return {
@@ -43,11 +48,11 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
 
                 // 再从 storage 给 terminal 补货
                 const terminalAmount = (res: ResourceConstant) => Math.min(
-                    storage.store.getUsedCapacity(res) - room.getReserve(res),
-                    room.getExport(res) - terminal.store.getUsedCapacity(res),
+                    storage.store.tot(res) - room.getReserve(res),
+                    room.getExport(res) - terminal.store.tot(res),
                 );
                 for (const res in storage.store) {
-                    if (res == RESOURCE_ENERGY) continue;
+                    if (res == "energy") continue;
                     let amount = terminalAmount(res as ResourceConstant);
                     if (amount > 0) {
                         return {
@@ -60,81 +65,86 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                 }
                 lastStorageScannedTime[room.name] = Game.time;
             }
-            return false;
         },
+
+        /* ----------------------------- terminal energy ---------------------------- */
+
         (room, storage) => {
             if (!room.state.energy.storeMode
-                && room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) < cfg.ENERGY.TERMINAL) {
+                && room.structures.terminal?.store.tot("energy") < cfg.ENERGY.TERMINAL) {
                 return {
                     from: storage,
                     to: room.structures.terminal,
-                    type: RESOURCE_ENERGY,
+                    type: "energy",
                     amount: cfg.ENERGY.TERMINAL - room.structures.terminal.store.energy
                 }
             }
-            return false;
-        },
-        (room, storage) => {
-            if (room.structures.terminal?.store.getUsedCapacity(RESOURCE_ENERGY) > cfg.ENERGY.TERMINAL) {
+
+            if (room.structures.terminal?.store.tot("energy") > cfg.ENERGY.TERMINAL) {
                 return {
                     from: room.structures.terminal,
                     to: storage,
-                    type: RESOURCE_ENERGY,
+                    type: "energy",
                     amount: room.structures.terminal.store.energy - cfg.ENERGY.TERMINAL
                 }
             }
-            return false;
         },
+
+        /* ---------------------------------- nuker --------------------------------- */
+
         (room, storage) => {
-            if (!room.state.energy.storeMode && room.state.chargeNuker
-                && room.structures.nuker?.store.getUsedCapacity(RESOURCE_ENERGY) < NUKER_ENERGY_CAPACITY) {
-                return {
-                    from: storage,
-                    to: room.structures.nuker,
-                    type: RESOURCE_ENERGY
-                }
-            }
-            return false;
-        },
-        (room, storage, capacity) => {
-            if (!room.state.energy.storeMode
-                && room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_ENERGY) >= capacity) {
-                room.delay("runPowerSpawn", 2);
-                return {
-                    from: storage,
-                    to: room.structures.powerSpawn,
-                    type: RESOURCE_ENERGY
-                }
-            }
-            return false;
-        },
-        (room, storage) => {
-            if (room.structures.nuker?.store.getUsedCapacity(RESOURCE_GHODIUM) < NUKER_GHODIUM_CAPACITY) {
-                let s = room.whereToGet("G")
-                if (s)
+            if (room.state.chargeNuker && room.structures.nuker) {
+                if (!room.state.energy.storeMode && room.structures.nuker?.store.tot("energy") < NUKER_ENERGY_CAPACITY) {
                     return {
-                        from: s,
+                        from: storage,
                         to: room.structures.nuker,
-                        type: RESOURCE_GHODIUM
+                        type: "energy"
                     }
+                }
+
+                if (room.structures.nuker?.store.tot(RESOURCE_GHODIUM) < NUKER_GHODIUM_CAPACITY) {
+                    let s = room.whereToGet("G")
+                    if (s)
+                        return {
+                            from: s,
+                            to: room.structures.nuker,
+                            type: RESOURCE_GHODIUM
+                        }
+                }
             }
-            return false;
         },
-        (room, storage) => {
-            if (room.structures.powerSpawn?.store.getFreeCapacity(RESOURCE_POWER) >= 80) {
-                let s = room.whereToGet("power")
-                if (s)
+
+        /* ------------------------------- power spawn ------------------------------ */
+
+        (room, storage, capacity) => {
+            if (room.state.energy.usage.power) {
+                if (!room.state.energy.storeMode
+                    && room.structures.powerSpawn?.store.free("energy") >= capacity) {
+                    room.delay("runPowerSpawn", 2);
                     return {
-                        from: s,
+                        from: storage,
                         to: room.structures.powerSpawn,
-                        type: "power"
+                        type: "energy"
                     }
+                }
+
+                if (room.structures.powerSpawn?.store.free(RESOURCE_POWER) >= 80) {
+                    let s = room.whereToGet("power")
+                    if (s)
+                        return {
+                            from: s,
+                            to: room.structures.powerSpawn,
+                            type: "power"
+                        }
+                }
             }
-            return false;
         },
+
+        /* --------------------------------- factory -------------------------------- */
+
         (room, storage, capacity) => {
             const factory = room.structures.factory;
-            if (!factory) return false;
+            if (!factory) return;
             const info = room.state.factory;
 
             if (info.remain > 0) {
@@ -182,7 +192,6 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
                     }
                 }
             }
-            return false;
         }
     ]
 
@@ -198,6 +207,7 @@ export function runManager(creep: Creep, room: RoomInfo) {
         }
         for (const res in creep.store) {
             creep.transfer(target, res as ResourceConstant);
+            return;
         }
         delete m.target;
     } else if (creep.ticksToLive >= 2) {

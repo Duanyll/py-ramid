@@ -22,6 +22,7 @@ export function tickObserver() {
                 Logger.silly(`Observing room ${room}.`)
                 obLock[ob.id] = true;
             }
+
         }
         globalDelay("observer", 1);
     }

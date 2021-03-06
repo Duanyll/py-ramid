@@ -1,5 +1,4 @@
 import { myRooms } from "room/roomInfo";
-import { moveCreepToRoom, moveCreepTo } from "creep/movement";
 import { registerCreepRole } from "creep/roles";
 import Logger from "utils";
 import { registerCommand } from "utils/console";
@@ -60,19 +59,14 @@ registerCommand('sendAttacker', 'Send a unboosted atacker creep to attack target
 ], sendAttaker);
 
 function runClaimer(creep: Creep) {
-    if (creep.room.name != creep.memory.target) {
-        moveCreepToRoom(creep, creep.memory.target);
-        // moveCreepTo(creep, new RoomPosition(25, 25, creep.memory.target))
-    } else {
-        if (creep.pos.isNearTo(creep.room.controller)) {
+    if (creep.goToRoom(creep.memory.target)) {
+        if (creep.goTo(creep.room.controller)) {
             if (creep.room.controller.owner && !creep.room.controller.my) {
                 creep.attackController(creep.room.controller);
             } else if (!creep.room.controller.owner) {
                 creep.claimController(creep.room.controller);
                 global.reloadRoomsNextTick = true;
             }
-        } else {
-            moveCreepTo(creep, creep.room.controller);
         }
     }
 }
@@ -80,11 +74,7 @@ function runClaimer(creep: Creep) {
 function runDismantler(creep: Creep) {
     let target = Game.flags[creep.memory.target];
     if (!target) return;
-    if (creep.room.name != target.pos.roomName) {
-        moveCreepToRoom(creep, target.pos.roomName);
-    } else if (!creep.pos.isNearTo(target)) {
-        moveCreepTo(creep, target);
-    } else {
+    if (creep.goToRoom(target.pos.roomName) && creep.goTo(target)) {
         let s = target.pos.lookFor(LOOK_STRUCTURES)[0];
         if (s) {
             creep.dismantle(s);
@@ -95,11 +85,7 @@ function runDismantler(creep: Creep) {
 function runAttacker(creep: Creep) {
     let target = Game.flags[creep.memory.target];
     if (!target) return;
-    if (creep.room.name != target.pos.roomName) {
-        moveCreepToRoom(creep, target.pos.roomName);
-    } else if (!creep.pos.isNearTo(target)) {
-        moveCreepTo(creep, target);
-    } else {
+    if (creep.goToRoom(target.pos.roomName) && creep.goTo(target)) {
         let s = target.pos.lookFor(LOOK_STRUCTURES)[0];
         if (s) {
             creep.attack(s);

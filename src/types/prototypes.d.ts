@@ -112,6 +112,14 @@ interface PowerCreep {
     powerUsed: boolean;
 }
 
+interface RoomObject {
+    /**
+     * 获取当前该对象上的 power 等级, 没有该 power 返回 0
+     * @param power 要获取的 power 的 ID
+     */
+    getPower(power: PowerConstant): number;
+}
+
 interface StructureTerminal {
     /**
      * 本 tick 内该 Terminal 是否发送给资源或进行过 deal 动作

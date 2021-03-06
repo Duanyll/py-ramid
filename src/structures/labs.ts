@@ -4,9 +4,9 @@ import Logger from "utils";
 import { registerCommand } from "utils/console";
 
 function getLabReactionAmount(lab: StructureLab) {
-    let power = _.find(lab.effects, { effect: PWR_OPERATE_LAB }) as PowerEffect;
+    let power = lab.getPower(PWR_OPERATE_LAB);
     if (power) {
-        return POWER_INFO[PWR_OPERATE_LAB].effect[power.level - 1] + LAB_REACTION_AMOUNT;
+        return POWER_INFO[PWR_OPERATE_LAB].effect[power - 1] + LAB_REACTION_AMOUNT;
     } else {
         return LAB_REACTION_AMOUNT;
     }

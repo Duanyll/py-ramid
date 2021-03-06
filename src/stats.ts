@@ -63,7 +63,7 @@ function summaryRoom(room: RoomInfo): RoomStats {
 
 function summaryResource(): Partial<Record<ResourceConstant, number>> {
     let res: Partial<Record<ResourceConstant, number>> = {};
-    (["XUH2O", "XKH2O", "XKHO2", "XLH2O", "XLHO2", "XZH2O", "XZHO2", "XGHO2", "G", "power"] as ResourceConstant[])
+    (["XUH2O", "XKH2O", "XKHO2", "XLH2O", "XLHO2", "XZH2O", "XZHO2", "XGHO2", "XGH2O", "G", "power"] as ResourceConstant[])
         .forEach(r => {
             res[r] = global.store.current.get(r);
         })

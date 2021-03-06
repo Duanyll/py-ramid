@@ -1,5 +1,4 @@
 import { registerCreepRole } from "creep/roles";
-import { moveCreepTo, moveCreepToRoom } from "creep/movement";
 import { myRooms } from "room/roomInfo";
 import { estimateDistance, registerTask, schedule } from "utils";
 import { onVisibility } from "structures/observer";
@@ -35,7 +34,7 @@ export function runLootCarrier(creep: Creep) {
         return;
     }
     if (m.status == "go") {
-        if (creep.pos.isNearTo(flag.pos)) {
+        if (creep.goToRoom(flag.pos.roomName) && creep.goTo(flag)) {
             if (creep.store.getFreeCapacity() == 0) {
                 m.status = "back";
             } else {
@@ -53,17 +52,11 @@ export function runLootCarrier(creep: Creep) {
                 }
                 m.status = "back";
             }
-        } else {
-            if (creep.room.name != flag.pos.roomName) {
-                moveCreepToRoom(creep, flag.pos.roomName);
-            } else {
-                moveCreepTo(creep, flag);
-            }
         }
     } else {
         const room = myRooms[m.home];
         const terminal = room.structures.terminal;
-        if (creep.pos.isNearTo(terminal)) {
+        if (creep.goToRoom(m.home) && creep.goTo(terminal)) {
             for (const type in creep.store) {
                 creep.transfer(terminal, type as ResourceConstant);
                 room.storeCurrent.add(type as ResourceConstant, creep.store[type as ResourceConstant]);
@@ -74,12 +67,6 @@ export function runLootCarrier(creep: Creep) {
                 m.status = "go";
             } else {
                 creep.suicide();
-            }
-        } else {
-            if (creep.room.name != m.home) {
-                moveCreepToRoom(creep, m.home);
-            } else {
-                moveCreepTo(creep, terminal);
             }
         }
     }

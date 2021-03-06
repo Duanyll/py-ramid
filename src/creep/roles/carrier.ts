@@ -1,60 +1,48 @@
 import { RoomInfo } from "room/roomInfo";
-import { moveCreepTo } from "creep/movement";
 import { LAB_RECIPE } from "utils/constants";
 
 export function goRefill(creep: Creep, room: RoomInfo) {
-    let refilled = false;
-    let nearByTargets: RefillableStructure[];
     let nextTarget: RefillableStructure;
-    do {
-        if (creep.memory.target && room.refillTargets[creep.memory.target]) {
-            const s = Game.getObjectById(creep.memory.target) as RefillableStructure;
-            if (creep.pos.isNearTo(s)) {
-                if (refilled) return true;
-                const amount = Math.min(creep.store.energy, s.store.getFreeCapacity(RESOURCE_ENERGY));
-                creep.transfer(s, RESOURCE_ENERGY, amount);
-                if (amount >= s.store.getFreeCapacity(RESOURCE_ENERGY)) {
-                    delete room.refillTargets[s.id];
-                } else {
-                    room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY) - amount;
-                }
-                refilled = true;
-                if (amount >= creep.store.energy) {
-                    delete creep.memory.target;
-                    return true;
-                }
+
+    if (creep.memory.target && room.refillTargets[creep.memory.target]) {
+        const s = Game.getObjectById(creep.memory.target) as RefillableStructure;
+        if (creep.goTo(s)) {
+            const amount = Math.min(creep.store.energy, s.store.free("energy"));
+            creep.transfer(s, "energy", amount);
+            if (amount >= s.store.getFreeCapacity("energy")) {
+                delete room.refillTargets[s.id];
             } else {
-                moveCreepTo(creep, s);
+                room.refillTargets[s.id] = s.store.free("energy") - amount;
+            }
+            if (amount >= creep.store.energy) {
+                delete creep.memory.target;
                 return true;
             }
-        }
-        if (!nearByTargets) {
-            nearByTargets = [];
-            let dis = Infinity;
-            for (const id in room.refillTargets) {
-                if (room.refillTargets[id] == 0) {
-                    continue;
-                }
-                const s = (Game.getObjectById(id) as RefillableStructure);
-                const cur = s.pos.getRangeTo(creep);
-                if (cur <= 1) {
-                    nearByTargets.push(s);
-                } else if (cur < dis) {
-                    dis = cur;
-                    nextTarget = s;
-                }
-            }
-        }
-        if (nearByTargets.length > 0) {
-            creep.memory.target = nearByTargets.pop().id;
-        } else if (nextTarget) {
-            creep.memory.target = nextTarget.id;
         } else {
-            delete creep.memory.target;
-            return false;
+            return true;
         }
-    } while (creep.memory.target);
-    return false;
+    }
+    let dis = Infinity;
+    for (const id in room.refillTargets) {
+        if (room.refillTargets[id] == 0) {
+            delete room.refillTargets[id];
+            continue;
+        }
+        const s = (Game.getObjectById(id) as RefillableStructure);
+        const cur = s.pos.getRangeTo(creep);
+        if (cur < dis) {
+            dis = cur;
+            nextTarget = s;
+        }
+    }
+    if (nextTarget) {
+        creep.memory.target = nextTarget.id;
+        creep.goTo(nextTarget);
+        return true;
+    } else {
+        delete creep.memory.target;
+        return false;
+    }
 }
 
 // 需要将 runRefiller 逻辑完全独立出来，以便其他 creep 顶替 carrier
@@ -130,7 +118,9 @@ function getPickTask(room: RoomInfo): { id: string, type?: ResourceConstant } {
         }
     }
 
-    if (room.structures.mineralContainer?.store.tot() > 1000) {
+    const container = room.structures.mineralContainer;
+    const mineral = room.structures.mineral;
+    if (container?.store.tot() > 1000 || mineral.ticksToRegeneration && container?.store.tot()) {
         return { id: room.structures.mineralContainer.id };
     }
 

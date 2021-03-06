@@ -1,7 +1,6 @@
 import { RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 import { BOOST_BODYPART } from "utils/constants";
-import { moveCreepTo } from "./movement";
 import roles from "./roles";
 
 function getCreepBoosted(creep: Creep) {

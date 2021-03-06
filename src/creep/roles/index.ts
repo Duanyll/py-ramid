@@ -1,6 +1,6 @@
 import { runBuilder } from "./builder";
 import { runCarrier } from "./carrier";
-import { runHarvester, runRemoteHarvester, runRemoteCarrier, runRemoteReserver, runRemoteBuilder } from "./harvester";
+import { runHarvester } from "./harvester";
 import { runManager } from "./manager";
 import { runMiner } from "./miner";
 import { runWorker, runEmergencyWorker } from "./worker";
@@ -24,10 +24,6 @@ registerCreepRole({
     build: runBuilder,
     carry: runCarrier,
     harvest: runHarvester,
-    rhHarv: runRemoteHarvester,
-    rhCarry: runRemoteCarrier,
-    rhReserve: runRemoteReserver,
-    rhBuild: runRemoteBuilder,
     upgrade: runUpgrader,
     work: runWorker,
     emergency: runEmergencyWorker,

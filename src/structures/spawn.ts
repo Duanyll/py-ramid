@@ -78,7 +78,7 @@ export function tickSpawn(room: RoomInfo) {
         if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
             let spawn = room.structures.spawns[0];
             if (spawn && !spawn.spawning) {
-                spawn.spawnCreep(expandBodypart(roleBodies["pbHarv"]), `${room.name}-emergency-${Game.time}`, {
+                spawn.spawnCreep(expandBodypart(roleBodies["emergency"]), `${room.name}-emergency-${Game.time}`, {
                     memory: {
                         room: room.name,
                         role: "emergency"

@@ -1,6 +1,5 @@
 import { creepGroups } from "creep/creepInfo";
 import { onPBHarvesterArrive } from "industry/highwayMining";
-import { lockCreepPosition, moveCreepTo, moveCreepToRoom } from "creep/movement";
 import { myRooms } from "room/roomInfo";
 import { objToPos } from "utils";
 
@@ -13,11 +12,7 @@ export function runPowerHarvester(creep: Creep) {
     let m = creep.memory as PowerHarvesterMemory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
-    if (creep.room.name != tarpos.roomName) {
-        moveCreepToRoom(creep, tarpos.roomName);
-    } else if (!creep.pos.isNearTo(tarpos)) {
-        moveCreepTo(creep, tarpos);
-    } else {
+    if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos)) {
         if (!m.arrived) {
             m.arrived = true;
             pbInfo.distance = CREEP_LIFE_TIME - creep.ticksToLive;
@@ -42,7 +37,7 @@ export function runPowerHarvester(creep: Creep) {
                     if (readyCount < carrierCount) return;
                 }
                 creep.attack(pb);
-                lockCreepPosition(creep);
+                creep.posLock = true;
             }
         }
     }
@@ -52,23 +47,17 @@ export function runPowerHealer(creep: Creep) {
     let m = creep.memory;
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
-    if (creep.room.name != tarpos.roomName) {
-        moveCreepToRoom(creep, tarpos.roomName);
-    } else if (!creep.pos.inRangeTo(tarpos, 5)) {
-        moveCreepTo(creep, tarpos);
-    } else {
+    if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos, 4)) {
         let healTarget = creep.group["attack"];
         if (!healTarget && pbInfo.status == "harvested") {
             creep.suicide();
             return;
         }
         if (!healTarget) return;
-        lockCreepPosition(creep);
+        creep.posLock = true;
         if (healTarget.pos.isNearTo(tarpos)) {
-            if (creep.pos.isNearTo(healTarget)) {
+            if (creep.goTo(healTarget)) {
                 creep.heal(healTarget);
-            } else {
-                moveCreepTo(creep, healTarget);
             }
         }
     }
@@ -82,41 +71,30 @@ export function runPowerCarrier(creep: Creep) {
     let pbInfo = Memory.mining.power.info[m.target];
     const tarpos = objToPos(pbInfo.pos);
     if (m.state == "go") {
-        if (creep.room.name != tarpos.roomName) {
-            moveCreepToRoom(creep, tarpos.roomName);
-        } else if (!creep.pos.inRangeTo(tarpos, 4)) {
-            moveCreepTo(creep, tarpos, 4);
-        } else if (pbInfo.status == "harvested") {
-            if (!creep.pos.isNearTo(tarpos)) {
-                moveCreepTo(creep, tarpos);
-            } else {
-                const ruin = tarpos.lookFor(LOOK_RUINS)[0];
-                if (ruin) {
-                    creep.withdraw(ruin, RESOURCE_POWER);
-                    m.state = "back";
-                } else {
-                    const resource = tarpos.lookFor(LOOK_RESOURCES).find(r => r.resourceType == RESOURCE_POWER);
-                    if (resource) creep.pickup(resource);
-                    m.state = "back";
+        if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos, 4))
+            if (pbInfo.status == "harvested") {
+                if (creep.goTo(tarpos)) {
+                    const ruin = tarpos.lookFor(LOOK_RUINS)[0];
+                    if (ruin) {
+                        creep.withdraw(ruin, RESOURCE_POWER);
+                        m.state = "back";
+                    } else {
+                        const resource = tarpos.lookFor(LOOK_RESOURCES).find(r => r.resourceType == RESOURCE_POWER);
+                        if (resource) creep.pickup(resource);
+                        m.state = "back";
+                    }
                 }
+            } else {
+                creep.posLock = true;
             }
-        } else {
-            lockCreepPosition(creep);
-        }
     } else {
         const home = pbInfo.harvRoom
-        if (creep.room.name != home) {
-            moveCreepToRoom(creep, home);
-        } else {
-            let room = myRooms[home];
-            let storage = room.structures.storage;
-            if (!creep.pos.isNearTo(storage)) {
-                moveCreepTo(creep, storage);
-            } else {
-                creep.transfer(storage, RESOURCE_POWER);
-                room.storeCurrent.add(RESOURCE_POWER, creep.store.power);
-                creep.suicide();
-            }
+        let room = myRooms[home];
+        let storage = room.structures.storage;
+        if (creep.goToRoom(home) && creep.goTo(storage)) {
+            creep.transfer(storage, RESOURCE_POWER);
+            room.storeCurrent.add(RESOURCE_POWER, creep.store.power);
+            creep.suicide();
         }
     }
 }

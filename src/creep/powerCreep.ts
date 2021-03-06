@@ -1,6 +1,5 @@
 import cfg from "config";
 import { myRooms } from "room/roomInfo";
-import Logger from "utils";
 import { registerCommand } from "utils/console";
 
 let origUsePowerMethod = PowerCreep.prototype.usePower;
@@ -60,29 +59,23 @@ function runOperator(pc: PowerCreep) {
     const powerSpawn = room.structures.powerSpawn;
     switch (pc.memory.state) {
         case "renew":
-            if (!pc.pos.isNearTo(powerSpawn)) {
-                pc.movement = { pos: powerSpawn.pos };
-            } else {
+            if (pc.goTo(powerSpawn)) {
                 pc.renew(powerSpawn);
                 pc.memory.state = "idle";
             }
             break;
         case "moveToRoom":
-            pc.movement = { room: pc.memory.room };
+            pc.goToRoom(pc.memory.room);
             break;
         case "pickOps":
-            if (!pc.pos.isNearTo(storage)) {
-                pc.movement = { pos: storage.pos };
-            } else {
+            if (pc.goTo(storage)) {
                 let amount = Math.min(pc.store.getFreeCapacity() - 20, storage.store.ops);
                 pc.withdraw(storage, "ops", amount);
                 pc.memory.state = "idle";
             }
             break;
         case "putOps":
-            if (!pc.pos.isNearTo(storage)) {
-                pc.movement = { pos: storage.pos };
-            } else {
+            if (pc.goTo(storage)) {
                 pc.transfer(storage, "ops", pc.store.ops - 20);
                 pc.memory.state = "idle";
             }
@@ -93,9 +86,7 @@ function runOperator(pc: PowerCreep) {
                 pc.memory.state = "idle";
                 break;
             }
-            if (!pc.pos.inRangeTo(target, 3)) {
-                pc.movement = { pos: target.pos, range: 3 };
-            } else {
+            if (pc.goTo(target, 3)) {
                 const power = room.powerRequests[pc.memory.target].type;
                 let result = pc.usePower(power, target);
 
@@ -109,9 +100,7 @@ function runOperator(pc: PowerCreep) {
             break;
         case "enablePower":
             const controller = room.structures.controller;
-            if (!pc.pos.isNearTo(controller)) {
-                pc.movement = { pos: controller.pos };
-            } else {
+            if (pc.goTo(controller)) {
                 pc.enableRoom(controller);
                 pc.memory.state = "idle";
             }
@@ -148,3 +137,12 @@ registerCommand('assignPC', 'Assign PC to a room.', [
     myRooms[room].delay("checkPower", 1);
 })
 
+Object.defineProperties(RoomObject.prototype, {
+    getPower: {
+        value: function (this: RoomObject, power: PowerConstant) {
+            return (_.find(this.effects, { effect: power }) as PowerEffect)?.level ?? 0;
+        },
+        enumerable: false,
+        configurable: true
+    }
+})
