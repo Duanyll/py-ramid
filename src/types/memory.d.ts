@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------------------- */
+/*                                   creeps                                   */
+/* -------------------------------------------------------------------------- */
+
 interface CreepMemory {
     role: CreepRole;
     target?: string;
@@ -13,6 +17,10 @@ interface PowerCreepMemory {
     target: string;
     role: undefined;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                global memory                               */
+/* -------------------------------------------------------------------------- */
 
 interface PowerBankInfo {
     discoverTime: number,
@@ -72,7 +80,19 @@ interface Memory {
                 minAmount: number,
                 updateTime: number
             }
-        }
+        },
+        buyOrders: {
+            type: ResourceConstant,
+            minPrice: number,
+            maxPrice: number,
+            addPrice: number,
+            buffer: number,
+            perOrder: number,
+            room: string,
+            maxStore: number,
+            remain?: number
+        }[],
+        orderDealTime: Record<string, number>;
     },
     playerWhiteList: Record<string, boolean>;
     rawMemoryIndex: {
@@ -80,6 +100,10 @@ interface Memory {
     },
     version: number;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                 room memory                                */
+/* -------------------------------------------------------------------------- */
 
 interface RoomState {
     status: "normal" | "energy-emergency";
@@ -92,8 +116,11 @@ interface RoomState {
         primary: EnergyWork[],
         primaryUpdateTime: number
         activeCount: number;
+    },
+    link: {
+        targets: ("controller" | "center")[],
+        centerMode: "recieve" | "send"
     }
-    lastLinkToController: boolean,
     enableMining: boolean;
     refillFailTime?: number,
     lab: {
@@ -118,6 +145,7 @@ interface RoomState {
     autoProcessPower: boolean,
     powerToProcess: number,
     disableTower?: boolean,
+    boostUpgrade: boolean
 }
 
 interface RoomDesign {

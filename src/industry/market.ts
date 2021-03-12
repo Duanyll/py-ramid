@@ -2,13 +2,19 @@ import { globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
 import { registerCommand } from "utils/console";
+import { myRooms, RoomInfo } from "room/roomInfo";
 
 Memory.market ||= {} as any;
 _.defaultsDeep(Memory.market, {
     enableAutoDeal: true,
     autoDeal: {},
-    autoBuy: {}
+    autoBuy: {},
+    buyOrders: [],
+    orderDealTime: {}
 } as typeof Memory.market);
+_.forIn(Memory.market.orderDealTime, (time, id) => {
+    if (!Game.market.getOrderById(id)) delete Memory.market.orderDealTime[id];
+})
 
 let orderCache: Record<string, { update: number, order: Order }> = {};
 let sellOrdersList = {} as Record<ResourceConstant, string[]>;
@@ -55,6 +61,7 @@ function fetchAutoDealOrders() {
         });
         sellOrdersList[type] = _.sortBy(sellOrdersList[type], (o => getMarketOrder(o).price));
     });
+    processMyBuyOrders();
     globalDelay("fetchAutoDealOrders");
 }
 registerGlobalRoutine("fetchAutoDealOrders", fetchAutoDealOrders);
@@ -107,7 +114,6 @@ export function tryDealResource(terminal: StructureTerminal, res: ResourceConsta
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} sold at price ${order.price}`);
         terminal.worked = true;
         orderCache[order.id].order.amount -= dealAmount;
-        room.storeCurrent.add(res, -dealAmount);
         let required = -global.store.free(res);
         if (required > 0) global.store.produce(res, required, false);
         return true;
@@ -125,7 +131,6 @@ export function tryBuyResource(terminal: StructureTerminal, res: ResourceConstan
         Logger.info(`Dealing order ${order.id}, ${dealAmount} * ${res} bought at price ${order.price}`);
         terminal.worked = true;
         orderCache[order.id].order.amount -= dealAmount;
-        room.storeCurrent.add(res, dealAmount);
         return true;
     } else {
         return false;
@@ -151,7 +156,7 @@ registerCommand('autoSell', 'Create or modify a auto sell order.', [
 registerCommand('autoBuy', 'Create or modify a auto but order.', [
     { name: 'res', type: 'resource' },
     { name: 'price', type: 'number', description: "Set to -1 to delete the order. " },
-],  (type: ResourceConstant, price: number) => {
+], (type: ResourceConstant, price: number) => {
     if (price === -1) {
         delete Memory.market.autoBuy[type];
     } else {
@@ -163,3 +168,57 @@ registerCommand('autoBuy', 'Create or modify a auto but order.', [
         globalDelay("fetchAutoDealOrders", 1);
     }
 })
+
+export function confirmMarketOrders() {
+    _.forEach(Game.market.incomingTransactions, i => {
+        if (i.time < Game.time - 1) return false;
+        if (i.order) {
+            myRooms[i.to]?.storeCurrent.add(i.resourceType as ResourceConstant, i.amount);
+            let order = Game.market.getOrderById(i.order.id);
+            if (order?.roomName == i.to)
+                Memory.market.orderDealTime[i.order.id] = Game.time;
+        }
+    })
+
+    _.forEach(Game.market.outgoingTransactions, i => {
+        if (i.time < Game.time - 1) return false;
+        if (i.order) {
+            myRooms[i.from]?.storeCurrent.add(i.resourceType as ResourceConstant, -i.amount);
+        }
+    })
+}
+
+function processMyBuyOrders() {
+    const allOrders = _(Game.market.orders).filter(i => {
+        if (i.remainingAmount > 0) {
+            return true;
+        } else {
+            delete Memory.market.orderDealTime[i.id];
+            Game.market.cancelOrder(i.id);
+            return false;
+        }
+    }).groupBy(i => i.roomName).value();
+    _.forEach(Memory.market.buyOrders, (info) => {
+        const room = myRooms[info.room];
+        if (!room.structures.terminal || !room.structures.storage) return;
+        if (room.structures.storage.store[info.type] > info.maxStore) return;
+        const orders = _.filter(allOrders[info.room], { resourceType: info.type });
+        const orderAmount = _.sumBy(orders, i => i.remainingAmount);
+        _.forEach(orders, i => {
+            if ((Memory.market.orderDealTime[i.id] ?? i.created) < Game.time - cfg.MARKET_ADD_PRICE_TIME
+                && i.price < info.maxPrice) {
+                Memory.market.orderDealTime[i.id] = Game.time;
+                Game.market.changeOrderPrice(i.id, i.price + info.addPrice);
+            }
+        });
+        if (orderAmount <= info.buffer - info.perOrder && (info.remain ?? Infinity) > 0) {
+            Game.market.createOrder({
+                type: ORDER_BUY, resourceType: info.type, price: info.minPrice, totalAmount: info.perOrder, roomName: info.room
+            });
+            if (info.remain) {
+                info.remain = Math.min(info.remain - info.perOrder, 0);
+            }
+        }
+    }
+    )
+}

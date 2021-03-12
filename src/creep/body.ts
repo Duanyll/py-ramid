@@ -54,6 +54,7 @@ export const roomBasicCreepConfig: {
         harv2: { role: "harvest", body: [[WORK, 6], [CARRY, 10], [MOVE, 8]] },
         build1: { role: "build", body: [[WORK, 8], [CARRY, 8], [MOVE, 8]] },
         build2: { role: "build", body: [[WORK, 8], [CARRY, 8], [MOVE, 8]] },
+        center: { role: "manage", body: [[CARRY, 16]] },
         carry1: { role: "carry", body: [[CARRY, 24], [MOVE, 12]] },
         upgr1: { role: "upgrade", body: [[WORK, 12], [CARRY, 4], [MOVE, 8]] },
     },
@@ -97,23 +98,28 @@ export const roomBasicCreepConfig: {
 */
 
 
-export const roleBodies: Partial<Record<CreepRole, BodyPartDescription>> = {
-    "rhHarv": [[WORK, 10], [CARRY, 4], [MOVE, 5]],
-    "rhCarry": [[WORK, 1], [CARRY, 31], [MOVE, 16]],
-    "rhReserve": [[CLAIM, 5], [MOVE, 5]],
-    "rhGuard": [[TOUGH, 2], [MOVE, 8], [RANGED_ATTACK, 2], [HEAL, 4]],
-    "rhBuild": [[WORK, 10], [CARRY, 10], [MOVE, 10]],
-
+export const roleBodies: Partial<Record<CreepRole, BodyPartDescription | Record<number, BodyPartDescription>>> = {
     "pbHarv": [[MOVE, 25], [ATTACK, 25]],
     "pbHeal": [[MOVE, 16], [HEAL, 16]],
     "pbCarry": [[CARRY, 25], [MOVE, 25]],
 
     "emergency": workerBody[0],
-    "mine": [[WORK, 12], [MOVE, 6]],
+    "mine": {
+        6: [[WORK, 12], [MOVE, 6]],
+        7: [[WORK, 20], [MOVE, 10]],
+        8: [[WORK, 20], [MOVE, 10]],
+    },
+    "xUpgrade": {
+        5: [[WORK, 12], [CARRY, 4], [MOVE, 8]],
+        6: [[WORK, 20, "XGH2O"], [CARRY, 1], [MOVE, 5]],
+        7: [[WORK, 38, "XGH2O"], [CARRY, 2], [MOVE, 10]],
+        8: [[WORK, 38, "XGH2O"], [CARRY, 2], [MOVE, 10]]
+    },
 
     "claim": [[MOVE, 5], [CLAIM, 1]],
     "dismantle": [[MOVE, 25], [WORK, 25]],
     "attack": [[MOVE, 25], [ATTACK, 25]],
+    "cleaner": [[TOUGH, 6, "XGHO2"], [MOVE, 10, "XZHO2"], [RANGED_ATTACK, 19, "XKHO2"], [HEAL, 15, "XLHO2"]],
 
     "rCarry": [[MOVE, 25], [CARRY, 25]]
 }

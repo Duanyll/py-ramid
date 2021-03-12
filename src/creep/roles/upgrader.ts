@@ -40,6 +40,19 @@ export function runUpgrader(creep: Creep, room: RoomInfo) {
     }
 }
 
+export function runBoostedUpgrader(creep: Creep, room: RoomInfo) {
+    if (!room.state.energy.usage.upgrade) return;
+    const controller = room.structures.controller;
+    if (creep.goTo(controller, 2)) {
+        creep.upgradeController(controller);
+        if (creep.store.energy <= creep.getActiveBodyparts("work")) {
+            if (creep.goTo(room.structures.controllerLink)) {
+                creep.withdraw(room.structures.controllerLink, "energy");
+            }
+        }
+    }
+}
+
 export function goSignRoom(creep: Creep, room: Room) {
     const sign = Memory.rooms[room.name]?.sign || cfg.DEFAULT_CONTROLLER_SIGN;
     let controller = room.controller;

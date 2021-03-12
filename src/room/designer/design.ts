@@ -64,6 +64,7 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
 
     let design = {
         version: 3,
+        rclDone: 0,
         link: {},
         lab: {}
     } as RoomDesign;

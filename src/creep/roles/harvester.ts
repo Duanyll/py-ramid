@@ -15,14 +15,13 @@ export function runHarvester(creep: Creep, room: RoomInfo) {
         && !_.isEmpty(room.creepForRole["carry1"]);
 
     if (useLink) {
-        if (creep.goTo(source)) {
+        if (creep.store.free() > 20 && creep.goTo(source)) {
             creep.harvest(source);
-
-            if (creep.store.getFreeCapacity() <= 20) {
-                if (creep.goTo(link)) {
-                    creep.transfer(link, "energy");
-                    room.delay("runLinks", 1);
-                }
+        }
+        if (creep.store.free() <= 20) {
+            if (creep.goTo(link)) {
+                creep.transfer(link, "energy");
+                room.delay("runLinks", 1);
             }
         }
     } else {

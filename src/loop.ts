@@ -17,6 +17,7 @@ import cfg from "config";
 import { checkMigrateDone, initMigrate } from "migrate";
 import { tickSegmentRequest } from "utils/rawMemory";
 import { runPowerCreep } from "creep/powerCreep";
+import { confirmMarketOrders } from "industry/market";
 
 function loadRooms() {
     for (const name in Game.rooms) {
@@ -105,6 +106,8 @@ export const runLoop = ErrorMapper.wrap(() => {
         loadRooms();
         delete global.reloadRoomsNextTick;
     }
+
+    confirmMarketOrders();
 
     loadCreeps();
     prepareMovement();

@@ -2,23 +2,27 @@ import { registerRoomRoutine, RoomInfo } from "room/roomInfo";
 
 function runLinks(room: RoomInfo) {
     if (room.structRcl < 5) return;
-    room.structures.sourceLink.forEach(link => {
+    const info = room.state.link;
+    function targetLink(t: "center" | "controller") {
+        let l = (t == "center" && info.centerMode == "recieve") ? room.structures.centerLink : room.structures.controllerLink;
+        return l ?? room.structures.centerLink;
+    }
+    function processLink(link: StructureLink) {
         if (!link) return;
         if (link.cooldown) {
             room.delay("runLinks", link.cooldown);
             return;
         }
         if (link.store.energy > 200) {
-            if (!room.structures.centerLink
-                || (!room.state.lastLinkToController && room.structures.controllerLink.store.energy < 400)) {
-                link.transferEnergy(room.structures.controllerLink);
-                room.state.lastLinkToController = true;
-            } else {
-                link.transferEnergy(room.structures.centerLink);
-                room.state.lastLinkToController = false;
+            let target = targetLink(info.targets[0]);
+            info.targets.push(info.targets.shift());
+            if (target.store.energy < 600) {
+                link.transferEnergy(target);
             }
         }
-    });
+    }
+    room.structures.sourceLink.forEach(processLink);
+    if (info.centerMode == "send") processLink(room.structures.centerLink);
 }
 registerRoomRoutine({
     id: "runLinks",

@@ -43,8 +43,8 @@ export function tickTower(room: RoomInfo) {
     if (hostiles.length > 0 && !room.state.disableTower) {
         room.structures.towers.forEach((tower) => {
             tower.attack(_.sample(hostiles));
-            if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 200)
-                room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+            if (tower.store.free("energy") > 200)
+                room.refillTargets[tower.id] = tower.store.free("energy") + 10;
         });
     } else if (room.roadToRepair.length > 0) {
         let road = Game.getObjectById(room.roadToRepair[0]) as StructureRoad;
@@ -58,8 +58,8 @@ export function tickTower(room: RoomInfo) {
             if (remainHits > 0) {
                 tower.repair(road);
                 remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
-                if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 200)
-                    room.refillTargets[tower.id] = tower.store.getFreeCapacity(RESOURCE_ENERGY) + 10;
+                if (tower.store.free("energy") > 200)
+                    room.refillTargets[tower.id] = tower.store.free("energy") + 10;
             }
         });
         if (remainHits <= 0) room.roadToRepair.shift();

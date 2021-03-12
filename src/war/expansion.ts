@@ -9,7 +9,11 @@ function sendClaimer(roomName: string, target: string) {
         Logger.error("unknown room.");
         return;
     }
-    Memory.rooms[target] = { helperRoom: roomName } as RoomMemory;
+    if (!(target in Memory.rooms)) {
+        Logger.error("Design the room first.");
+        return;
+    }
+    _.assign(Memory.rooms[target], { helperRoom: roomName });
     room.requestSpawn("claim", {
         name: `${target}-claim`, memory: {
             role: "claim", target: target

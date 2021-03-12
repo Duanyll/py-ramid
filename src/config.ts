@@ -69,7 +69,12 @@ const cfg = {
         "XZH2O": 10_000,
         "XZHO2": 10_000,
         "ops": 50_000
-    } as Partial<Record<ResourceConstant, number>>
+    } as Partial<Record<ResourceConstant, number>>,
+
+/* --------------------------------- market --------------------------------- */
+
+    MARKET_ADD_PRICE_TIME: 500,
+    ENERGY_PRICE: 0.5
 }
 
 export default cfg;

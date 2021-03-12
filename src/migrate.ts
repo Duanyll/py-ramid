@@ -71,6 +71,10 @@ export function initMigrate() {
         cleanMemory();
         Memory.version = 2;
     }
+    if (Memory.version < 3) {
+        Memory.market.buyOrders = [];
+        Memory.version = 3;
+    }
     return operated;
 }
 

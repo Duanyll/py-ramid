@@ -4,7 +4,7 @@ import { runHarvester } from "./harvester";
 import { runManager } from "./manager";
 import { runMiner } from "./miner";
 import { runWorker, runEmergencyWorker } from "./worker";
-import { runUpgrader } from "./upgrader";
+import { runBoostedUpgrader, runUpgrader } from "./upgrader";
 import { runPowerHarvester, runPowerHealer, runPowerCarrier } from "./powerMiner";
 import { RoomInfo } from "room/roomInfo";
 
@@ -28,7 +28,9 @@ registerCreepRole({
     work: runWorker,
     emergency: runEmergencyWorker,
     manage: runManager,
-    mine: runMiner
+    mine: runMiner,
+
+    xUpgrade: runBoostedUpgrader
 });
 
 registerCreepRole({

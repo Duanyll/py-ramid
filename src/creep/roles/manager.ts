@@ -11,11 +11,22 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
         /* ------------------------------- center link ------------------------------ */
 
         (room, storage) => {
-            if (room.structures.centerLink?.store.free("energy") <= 400) {
-                return {
-                    from: room.structures.centerLink,
-                    to: storage,
-                    type: "energy"
+            if (room.state.boostUpgrade && room.state.energy.usage.upgrade && room.state.link.centerMode == "send") {
+                if (room.structures.centerLink?.store.free("energy") >= 400) {
+                    room.delay("runLinks", 2)
+                    return {
+                        from: storage,
+                        to: room.structures.centerLink,
+                        type: "energy"
+                    }
+                }
+            } else {
+                if (room.structures.centerLink?.store.free("energy") <= 400) {
+                    return {
+                        from: room.structures.centerLink,
+                        to: storage,
+                        type: "energy"
+                    }
                 }
             }
         },

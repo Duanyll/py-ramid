@@ -1,7 +1,7 @@
 type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
-    | "rhHarv" | "rhReserve" | "rhCarry" | "rhBuild" | "rhGuard"
-    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry"
-    | "pbHarv" | "pbHeal" | "pbCarry";
+    | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry" | "cleaner"
+    | "pbHarv" | "pbHeal" | "pbCarry"
+    | "xUpgrade";
 
 type RoomRoutineType =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |

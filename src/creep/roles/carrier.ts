@@ -153,6 +153,9 @@ function getFillTask(room: RoomInfo): { id: string, type: ResourceConstant, amou
                 if (amount > 0 && hasRes(res))
                     return { id: lab.id, type: res, amount };
             }
+            if (lab.store.free("energy") > 1000) {
+                return { id: lab.id, type: "energy", amount: lab.store.free("energy") };
+            }
         } else break;
     }
 
@@ -179,14 +182,6 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
         return;
     }
 
-    // 填 extension
-    if (creep.store.tot() == 0 && !_.isEmpty(room.refillTargets)) {
-        m.type = null;
-        m.state = "refill";
-        m.target = null;
-        creep.say("🟡")
-        return;
-    }
 
     // 尝试获取新的取货任务
     const pickTask = getPickTask(room);
@@ -211,6 +206,16 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
         m.target = pickToFillTask.id;
         const s = Game.getObjectById(pickToFillTask.id) as AnyStoreStructure;
         m.amount = pickToFillTask.amount;
+        return;
+    }
+
+
+    // 填 extension
+    if (creep.store.tot() == 0 && !_.isEmpty(room.refillTargets)) {
+        m.type = null;
+        m.state = "refill";
+        m.target = null;
+        creep.say("🟡")
         return;
     }
 }

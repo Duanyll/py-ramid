@@ -78,7 +78,7 @@ export function tickSpawn(room: RoomInfo) {
         if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
             let spawn = room.structures.spawns[0];
             if (spawn && !spawn.spawning) {
-                spawn.spawnCreep(expandBodypart(roleBodies["emergency"]), `${room.name}-emergency-${Game.time}`, {
+                spawn.spawnCreep(expandBodypart(roleBodies["emergency"] as BodyPartDescription), `${room.name}-emergency-${Game.time}`, {
                     memory: {
                         room: room.name,
                         role: "emergency"
@@ -92,20 +92,27 @@ export function tickSpawn(room: RoomInfo) {
 function checkRefillState(room: RoomInfo) {
     let totalRefill = 0;
     function f(s: RefillableStructure) {
-        if (s.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+        if (s.store.free("energy") == 0) {
             delete room.refillTargets[s.id];
         } else {
-            room.refillTargets[s.id] = s.store.getFreeCapacity(RESOURCE_ENERGY);
+            room.refillTargets[s.id] = s.store.free("energy");
             totalRefill += room.refillTargets[s.id];
         }
     }
     room.structures.extensions.forEach(f);
     room.structures.spawns.forEach(f);
-    // room.structures.towers.forEach(f);
-    if (totalRefill > 1000) {
+    room.structures.towers.forEach(s => {
+        if (s.store.free("energy") == 0) {
+            delete room.refillTargets[s.id];
+        } else if (s.store.free("energy") > 200) {
+            room.refillTargets[s.id] = s.store.free("energy");
+            totalRefill += room.refillTargets[s.id];
+        }
+    });
+    if (room.structures.storage && totalRefill > 1000) {
         room.requestPower(room.structures.storage, PWR_OPERATE_EXTENSION);
     } else {
-        delete room.powerRequests[room.structures.storage.id];
+        delete room.powerRequests[room.structures.storage?.id];
     }
 }
 registerRoomRoutine({

@@ -94,7 +94,7 @@ export class RoomInfo {
     }
 
     public get structRcl() {
-        return this.design.rclDone;
+        return this.design.rclDone || 1;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -234,6 +234,10 @@ export class RoomInfo {
             spawnQueue: [],
             state: {
                 status: "normal",
+                link: {
+                    targets: ["center", "controller"],
+                    centerMode: "recieve"
+                },
                 energy: {
                     storeMode: true,
                     activeCount: 0,
@@ -379,6 +383,11 @@ export class RoomInfo {
         if (this.state.factory.remain) {
             factoryTask(this.state.factory.product, this.state.factory.remain);
         }
+
+        // boost upgrade
+        if (this.state.boostUpgrade) {
+            this._storeBook.add("XGH2O", 50_000);
+        }
     }
     public get storeBook() {
         if (!this._storeBook || this._storeBookUpd != Game.time) {
@@ -403,7 +412,8 @@ export class RoomInfo {
         room,
         name = `${this.name}-${roleId || role}-${Game.time}`,
         memory,
-    }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
+    }: { body?: BodyPartDescription | Record<number, BodyPartDescription>, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
+        if (!_.isArray(body)) body = body[this.structRcl];
         const cost = calcCreepCost(body);
         if (Game.creeps[name]) {
             Logger.error(`${this.name}: Cannot spawn creep ${name}: Existed.`);
@@ -472,9 +482,9 @@ Object.defineProperty(Room.prototype, 'info', {
 })
 
 registerCommand('logRoomRoutine', 'log room routine info to console.', [
-    {name: "room", type: "myRoom"}
+    { name: "room", type: "myRoom" }
 ], (room: string) => {
-        _.forIn(myRooms[room].tasks, (time, name) => {
-            Logger.report(`${name}: ${time} (${time > Game.time ? `${time - Game.time} ticks later` : `${Game.time - time} ticks before`})`)
+    _.forIn(myRooms[room].tasks, (time, name) => {
+        Logger.report(`${name}: ${time} (${time > Game.time ? `${time - Game.time} ticks later` : `${Game.time - time} ticks before`})`)
     })
 })

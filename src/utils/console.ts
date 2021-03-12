@@ -157,6 +157,18 @@ export function registerCommand(name: string, description: string, paramInfo: Co
     commandHelpStore.set(wrapperFunc, { name, fullText: helpText, shortText: shortText });
 }
 
+export function runCommand(name: string, ...param: any[]): any {
+    if (!(name in global)) {
+        Logger.error(`No such command: ${name}`);
+    }
+    const command: Function = (global as any)[name];
+    if (command instanceof Function) {
+        return command.apply(null, param);
+    } else {
+        Logger.error(`No such command: ${name}`);
+    }
+}
+
 global.help = (func?: any) => {
     if (func) {
         if (commandHelpStore.has(func)) {

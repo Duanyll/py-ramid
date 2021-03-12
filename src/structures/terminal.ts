@@ -30,14 +30,12 @@ export function runTerminals() {
         }
     })
 
-    let continueToRun = false;
     _.forIn(myRooms, (dest) => {
         const destTerminal = dest.structures.terminal;
         if (!destTerminal) return;
         dest.storeBook.forIn((amount, res) => {
             let importAmount = amount - dest.storeCurrent.get(res);
             if (importAmount <= 0) return;
-            continueToRun = true;
             let source = _.find(sourceTerminals[res], i => !i.terminal.worked && i.terminal.id != destTerminal.id);
             if (source) {
                 let transAmount = Math.min(cfg.TERMINAL_EXPORT_DEFAULT, importAmount, source.amount);
