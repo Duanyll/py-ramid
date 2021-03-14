@@ -151,7 +151,7 @@ export function getRoutes(matrix: string[][], center: PointInRoom, targets: Poin
         let cur = posToId(nx, ny);
         while (fa[nx][ny] != sid) {
             matrix[nx][ny] = 'r';
-            route.push({ x: nx, y: ny});
+            route.unshift({ x: nx, y: ny });
             cur = fa[nx][ny];
             nx = idToPos(cur).x;
             ny = idToPos(cur).y;

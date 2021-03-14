@@ -63,7 +63,7 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
             room.design.rclDone = stages[stage].rcl;
             room.design.currentStage++;
             onSRCLUpgrade(room);
-            setConstruction(room);
+            room.delay("setConstruction", 1);
         } else {
             room.delay("setConstruction");
         }

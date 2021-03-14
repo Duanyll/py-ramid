@@ -90,7 +90,7 @@ export function runPowerCarrier(creep: Creep) {
     } else {
         const home = pbInfo.harvRoom
         let room = myRooms[home];
-        let storage = room.structures.storage;
+        let storage = room.whereToPut("power");
         if (creep.goToRoom(home) && creep.goTo(storage)) {
             creep.transfer(storage, RESOURCE_POWER);
             room.storeCurrent.add(RESOURCE_POWER, creep.store.power);

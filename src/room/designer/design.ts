@@ -74,6 +74,8 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
         ramparts: []
     } as RoomDesignDetail;
 
+    fillOutPoints(matrix, room, design);
+
     let isSmall = false;
     if (fixedCenter) {
         isSmall = true;
@@ -103,7 +105,6 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
         }
     }
 
-    fillOutPoints(matrix, room, design);
     let routes = getRoutes(matrix, design.center, [
         room.controller,
         ...room.find(FIND_SOURCES),

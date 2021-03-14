@@ -33,10 +33,10 @@ export class SquareFinder {
         this.wlen = createMatrix(51, 51, 0);
         for (let i = 0; i < 50; i++) {
             for (let j = 0; j < 50; j++) {
-                if (this.matrix[i][j] == '.') {
-                    this.wlen[i][j] = 0;
-                } else {
+                if (this.matrix[i][j] == ' ' || this.matrix[i][j] == '~') {
                     this.wlen[i][j] = (j == 0) ? 1 : (this.wlen[i][j - 1] + 1);
+                } else {
+                    this.wlen[i][j] = 0;
                 }
             }
         }

@@ -1,5 +1,5 @@
 import { myRooms } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { ErrorMapper, globalDelay, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 
 let observeQueue: {
@@ -8,7 +8,7 @@ let observeQueue: {
 export function tickObserver() {
     for (const room in Game.rooms) {
         if (observeQueue[room]) {
-            observeQueue[room].forEach(f => f());
+            ErrorMapper.wrap(() => { observeQueue[room].forEach(f => f()) } )();
             delete observeQueue[room];
         }
     }

@@ -6,20 +6,16 @@ import { roleBodies, roomHelperCreepConfig } from "creep/body";
 import cfg from "config";
 
 function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
-    let needSpawn = true;
     if (room.creepForRole[roleId]) {
-        if (room.creepForRole[roleId].length >= 2) needSpawn = false;
-        room.creepForRole[roleId].forEach(creep => {
+        if (room.creepForRole[roleId].length >= 2) return;
+        for (const creep of room.creepForRole[roleId]) {
             if (!creep.ticksToLive || creep.ticksToLive > getCreepSpawnTime(body)) {
-                needSpawn = false;
                 return;
             }
-        })
+        }
     }
-    if (needSpawn) {
-        if (spawnRoom.spawnQueue.find(r => r.memory.roleId == roleId)) return;
-        spawnRoom.requestSpawn(role, { body, roleId, room: room.name })
-    }
+    if (spawnRoom.spawnQueue.find(r => r.memory.roleId == roleId)) return;
+    spawnRoom.requestSpawn(role, { body, roleId, room: room.name })
 }
 
 function checkHelpersHealth(room: RoomInfo) {
