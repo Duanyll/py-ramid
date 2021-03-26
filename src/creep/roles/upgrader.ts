@@ -46,8 +46,12 @@ export function runBoostedUpgrader(creep: Creep, room: RoomInfo) {
     if (creep.goTo(controller, 2)) {
         creep.upgradeController(controller);
         if (creep.store.energy <= creep.getActiveBodyparts("work")) {
-            if (creep.goTo(room.structures.controllerLink)) {
-                creep.withdraw(room.structures.controllerLink, "energy");
+            const link = room.structures.controllerLink;
+            if (creep.goTo(link)) {
+                creep.withdraw(link, "energy");
+                if (link.energy < 200) {
+                    room.delay("runLinks", 1);
+                }
             }
         }
     }

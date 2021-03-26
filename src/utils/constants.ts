@@ -19,3 +19,26 @@ export const CENTER_STRUCTURES = {
     [STRUCTURE_NUKER]: true,
     [STRUCTURE_LINK]: true
 };
+
+export const CREEP_LONG_ACTION = {
+    attack: true,
+    attackController: true,
+    build: true,
+    dismantle: true,
+    harvest: true,
+    heal: true,
+    rangedAttack: true,
+    rangedHeal: true,
+    rangedMassAttack: true,
+    repair: true,
+    reserveController: true,
+    upgradeController: true
+}
+
+export const BODYPART_ACTIONS: Partial<Record<BodyPartConstant, [CreepLongAction, number][]>> = {
+    work: [["build", BUILD_POWER], ["repair", REPAIR_POWER], ["harvest", HARVEST_POWER], ["upgradeController", UPGRADE_CONTROLLER_POWER], ["dismantle", DISMANTLE_POWER]],
+    attack: [["attack", ATTACK_POWER]],
+    ranged_attack: [["rangedAttack", RANGED_ATTACK_POWER], ["rangedMassAttack", RANGED_ATTACK_POWER]],
+    heal: [["heal", HEAL_POWER], ["rangedHeal", RANGED_HEAL_POWER]],
+    claim: [["reserveController", CONTROLLER_RESERVE]]
+}

@@ -191,10 +191,11 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
         m.type = pickTask.type;
         creep.say("🚚")
         return;
-    } else if (creep.store.tot()) {
+    } else if (creep.store.tot() > 0) {
         m.type = null;
         m.state = "return";
         creep.say("🔙");
+        return;
     }
 
     // 执行装填任务
@@ -204,7 +205,6 @@ function nextCarrierAction(creep: Creep, room: RoomInfo) {
         creep.say("🧱");
         m.type = pickToFillTask.type;
         m.target = pickToFillTask.id;
-        const s = Game.getObjectById(pickToFillTask.id) as AnyStoreStructure;
         m.amount = pickToFillTask.amount;
         return;
     }

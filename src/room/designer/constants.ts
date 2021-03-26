@@ -12,7 +12,8 @@ export const structureMapping: { [s: string]: BuildableStructureConstant } = {
     'w': STRUCTURE_WALL,
     'n': STRUCTURE_NUKER,
     'o': STRUCTURE_OBSERVER,
-    'f': STRUCTURE_FACTORY
+    'f': STRUCTURE_FACTORY,
+    'c': STRUCTURE_CONTAINER
 }
 
 export const INF = 0x3f3f3f3f;

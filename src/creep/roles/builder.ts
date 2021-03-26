@@ -61,7 +61,7 @@ export function goBuild(creep: Creep, room: RoomInfo) {
         let remHits = room.wallBuildRequest.get(m.target);
         if (creep.goTo(st, 3)) {
             if (creep.repair(st) == OK) {
-                remHits -= creep.getActiveBodyparts(WORK) * 100;
+                remHits -= creep.info.ability.repair;
                 if (remHits <= 0) {
                     room.wallBuildRequest.delete(m.target);
                     if (room.wallBuildRequest.size == 0 && room.state.energy.usage.builder) {

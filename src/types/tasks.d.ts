@@ -7,11 +7,12 @@ type RoomRoutineType =
     "checkRefill" | "setConstruction" | "checkRoads" | "fullCheckConstruction" |
     "checkRHConstruction" | "runLabs" | "runBoost" | "runLinks" | "updateCreepCount" |
     "fetchLabWork" | "fetchWall" | "runPowerSpawn" | "countStore" | "checkPower" |
-    "runFactory";
+    "runFactory" | "scanInvaders";
 
 type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
     "scanPowerBank" | "processPowerBank" |
-    "countStore" | "fetchAutoDealOrders";
+    "countStore" | "fetchAutoDealOrders" |
+    "clearCreepInfoStore";
 
 type EnergyWork = "upgrade" | "builder" | "power" | "battery"
 

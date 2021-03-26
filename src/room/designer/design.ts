@@ -66,7 +66,8 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
         version: 3,
         rclDone: 0,
         link: {},
-        lab: {}
+        lab: {},
+        source: room.find(FIND_SOURCES).map(s => { return { x: s.pos.x, y: s.pos.y } })
     } as RoomDesign;
     let detail = {
         version: 1,
@@ -122,7 +123,6 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
         }
     }
     detail.matrix = mat;
-    design.source = room.find(FIND_SOURCES).map(s => { return { x: s.pos.x, y: s.pos.y } });
 
     Logger.report(`Designing room ${room.name} took ${Game.cpu.getUsed() - cpuBefore} CPU.`);
     return [design, detail];

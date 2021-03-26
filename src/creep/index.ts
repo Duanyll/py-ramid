@@ -1,5 +1,5 @@
 import { RoomInfo } from "room/roomInfo";
-import Logger from "utils";
+import Logger, { ErrorMapper } from "utils";
 import { BOOST_BODYPART } from "utils/constants";
 import roles from "./roles";
 
@@ -45,5 +45,5 @@ export function runCreep(creep: Creep, room?: RoomInfo) {
         Logger.error(`Unknown creep role: ${role} for ${creep.name}`);
         return;
     }
-    roles[role](creep, room);
+    ErrorMapper.wrap(() => roles[role](creep, room), `running creep ${creep.name}`)();
 }

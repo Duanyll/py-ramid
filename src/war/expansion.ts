@@ -15,9 +15,7 @@ function sendClaimer(roomName: string, target: string) {
     }
     _.assign(Memory.rooms[target], { helperRoom: roomName });
     room.requestSpawn("claim", {
-        name: `${target}-claim`, memory: {
-            role: "claim", target: target
-        },
+        name: `${target}-claim`, memory: { target },
     });
 }
 
@@ -28,9 +26,7 @@ function sendDismantler(roomName: string, target: string) {
         return;
     }
     room.requestSpawn("dismantle", {
-        name: `${target}-dismantle`, memory: {
-            role: "dismantle", target: target
-        },
+        name: `${target}-dismantle`, memory: { target }
     });
 }
 
@@ -41,9 +37,7 @@ function sendAttaker(roomName: string, target: string) {
         return;
     }
     room.requestSpawn("attack", {
-        name: `${target}-attack`, memory: {
-            role: "attack", target: target
-        },
+        name: `${target}-attack`, memory: { target },
     });
 }
 

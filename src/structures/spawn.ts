@@ -69,11 +69,11 @@ export function tickSpawn(room: RoomInfo) {
         room.spawnQueue.shift();
         room.delay("checkRefill", 1);
     } else {
-        room.state.refillFailTime = room.state.refillFailTime || 0;
+        room.state.refillFailTime ||= 0;
         room.state.refillFailTime++;
         if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
             let spawn = room.structures.spawns[0];
-            if (spawn && !spawn.spawning) {
+            if (spawn && !spawn.spawning && room.creeps.length < 4) {
                 spawn.spawnCreep(expandBodypart(roleBodies["emergency"] as BodyPartDescription), `${room.name}-emergency-${Game.time}`, {
                     memory: {
                         room: room.name,

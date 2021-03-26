@@ -2,7 +2,7 @@ import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { tickSpawn } from "structures/spawn";
 import { tickTower } from "structures/tower";
 import { runCreep } from "creep";
-import "room/defense"
+import "room/wall"
 import Logger from "utils";
 import cfg from "config";
 import { roleBodies, roomBasicCreepConfig } from "creep/body";
@@ -117,28 +117,33 @@ registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
 ], (roomName: string, enable: boolean) => {
     const room = myRooms[roomName];
     room.state.boostUpgrade = enable;
-        if (room.structures.controller.level >= 5) {
-            if (enable) {
-                const info = {
-                    type: "energy" as ResourceConstant,
-                    minPrice: cfg.ENERGY_PRICE / 2,
-                    maxPrice: cfg.ENERGY_PRICE,
-                    addPrice: cfg.ENERGY_PRICE / 10,
-                    buffer: 100_000,
-                    perOrder: 20_000,
-                    room: roomName,
-                    maxStore: 500_000
-                }
-                let order = _.find(Memory.market.buyOrders, { room: roomName, type: "energy" });
-                if (order) {
-                    _.assign(order, info);
-                } else {
-                    Memory.market.buyOrders.push(info);
-                }
-            } else {
-                _.remove(Memory.market.buyOrders, { room: roomName, type: "energy" });
+    if (room.structures.controller.level >= 5) {
+        if (enable) {
+            const info = {
+                type: "energy" as ResourceConstant,
+                minPrice: cfg.ENERGY_PRICE / 2,
+                maxPrice: cfg.ENERGY_PRICE,
+                addPrice: cfg.ENERGY_PRICE / 10,
+                buffer: 100_000,
+                perOrder: 20_000,
+                room: roomName,
+                maxStore: 500_000
             }
+            let order = _.find(Memory.market.buyOrders, { room: roomName, type: "energy" });
+            if (order) {
+                _.assign(order, info);
+            } else {
+                Memory.market.buyOrders.push(info);
+            }
+
+            room.state.link.targets = ["controller"];
+            room.state.link.centerMode = "send";
+        } else {
+            _.remove(Memory.market.buyOrders, { room: roomName, type: "energy" });
+            room.state.link.targets = ["controller", "center"];
+            room.state.link.centerMode = "recieve";
         }
+    }
 })
 
 function updateRoomCreepCount(room: RoomInfo) {
@@ -156,10 +161,16 @@ function updateRoomCreepCount(room: RoomInfo) {
             role: "mine"
         }
     }
-    if (room.structRcl >= 6 && room.state.boostUpgrade) {
+    if (room.structRcl >= 6
+        && room.state.boostUpgrade
+        && room.storeCurrent.get('XGH2O') > 10000
+        && room.state.energy.usage.upgrade) {
         room.creepRoleDefs["upgr1"] = {
             body: roleBodies["xUpgrade"][room.structRcl] as BodyPartDescription,
             role: "xUpgrade"
+        }
+        if (room.detail.find(FIND_MY_CONSTRUCTION_SITES).length == 0) {
+            delete room.creepRoleDefs["build1"];
         }
     } else if (room.structRcl >= 8 && !room.state.energy.usage.upgrade) {
         room.creepRoleDefs["upgr1"] = {

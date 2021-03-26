@@ -73,14 +73,14 @@ export function createBuildStages(matrix: string[][], room: Room, design: RoomDe
         {
             rcl: 6, list: [
                 ...take("extension", 10), ...take("terminal", 1), ...take("lab", 3),
+                { type: "link", x: design.link.center.x, y: design.link.center.y },
                 { type: "container", x: design.mineralContainer.x, y: design.mineralContainer.y },
-                { type: "link", x: design.link.source[1].x, y: design.link.source[1].y },
                 { type: "extractor", x: mineral.x, y: mineral.y }]
         },
         {
             rcl: 7, list: [
                 ...take("extension", 10), ...take("tower", 1), ...take("spawn", 1),
-                { type: "link", x: design.link.center.x, y: design.link.center.y },
+                { type: "link", x: design.link.source[1].x, y: design.link.source[1].y },
                 ...take("lab", 3), ...take("factory", 1)]
         },
         { rcl: 8, list: [...take("extension", 10), ...take("tower", 3), ...take("observer", 1), ...take("spawn", 1)] },

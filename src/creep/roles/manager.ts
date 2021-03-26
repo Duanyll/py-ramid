@@ -36,6 +36,7 @@ const managerTasks: ((room: RoomInfo, storage: StructureStorage, capacity: numbe
         (room, storage) => {
             if (!lastStorageScannedTime[room.name] || Game.time - lastStorageScannedTime[room.name] > 20) {
                 const terminal = room.structures.terminal;
+                if (!terminal) return;
                 // 先把资源从 terminal 放进 storage 里(reserve 或超过了 export 的量)
                 const storageAmount = (res: ResourceConstant) => Math.min(
                     terminal.store.tot(res),

@@ -8,7 +8,7 @@ export function runMiner(creep: Creep, room: RoomInfo) {
         creep.goTo(container, 0);
     } else {
         if (creep.harvest(mineral) == OK) {
-            const amount = HARVEST_MINERAL_POWER * creep.getActiveBodyparts(WORK);
+            const amount = creep.info.ability.harvest / 2;
             room.storeCurrent.add(mineral.mineralType, amount);
         }
     }

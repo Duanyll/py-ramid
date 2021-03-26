@@ -17,3 +17,5 @@ interface SpawnRequest {
     cost?: number;
     name: string;
 }
+
+type CreepLongAction = keyof typeof import("utils/constants").CREEP_LONG_ACTION;

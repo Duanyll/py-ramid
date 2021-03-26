@@ -410,7 +410,7 @@ export class RoomInfo {
         roleId,
         group,
         room,
-        name = `${this.name}-${roleId || role}-${Game.time}`,
+        name = `${this.name}-${roleId || role}-${Game.time % 10000}`,
         memory,
     }: { body?: BodyPartDescription | Record<number, BodyPartDescription>, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
         if (!_.isArray(body)) body = body[this.structRcl];

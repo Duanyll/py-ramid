@@ -5,7 +5,7 @@ function runLinks(room: RoomInfo) {
     const info = room.state.link;
     function targetLink(t: "center" | "controller") {
         let l = (t == "center" && info.centerMode == "recieve") ? room.structures.centerLink : room.structures.controllerLink;
-        return l ?? room.structures.centerLink;
+        return l ?? room.structures.centerLink ?? room.structures.controllerLink;
     }
     function processLink(link: StructureLink) {
         if (!link) return;
@@ -16,8 +16,10 @@ function runLinks(room: RoomInfo) {
         if (link.store.energy > 200) {
             let target = targetLink(info.targets[0]);
             info.targets.push(info.targets.shift());
-            if (target.store.energy < 600) {
+            if (target.store.energy < 400) {
                 link.transferEnergy(target);
+            } else {
+                room.delay("runLinks", 1);
             }
         }
     }

@@ -24,7 +24,8 @@ const cfg = {
         "fetchAutoDealOrders": 100,
         "runTerminal": TERMINAL_COOLDOWN,
         "scanPowerBank": 100,
-        "summaryStats": 20
+        "summaryStats": 20,
+        "clearCreepInfoStore": 2000
     } as Partial<Record<GlobalRoutine, number>>,
     ROOM_ROUTINE_DELAY: {
         "checkRefill": 200,
@@ -38,7 +39,8 @@ const cfg = {
         "runBoost": 20,
         "checkPower": 50,
         "runFactory": 50,
-        "countStore": 2000
+        "countStore": 2000,
+        "scanInvaders": 5
     } as Partial<Record<RoomRoutineType, number>>,
 
 /* -------------------------------- resource -------------------------------- */
@@ -51,12 +53,12 @@ const cfg = {
     FACTORY_COMPONENT_AMOUNT: 5000,
     ENERGY: {
         TERMINAL: 50_000,
-        REDLINE: 80_000,
-        LOW: 100_000,
-        PRIMARY_WORK: 120_000,
-        SECONDARY_WORK: 140_000,
-        FORCE_UPGRADE: 200_000,
-        FORCE_BATTERY: 300_000
+        REDLINE: 180_000,
+        LOW: 200_000,
+        PRIMARY_WORK: 220_000,
+        SECONDARY_WORK: 240_000,
+        FORCE_UPGRADE: 300_000,
+        FORCE_BATTERY: 400_000
     },
     ROOM_RESERVE: {
         "G": 10_000,

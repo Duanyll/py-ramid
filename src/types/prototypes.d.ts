@@ -60,6 +60,11 @@ interface Creep {
     readonly group: Record<string, Creep>;
 
     /**
+     * 缓存了一些有关 Creep 的数据
+     */
+    readonly info: import("creep/creepInfo").CreepInfo;
+
+    /**
      * 获取、设置本 tick 内 creep 要前往的目标 (特定坐标或房间)
      */
     movement: CreepMovement,

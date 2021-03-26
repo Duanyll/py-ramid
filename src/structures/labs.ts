@@ -35,7 +35,7 @@ function runLabs(room: RoomInfo) {
                     room.storeCurrent.add(recipe[1], -amount);
                     room.storeCurrent.add(info.product, amount);
 
-                    if ((info.allowPower && info.remain <= 10) || info.remain <= 0) {
+                    if (info.remain <= 10) {
                         reactionDone(room);
                         return;
                     }
@@ -65,7 +65,7 @@ function reactionDone(room: RoomInfo) {
 }
 
 function fetchLabWork(room: RoomInfo) {
-    if (room.structRcl < 7 || room.state.lab.boost.length >= 7) {
+    if (room.structures.labs.input.length < 2 || room.structures.labs.output.length - room.state.lab.boost.length <= 0) {
         room.delay("fetchLabWork");
         return false;
     }

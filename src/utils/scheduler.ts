@@ -33,7 +33,7 @@ export function globalDelay(type: GlobalRoutine, time?: number) {
 }
 registerCommand('delay', 'Set a global routine. ', [
     { name: "name", type: "string" },
-    { name: "time", type: "string" },
+    { name: "time", type: "number" },
 ], (name: string, time: number) => {
     if (name in globalRoutineStore) {
         globalDelay(name as GlobalRoutine, time);
@@ -56,13 +56,7 @@ export function registerTask<TTask extends GlobalTask>(type: TTask, func: (param
 }
 
 export function initTasks() {
-    let tasks = {} as typeof Memory.tasks;
-    if (Memory.tasks) {
-        for (const time in Memory.tasks) {
-            if (Number(time) >= Game.time) tasks[time] = Memory.tasks[time];
-        }
-    }
-    Memory.tasks = tasks;
+    Memory.tasks = _.pickBy(Memory.tasks, (info, time) => Number(time) >= Game.time);
 }
 
 export function schedule<TTask extends GlobalTask>(type: TTask, delay: number, param: GlobalTaskParam[TTask]) {
@@ -81,7 +75,7 @@ export function schedule<TTask extends GlobalTask>(type: TTask, delay: number, p
 }
 registerCommand('schedule', 'Schedule a task at specific time. ', [
     { name: "name", type: "string" },
-    { name: "time", type: "string" },
+    { name: "time", type: "number" },
     { name: "param", type: "any" }
 ], schedule)
 

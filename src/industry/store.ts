@@ -102,12 +102,12 @@ export class SectionStore {
 
     private getCompoundTask(product: ResourceConstant, amount: number,
         fromBuffer?: boolean, queue: { product: ResourceConstant, amount: number }[] = []) {
-        amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT + 10;
+        amount = _.ceil(amount / LAB_REACTION_AMOUNT) * LAB_REACTION_AMOUNT + 15;
         let recipe = LAB_RECIPE[product];
         if (!recipe) return queue;
         recipe.forEach(r => {
             if (!LAB_RECIPE[r]) return;
-            let free = this.free(r) - amount;
+            let free = Math.min(this.free(r), 0) - amount;
             if (free < 0) this.getCompoundTask(r, -free, false, queue);
             this.book.add(r, amount);
         });

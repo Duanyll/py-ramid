@@ -54,7 +54,6 @@ export const roomBasicCreepConfig: {
         harv2: { role: "harvest", body: [[WORK, 6], [CARRY, 10], [MOVE, 8]] },
         build1: { role: "build", body: [[WORK, 8], [CARRY, 8], [MOVE, 8]] },
         build2: { role: "build", body: [[WORK, 8], [CARRY, 8], [MOVE, 8]] },
-        center: { role: "manage", body: [[CARRY, 16]] },
         carry1: { role: "carry", body: [[CARRY, 24], [MOVE, 12]] },
         upgr1: { role: "upgrade", body: [[WORK, 12], [CARRY, 4], [MOVE, 8]] },
     },
@@ -103,7 +102,7 @@ export const roleBodies: Partial<Record<CreepRole, BodyPartDescription | Record<
     "pbHeal": [[MOVE, 16], [HEAL, 16]],
     "pbCarry": [[CARRY, 25], [MOVE, 25]],
 
-    "emergency": workerBody[0],
+    "emergency": workerBody[1],
     "mine": {
         6: [[WORK, 12], [MOVE, 6]],
         7: [[WORK, 20], [MOVE, 10]],

@@ -63,7 +63,7 @@ export function runEmergencyWorker(creep: Creep, room: RoomInfo) {
     if (m.status == "pickup") {
         let st = room.detail.find(FIND_TOMBSTONES).filter(t => t.store.energy > 0)[0]
             || room.detail.find(FIND_RUINS).filter(r => r.store.energy > 0)[0]
-            || room.structures.storage;
+            || (room.structures.terminal.store.energy > 0) ? room.structures.terminal : room.structures.storage;
         if (st && st.store.energy > 0) {
             if (creep.goTo(st)) {
                 creep.withdraw(st, "energy");

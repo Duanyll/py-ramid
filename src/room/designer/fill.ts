@@ -14,14 +14,14 @@ export function fillOutPoints(matrix: string[][], room: Room, design: RoomDesign
     function setFar(x: number, y: number, type: string): PointInRoom {
         let spaceCount = 0;
         for (let i = 0; i < 8; i++) {
-            let creepx = x + dx[i];
-            let creepy = y + dy[i];
-            if (creepx < 0 || creepx >= 50 || creepy < 0 || creepy >= 50) continue;
-            if (matrix[creepx][creepy] != ' ' && matrix[creepx][creepy] != '~') continue;
+            let ux = x + dx[i];
+            let uy = y + dy[i];
+            if (ux < 0 || ux >= 50 || uy < 0 || uy >= 50) continue;
+            if (matrix[ux][uy] != ' ' && matrix[ux][uy] != '~') continue;
             spaceCount++;
             for (let j = 0; j < 8; j++) {
-                let lx = creepx + dx[j];
-                let ly = creepy + dy[j];
+                let lx = ux + dx[j];
+                let ly = uy + dy[j];
                 if (lx < 0 || lx >= 50 || ly < 0 || ly >= 50) continue;
                 if (matrix[lx][ly] != ' ' && matrix[lx][ly] != '~') continue;
                 if (Math.abs(lx - x) == 1 && Math.abs(ly - y) == 1) continue;
@@ -31,12 +31,12 @@ export function fillOutPoints(matrix: string[][], room: Room, design: RoomDesign
         }
         if (spaceCount >= 2) {
             for (let i = 0; i < 8; i++) {
-                let creepx = x + dx[i];
-                let creepy = y + dy[i];
-                if (creepx < 0 || creepx >= 50 || creepy < 0 || creepy >= 50) continue;
-                if (matrix[creepx][creepy] != ' ' && matrix[creepx][creepy] != '~') continue;
-                matrix[creepx][creepy] = type;
-                return { x: creepx, y: creepy };
+                let ux = x + dx[i];
+                let uy = y + dy[i];
+                if (ux < 0 || ux >= 50 || uy < 0 || uy >= 50) continue;
+                if (matrix[ux][uy] != ' ' && matrix[ux][uy] != '~') continue;
+                matrix[ux][uy] = type;
+                return { x: ux, y: uy };
             }
         }
 
@@ -44,13 +44,14 @@ export function fillOutPoints(matrix: string[][], room: Room, design: RoomDesign
         return undefined;
     }
 
-    function setClose(pos: PointInRoom): PointInRoom {
+    function setClose(pos: PointInRoom, type: string): PointInRoom {
         for (let i = 0; i < 8; i++) {
-            let creepx = pos.x + dx[i];
-            let creepy = pos.y + dy[i];
-            if (creepx < 0 || creepx >= 50 || creepy < 0 || creepy >= 50) continue;
-            if (matrix[creepx][creepy] != ' ' && matrix[creepx][creepy] != '~') continue;
-            return { x: creepx, y: creepy };
+            let ux = pos.x + dx[i];
+            let uy = pos.y + dy[i];
+            if (ux < 0 || ux >= 50 || uy < 0 || uy >= 50) continue;
+            if (matrix[ux][uy] != ' ' && matrix[ux][uy] != '~') continue;
+            matrix[ux][uy] = type;
+            return { x: ux, y: uy };
         }
         return undefined;
     }
@@ -59,7 +60,7 @@ export function fillOutPoints(matrix: string[][], room: Room, design: RoomDesign
     setFar(room.controller.pos.x, room.controller.pos.y, 'o');
     const sources = room.find(FIND_SOURCES);
     design.link.source = _.map(sources, s => setFar(s.pos.x, s.pos.y, 'L'));
-    design.mineralContainer = setClose(room.find(FIND_MINERALS)[0].pos);
+    design.mineralContainer = setClose(room.find(FIND_MINERALS)[0].pos, 'c');
 }
 
 export function fillExtensions(matrix: string[][], center: PointInRoom) {
