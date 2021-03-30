@@ -437,7 +437,7 @@ export class RoomInfo {
         })
         let fullMemory: CreepMemory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
         if (boostInfo.length) {
-            this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + 500]);
+            this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + CREEP_LIFE_TIME]);
             this.delay("runBoost", 1);
         }
         this.spawnQueue.push({

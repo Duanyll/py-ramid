@@ -74,6 +74,13 @@ function decideRoomEnergyUsage(room: RoomInfo) {
             return end();
         }
     }
+
+    if (!config.storeMode && storeEnergy > cfg.ENERGY.FORCE_BATTERY) {
+        if (!config.usage.battery) {
+            config.usage.battery = true;
+            return end();
+        }
+    }
 }
 
 export function tickNormalRoom(room: RoomInfo) {
@@ -166,6 +173,10 @@ function updateRoomCreepCount(room: RoomInfo) {
         && room.storeCurrent.get('XGH2O') > 10000
         && room.state.energy.usage.upgrade) {
         room.creepRoleDefs["upgr1"] = {
+            body: roleBodies["xUpgrade"][room.structRcl] as BodyPartDescription,
+            role: "xUpgrade"
+        }
+        room.creepRoleDefs["upgr2"] = {
             body: roleBodies["xUpgrade"][room.structRcl] as BodyPartDescription,
             role: "xUpgrade"
         }

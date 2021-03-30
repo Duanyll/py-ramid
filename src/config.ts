@@ -57,8 +57,8 @@ const cfg = {
         LOW: 200_000,
         PRIMARY_WORK: 220_000,
         SECONDARY_WORK: 240_000,
-        FORCE_UPGRADE: 300_000,
-        FORCE_BATTERY: 400_000
+        FORCE_UPGRADE: 400_000,
+        FORCE_BATTERY: 500_000
     },
     ROOM_RESERVE: {
         "G": 10_000,

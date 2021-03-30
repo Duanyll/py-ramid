@@ -49,7 +49,7 @@ export function runBoostedUpgrader(creep: Creep, room: RoomInfo) {
             const link = room.structures.controllerLink;
             if (creep.goTo(link)) {
                 creep.withdraw(link, "energy");
-                if (link.energy < 200) {
+                if (link.store.energy < 200) {
                     room.delay("runLinks", 1);
                 }
             }

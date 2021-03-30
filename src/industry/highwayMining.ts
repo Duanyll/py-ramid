@@ -3,13 +3,14 @@ import { globalDelay, registerGlobalRoutine, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import { estimateDistance, objToPos, posToObj } from "utils";
 import Logger from "utils";
+import cfg from "config";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,
     { power: { roomLock: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } });
 
 function canRoomHarvestPB(room: RoomInfo) {
-    return room.structRcl == 8 && room.energy > 100000 && !Memory.mining.power.roomLock[room.name];
+    return room.structRcl == 8 && room.energy > cfg.ENERGY.LOW && !Memory.mining.power.roomLock[room.name];
 }
 
 function scanPowerBank() {
