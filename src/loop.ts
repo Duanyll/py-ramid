@@ -1,6 +1,6 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
 import { tickNormalRoom } from "room";
-import { prepareMoveHelper as prepareMovement, tickMoveHelper as tickMovement } from "creep/movement";
+import { prepareMovement, processMovement } from "creep/movement";
 import { loadCreeps, globalCreeps } from "creep/creepInfo";
 import { runCreep } from "creep";
 import { tickConstruction } from "room/construction";
@@ -117,7 +117,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     _.values(globalCreeps).forEach(l => l.forEach(c => runCreep(c)));
     _.values(Game.powerCreeps).forEach(pc => runPowerCreep(pc));
 
-    tickMovement();
+    processMovement();
     tickConstruction();
 
     tickGlobalRoutine();

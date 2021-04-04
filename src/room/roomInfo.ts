@@ -75,8 +75,6 @@ export class RoomInfo {
     detail: Room;
     helperRoom: string;
 
-    matrixCache: CostMatrix;
-
     public get tasks() {
         return this.detail.memory.tasks;
     };

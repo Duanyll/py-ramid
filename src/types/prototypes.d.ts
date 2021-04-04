@@ -30,7 +30,7 @@ interface StoreBase<POSSIBLE_RESOURCES extends ResourceConstant, UNLIMITED_STORE
     cap(res?: ResourceConstant): number;
 }
 
-interface MoveToPosOpts {
+interface GoToPosOpts {
     /**
      * 要前往的目标
      */
@@ -51,7 +51,7 @@ interface MoveToPosOpts {
     ignoreSafeZone?: boolean
 }
 
-type CreepMovement = MoveToPosOpts | { room: string }
+type CreepMovement = GoToPosOpts | { room: string }
 
 interface Creep {
     /**

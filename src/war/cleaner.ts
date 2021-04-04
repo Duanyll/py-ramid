@@ -11,17 +11,32 @@ function runCleaner(creep: Creep) {
     creep.heal(creep);
     if (!targetRoom) return;
     if (creep.goToRoom(targetRoom)) {
-        const spawn = creep.room.find(FIND_HOSTILE_SPAWNS)[0];
-        if (spawn) {
-            creep.goTo(spawn);
-            if (creep.pos.isNearTo(spawn) || creep.pos.getRangeTo(spawn) > 3) {
-                creep.rangedMassAttack();
+        const flag = creep.room.find(FIND_FLAGS)[0];
+        if (flag) {
+            let s = flag.pos.lookFor(LOOK_STRUCTURES)[0];
+            if (s) {
+                creep.goTo(s);
+                if (creep.pos.isNearTo(s) || creep.pos.getRangeTo(s) > 3) {
+                    creep.rangedMassAttack();
+                } else {
+                    creep.rangedAttack(s);
+                }
             } else {
-                creep.rangedAttack(spawn);
+                flag.remove();
             }
         } else {
-            Logger.report(`Room ${targetRoom} cleaned.`)
-            m.targets.shift();
+            const spawn = creep.room.find(FIND_HOSTILE_SPAWNS)[0];
+            if (spawn) {
+                creep.goTo(spawn);
+                if (creep.pos.isNearTo(spawn) || creep.pos.getRangeTo(spawn) > 3) {
+                    creep.rangedMassAttack();
+                } else {
+                    creep.rangedAttack(spawn);
+                }
+            } else {
+                Logger.report(`Room ${targetRoom} cleaned.`)
+                m.targets.shift();
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
-import { isHostile } from "utils";
+import { isHostile } from "war/intelligence";
 import { registerTask, schedule } from "utils";
 import { registerCommand } from "utils/console";
 
