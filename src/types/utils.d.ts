@@ -6,6 +6,7 @@ declare module 'consts:buildTime' {
     export default buildTime;
 }
 
+type Constructor<T> = { new(...param: any[]): T; }
 type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
 type BodyPartDescription = [BodyPartConstant, number, MineralBoostConstant?][];
 type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;

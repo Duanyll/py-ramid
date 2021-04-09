@@ -1,9 +1,10 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
 import { globalDelay, registerGlobalRoutine, schedule } from "utils";
 import { onVisibility } from "structures/observer";
-import { estimateDistance, objToPos, posToObj } from "utils";
+import { objToPos, posToObj } from "utils";
 import Logger from "utils";
 import cfg from "config";
+import { estimateDistance } from "creep/movement/pathfinding";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,

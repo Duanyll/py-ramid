@@ -87,6 +87,17 @@ export default class CostMatrixCache {
             }
         }
 
+        for (const site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
+            switch (site.structureType) {
+                case "road":
+                case "rampart":
+                case "container":
+                    break;
+                default:
+                    this.structure.set(site.pos.x, site.pos.y, 0xff);
+            }
+        }
+
         this.breakWall = new PathFinder.CostMatrix();
         for (let x = 0; x < 50; x++) {
             for (let y = 0; y < 50; y++) {

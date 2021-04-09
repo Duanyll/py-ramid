@@ -1,3 +1,5 @@
+import Logger, { getRoomType, roomNameToXY } from "utils";
+import { OPPOSITE_EXIT } from "utils/constants";
 import { canBypassCreep } from "./bypass";
 import CostMatrixCache from "./costMatrix";
 
@@ -52,7 +54,9 @@ export function findPath(creep: AnyCreep, opts: GoToPosOpts, forceUpdate?: boole
                     });
                 }
                 return matrix;
-            }
+            },
+            plainCost: 2,
+            swampCost: 10
         })
     } finally {
         cmModified.forEach(i => {
@@ -60,4 +64,59 @@ export function findPath(creep: AnyCreep, opts: GoToPosOpts, forceUpdate?: boole
         })
     }
     return path;
+}
+
+
+export function findRouteCallback(roomName: string) {
+    if (Memory.roomsToAvoid[roomName]) return Infinity;
+    if (Memory.roomCost[roomName]) return Memory.roomCost[roomName];
+    let type = getRoomType(roomName);
+    let isMyRoom = Game.rooms[roomName]?.controller?.my;
+    if (type == "highway" || type == "crossroad" || isMyRoom) {
+        return 1;
+    } else {
+        return 1.5;
+    }
+}
+
+function getDistanceByPath(from: RoomPosition, type: FindConstant) {
+    switch (type) {
+        case FIND_EXIT_BOTTOM:
+            return 50 - from.y;
+        case FIND_EXIT_TOP:
+            return from.y;
+        case FIND_EXIT_LEFT:
+            return from.x;
+        case FIND_EXIT_RIGHT:
+            return 50 - from.x;
+        default:
+            if (!Game.rooms[from.roomName]) return 25;
+            let goals = _.map(Game.rooms[from.roomName].find(type), (i) => {
+                if ('pos' in i) i = i.pos as RoomPosition;
+                return { range: 1, pos: i };
+            });
+            let path = PathFinder.search(from, goals, {
+                roomCallback: (name) => {
+                    if (name != from.roomName) return false;
+                },
+                plainCost: 1,
+                swampCost: 5
+            });
+            return path.cost;
+    }
+}
+
+export function estimateDistance(a: RoomPosition, b: RoomPosition) {
+    if (a.roomName == b.roomName) {
+        const path = PathFinder.search(a, b);
+        return path.cost;
+    } else {
+        let longPath = Game.map.findRoute(a.roomName, b.roomName, { routeCallback: findRouteCallback });
+        if (longPath == ERR_NO_PATH) return Infinity;
+        let dis = 0;
+        dis += getDistanceByPath(a, longPath[0].exit);
+        dis += 50 * (longPath.length - 1);
+        dis += getDistanceByPath(b, OPPOSITE_EXIT[_.last(longPath).exit]);
+        return dis;
+    }
 }

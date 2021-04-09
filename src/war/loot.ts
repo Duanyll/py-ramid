@@ -1,9 +1,10 @@
 import { registerCreepRole } from "creep/roles";
 import { myRooms } from "room/roomInfo";
-import { estimateDistance, registerTask, schedule } from "utils";
+import { registerTask, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import Logger from "utils";
 import { registerCommand } from "utils/console";
+import { estimateDistance } from "creep/movement/pathfinding";
 
 interface RemoteCarrierMemory extends CreepMemory {
     status: "go" | "back",

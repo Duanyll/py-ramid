@@ -13,6 +13,10 @@ PowerCreep.prototype.usePower = function (
 
 function nextPCState(pc: PowerCreep) {
     let room = myRooms[pc.memory.room];
+    if (pc.room.name != pc.memory.room) {
+        pc.memory.state = "moveToRoom";
+        return;
+    }
     if (pc.ticksToLive < 1000) {
         pc.memory.state = "renew";
         return;
@@ -23,10 +27,6 @@ function nextPCState(pc: PowerCreep) {
     }
     if (pc.store.getFreeCapacity() < 20) {
         pc.memory.state = "putOps";
-        return;
-    }
-    if (pc.room.name != pc.memory.room) {
-        pc.memory.state = "moveToRoom";
         return;
     }
     if (pc.store.ops < 20 && room.structures.storage.store.ops) {

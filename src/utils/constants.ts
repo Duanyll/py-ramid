@@ -53,3 +53,10 @@ export const offsetsByDirection = {
     [LEFT]: [-1, 0],
     [TOP_LEFT]: [-1, -1]
 };
+
+export const OPPOSITE_EXIT = {
+    [FIND_EXIT_TOP]: FIND_EXIT_BOTTOM,
+    [FIND_EXIT_BOTTOM]: FIND_EXIT_TOP,
+    [FIND_EXIT_LEFT]: FIND_EXIT_RIGHT,
+    [FIND_EXIT_RIGHT]: FIND_EXIT_LEFT
+};
