@@ -1,16 +1,10 @@
-import { registerCreepRole } from "creep/roles";
 import { myRooms } from "room/roomInfo";
 import { registerTask, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import Logger from "utils";
 import { registerCommand } from "utils/console";
 import { estimateDistance } from "creep/movement/pathfinding";
-
-interface RemoteCarrierMemory extends CreepMemory {
-    status: "go" | "back",
-    home: string,
-    remainRun: number;
-}
+import { creepRole, CreepRoleBase, memorize } from "creep/role";
 
 let LOOT_ITEMS: { [type in ResourceConstant]?: boolean } = {
     [RESOURCE_POWER]: true,
@@ -26,54 +20,65 @@ let LOOT_ITEMS: { [type in ResourceConstant]?: boolean } = {
     "XZHO2": true
 }
 
-export function runLootCarrier(creep: Creep) {
-    const m = creep.memory as RemoteCarrierMemory;
-    const flag = Game.flags[m.target];
-    if (!flag) {
-        Logger.error(`${creep.name}: Invalid target ${m.target}`)
-        creep.suicide();
-        return;
-    }
-    if (m.status == "go") {
-        if (creep.goToRoom(flag.pos.roomName) && creep.goTo(flag)) {
-            if (creep.store.getFreeCapacity() == 0) {
-                m.status = "back";
-            } else {
-                let target = flag.pos.lookFor(LOOK_STRUCTURES).find(s => "store" in s) as AnyStoreStructure;
-                if (!target) {
-                    Logger.error(`${creep.name}: Invalid target ${m.target}`)
-                    creep.suicide();
-                    return;
-                }
-                for (const type in target.store) {
-                    if (LOOT_ITEMS[type as ResourceConstant]) {
-                        creep.withdraw(target, type as ResourceConstant);
+@creepRole("rCarry")
+export class RoleLootCarrier extends CreepRoleBase {
+    @memorize
+    target: string;
+    @memorize
+    status: "go" | "back";
+    @memorize
+    home: string;
+    @memorize
+    remainRun: number;
+    run(creep: Creep) {
+        const flag = Game.flags[this.target];
+        if (!flag) {
+            Logger.error(`${creep.name}: Invalid target ${this.target}`)
+            creep.suicide();
+            return;
+        }
+        if (this.status == "go") {
+            if (creep.goToRoom(flag.pos.roomName) && creep.goTo(flag)) {
+                if (creep.store.getFreeCapacity() == 0) {
+                    this.status = "back";
+                } else {
+                    let target = flag.pos.lookFor(LOOK_STRUCTURES).find(s => "store" in s) as AnyStoreStructure;
+                    if (!target) {
+                        Logger.error(`${creep.name}: Invalid target ${this.target}`)
+                        creep.suicide();
                         return;
                     }
+                    for (const type in target.store) {
+                        if (LOOT_ITEMS[type as ResourceConstant]) {
+                            creep.withdraw(target, type as ResourceConstant);
+                            return;
+                        }
+                    }
+                    this.status = "back";
                 }
-                m.status = "back";
             }
-        }
-    } else {
-        const room = myRooms[m.home];
-        const terminal = room.structures.terminal;
-        if (creep.goToRoom(m.home) && creep.goTo(terminal)) {
-            for (const type in creep.store) {
-                creep.transfer(terminal, type as ResourceConstant);
-                room.storeCurrent.add(type as ResourceConstant, creep.store[type as ResourceConstant]);
-                return;
-            }
-            if (m.remainRun > 0) {
-                m.remainRun--;
-                m.status = "go";
-            } else {
-                creep.suicide();
+        } else {
+            const room = myRooms[this.home];
+            const terminal = room.structures.terminal;
+            if (creep.goToRoom(this.home) && creep.goTo(terminal)) {
+                for (const type in creep.store) {
+                    creep.transfer(terminal, type as ResourceConstant);
+                    room.storeCurrent.add(type as ResourceConstant, creep.store[type as ResourceConstant]);
+                    return;
+                }
+                if (this.remainRun > 0) {
+                    this.remainRun--;
+                    this.status = "go";
+                } else {
+                    creep.suicide();
+                }
             }
         }
     }
+
+    static defaultBody: BodyPartDescription = [[CARRY, 25], [MOVE, 25]];
 }
 
-registerCreepRole({ "rCarry": runLootCarrier });
 
 registerTask("checkLoot", (param) => {
     const flag = Game.flags[param.flag];

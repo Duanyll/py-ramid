@@ -1,11 +1,10 @@
+import { RoleEmergencyWorker, RoleWorker } from "room/roles/worker";
 import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
 import Logger from "utils";
 import { registerTask } from "utils";
 import { expandBodypart, getCreepCost, getCreepSpawnTime } from "utils";
-import { roleBodies, roomHelperCreepConfig } from "creep/body";
-import cfg from "config";
 
-function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRole, spawnRoom: RoomInfo = room) {
+function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescription, role: CreepRoleType, spawnRoom: RoomInfo = room) {
     if (room.creepForRole[roleId]) {
         if (room.creepForRole[roleId].length >= 2) return;
         for (const creep of room.creepForRole[roleId]) {
@@ -20,7 +19,7 @@ function checkCreepHealth(room: RoomInfo, roleId: string, body: BodyPartDescript
 
 function checkHelpersHealth(room: RoomInfo) {
     let helperRoom = myRooms[room.helperRoom];
-    let helperInfo = roomHelperCreepConfig[helperRoom.structRcl];
+    let helperInfo = RoleWorker.helperBody[helperRoom.structRcl];
     for (let i = 0; i < helperInfo.count; i++) {
         const roleId = `helper${i}`;
         checkCreepHealth(room, roleId, helperInfo.body, "work", helperRoom);
@@ -74,7 +73,7 @@ export function tickSpawn(room: RoomInfo) {
         if (room.state.refillFailTime >= CREEP_LIFE_TIME && room.detail.energyAvailable >= SPAWN_ENERGY_START) {
             let spawn = room.structures.spawns[0];
             if (spawn && !spawn.spawning && room.creeps.length < 4) {
-                spawn.spawnCreep(expandBodypart(roleBodies["emergency"] as BodyPartDescription), `${room.name}-emergency-${Game.time}`, {
+                spawn.spawnCreep(expandBodypart(RoleEmergencyWorker.defaultBody), `${room.name}-emergency-${Game.time}`, {
                     memory: {
                         room: room.name,
                         role: "emergency"
@@ -105,7 +104,7 @@ function checkRefillState(room: RoomInfo) {
             totalRefill += room.refillTargets[s.id];
         }
     });
-    if (room.structures.storage && totalRefill > 1000) {
+    if (room.structures.storage && totalRefill > 2000) {
         room.requestPower(room.structures.storage, PWR_OPERATE_EXTENSION);
     } else {
         delete room.powerRequests[room.structures.storage?.id];

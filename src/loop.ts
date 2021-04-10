@@ -2,12 +2,13 @@ import { myRooms, RoomInfo } from "room/roomInfo";
 import { tickNormalRoom } from "room";
 import { prepareMovement, processMovement } from "creep/movement";
 import { loadCreeps, globalCreeps } from "creep/creepInfo";
-import { runCreep } from "creep";
+import { clearCreepMemory, runCreep } from "creep";
 import { tickConstruction } from "room/construction";
 import Logger from "utils";
 import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "utils";
 import { ErrorMapper } from "utils";
 
+import "room/roles"
 import "utils"
 import "industry"
 import "war";
@@ -65,20 +66,6 @@ if (Game) {
     Logger.error(`It seems that the code is running in wrong environment...`)
 }
 
-function clearMemory() {
-    // Delete unused room memory manually.
-    // for (const name in Memory.rooms) {
-    //     if (!(name in Game.rooms)) {
-    //         delete Memory.rooms[name];
-    //     }
-    // }
-    for (const name in Memory.creeps) {
-        if (!(name in Game.creeps)) {
-            delete Memory.creeps[name];
-        }
-    }
-}
-
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const runLoop = ErrorMapper.wrap(() => {
@@ -123,5 +110,5 @@ export const runLoop = ErrorMapper.wrap(() => {
     tickGlobalRoutine();
     tickTasks();
 
-    clearMemory();
+    clearCreepMemory();
 }, "main loop");

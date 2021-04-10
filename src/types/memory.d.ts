@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------- */
 
 interface CreepMemory {
-    role: CreepRole;
+    role: CreepRoleType;
     target?: string;
     roleId?: string;
     room?: string;

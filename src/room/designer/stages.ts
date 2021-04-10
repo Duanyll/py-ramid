@@ -1,5 +1,5 @@
 import { createMatrix } from "utils";
-import { StructureMapping } from "./classic";
+import { structureMapping } from "utils/constants";
 
 function createLabInfo(pos: PointInRoom[]): RoomDesign["lab"] {
     let res: RoomDesign["lab"] = { input: [], output: [] };
@@ -34,8 +34,8 @@ export function createBuildStages(matrix: string[][], room: Room, design: RoomDe
     for (let i = 0; i < 50; i++) {
         for (let j = 0; j < 50; j++) {
             if (ins[i][j] || matrix[i][j] == ' ' || matrix[i][j] == '.' || matrix[i][j] == '~') continue;
-            structPos[StructureMapping[matrix[i][j]]] ||= [];
-            structPos[StructureMapping[matrix[i][j]]].push({ x: i, y: j });
+            structPos[structureMapping[matrix[i][j]]] ||= [];
+            structPos[structureMapping[matrix[i][j]]].push({ x: i, y: j });
         }
     }
     structPos = _.mapValues(structPos, a => _.reverse(_.sortBy(a, i => Math.abs(i.x - design.center.x) + Math.abs(i.y - design.center.y))));

@@ -10,7 +10,7 @@ function getObstacle(pos: RoomPosition): RoomObject {
         switch (s.structureType) {
             case "road":
             case "container":
-                return s;
+                break;
             case "rampart":
                 if ((s as any).my || (s as any).isPublic) {
                     break;
@@ -51,7 +51,8 @@ function moveBypass(creep: AnyCreep, target: DirectionConstant): boolean {
             if (shouldDoBypassCreep(creep, obstacle)) {
                 obstacle.move(((target + 3) % 8 + 1) as DirectionConstant);
             }
-        } else {
+        } else if (obstacle) {
+            Logger.debug(`creep ${creep.name} meet obstacle ${obstacle} at ${tarpos}!`)
             return false;
         }
     }

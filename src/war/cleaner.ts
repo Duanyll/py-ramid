@@ -1,46 +1,50 @@
-import { registerCreepRole } from "creep/roles";
+import { creepRole, CreepRoleBase, memorize } from "creep/role";
 import { myRooms } from "room/roomInfo";
 import Logger, { registerCommand } from "utils/console";
 
-interface CleanerMemory extends CreepMemory {
-    targets: string[]
-}
-function runCleaner(creep: Creep) {
-    const m = creep.memory as CleanerMemory;
-    let targetRoom = m.targets?.[0];
-    creep.heal(creep);
-    if (!targetRoom) return;
-    if (creep.goToRoom(targetRoom)) {
-        const flag = creep.room.find(FIND_FLAGS)[0];
-        if (flag) {
-            let s = flag.pos.lookFor(LOOK_STRUCTURES)[0];
-            if (s) {
-                creep.goTo(s);
-                if (creep.pos.isNearTo(s) || creep.pos.getRangeTo(s) > 3) {
-                    creep.rangedMassAttack();
+@creepRole("attack")
+export class RoleSimpleAttacker extends CreepRoleBase {
+    @memorize
+    targets: string[];
+    run(creep: Creep) {
+        let targetRoom = this.targets?.[0];
+        creep.heal(creep);
+        if (!targetRoom) return;
+        if (creep.goToRoom(targetRoom)) {
+            const flag = creep.room.find(FIND_FLAGS)[0];
+            if (flag) {
+                let s = flag.pos.lookFor(LOOK_STRUCTURES)[0];
+                if (s) {
+                    creep.goTo(s);
+                    if (creep.pos.isNearTo(s) || creep.pos.getRangeTo(s) > 3) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(s);
+                    }
                 } else {
-                    creep.rangedAttack(s);
+                    flag.remove();
                 }
             } else {
-                flag.remove();
-            }
-        } else {
-            const spawn = creep.room.find(FIND_HOSTILE_SPAWNS)[0];
-            if (spawn) {
-                creep.goTo(spawn);
-                if (creep.pos.isNearTo(spawn) || creep.pos.getRangeTo(spawn) > 3) {
-                    creep.rangedMassAttack();
+                const spawn = creep.room.find(FIND_HOSTILE_SPAWNS)[0];
+                if (spawn) {
+                    creep.goTo(spawn);
+                    if (creep.pos.isNearTo(spawn) || creep.pos.getRangeTo(spawn) > 3) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(spawn);
+                    }
                 } else {
-                    creep.rangedAttack(spawn);
+                    Logger.report(`Room ${targetRoom} cleaned.`)
+                    this.targets.shift();
                 }
-            } else {
-                Logger.report(`Room ${targetRoom} cleaned.`)
-                m.targets.shift();
             }
         }
     }
+
+    static defaultBody: BodyPartDescription =
+        [[TOUGH, 6, "XGHO2"], [MOVE, 10, "XZHO2"], [RANGED_ATTACK, 19, "XKHO2"], [HEAL, 15, "XLHO2"]];
 }
-registerCreepRole({ cleaner: runCleaner });
+
 
 registerCommand('sendCleaner', 'Send a boosted (3 towers) cleaner creep to clean up target room', [
     { name: "home", type: "myRoom" },

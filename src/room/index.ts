@@ -5,9 +5,9 @@ import { runCreep } from "creep";
 import "room/wall"
 import Logger from "utils";
 import cfg from "config";
-import { roleBodies, roomBasicCreepConfig } from "creep/body";
 import { registerCommand, runCommand } from "utils/console";
 import "./designer";
+import { getRoomCreepConfig } from "creep/role";
 
 function decideRoomEnergyUsage(room: RoomInfo) {
     if (!room.structures.storage) return;
@@ -154,41 +154,7 @@ registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
 })
 
 function updateRoomCreepCount(room: RoomInfo) {
-    room.creepRoleDefs = _.clone(roomBasicCreepConfig[room.structRcl]);
-    if (room.structRcl >= 7 && (room.state.energy.storeMode)) {
-        delete room.creepRoleDefs["build1"];
-    }
-    if (room.structRcl == 8 && !room.state.energy.usage.builder) {
-        delete room.creepRoleDefs["build1"];
-    }
-    if (room.structures.mineralContainer && room.state.enableMining && room.structures.mineral.mineralAmount
-        && room.storeCurrent.get(room.structures.mineral.mineralType) < cfg.TERMINAL_MINERAL) {
-        room.creepRoleDefs["mine1"] = {
-            body: roleBodies["mine"][room.structRcl] as BodyPartDescription,
-            role: "mine"
-        }
-    }
-    if (room.structRcl >= 6
-        && room.state.boostUpgrade
-        && room.storeCurrent.get('XGH2O') > 10000
-        && room.state.energy.usage.upgrade) {
-        room.creepRoleDefs["upgr1"] = {
-            body: roleBodies["xUpgrade"][room.structRcl] as BodyPartDescription,
-            role: "xUpgrade"
-        }
-        room.creepRoleDefs["upgr2"] = {
-            body: roleBodies["xUpgrade"][room.structRcl] as BodyPartDescription,
-            role: "xUpgrade"
-        }
-        if (room.detail.find(FIND_MY_CONSTRUCTION_SITES).length == 0) {
-            delete room.creepRoleDefs["build1"];
-        }
-    } else if (room.structRcl >= 8 && !room.state.energy.usage.upgrade) {
-        room.creepRoleDefs["upgr1"] = {
-            body: [[WORK, 3], [CARRY, 1], [MOVE, 2]],
-            role: "upgrade"
-        }
-    }
+    room.creepRoleDefs = getRoomCreepConfig(room);
 }
 registerRoomRoutine({
     id: "updateCreepCount",

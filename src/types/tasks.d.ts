@@ -1,4 +1,4 @@
-type CreepRole = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
+type CreepRoleType = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry" | "cleaner"
     | "pbHarv" | "pbHeal" | "pbCarry"
     | "xUpgrade";
@@ -27,7 +27,7 @@ interface GlobalTaskParam {
     },
     spawnCreep: {
         room: string,
-        role: CreepRole,
+        role: CreepRoleType,
         body?: BodyPartDescription,
         param: Parameters<import("room/roomInfo").RoomInfo["requestSpawn"]>[1]
     },

@@ -2,7 +2,7 @@ import { myRooms } from "room/roomInfo";
 import { registerGlobalRoutine } from "utils";
 import { BODYPART_ACTIONS, CREEP_LONG_ACTION } from "utils/constants";
 
-export let globalCreeps: { [role in CreepRole]?: Creep[] } = {}
+export let globalCreeps: { [role in CreepRoleType]?: Creep[] } = {}
 export let creepGroups: {
     [groupName: string]: {
         [groupRole: string]: Creep;

@@ -65,7 +65,10 @@ function runOperator(pc: PowerCreep) {
             }
             break;
         case "moveToRoom":
-            pc.goToRoom(pc.memory.room);
+            if (pc.goToRoom(pc.memory.room)) {
+                pc.memory.state = "idle";
+                nextPCState(pc);
+            }
             break;
         case "pickOps":
             if (pc.goTo(storage)) {

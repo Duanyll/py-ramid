@@ -1,11 +1,10 @@
-import { classicDesignRoom, upgradeDesign } from "room/designer/classic";
 import { getCreepCost as calcCreepCost, globalDelay } from "utils";
 import Logger from "utils";
 import cfg from "config";
-import { roleBodies } from "creep/body";
 import { StoreRegister } from "utils/storeRegister";
-import { CENTER_STRUCTURES, LAB_RECIPE } from "utils/constants";
+import { LAB_RECIPE } from "utils/constants";
 import { registerCommand } from "utils/console";
+import { getCreepRole } from "creep/role";
 
 export interface RoomRoutineConfig {
     id: RoomRoutineType;
@@ -110,7 +109,6 @@ export class RoomInfo {
     roadToRepair: string[] = [];
     wallBuildRequest: Map<string, number> = new Map();
 
-
     /* -------------------------------------------------------------------------- */
     /*                            structure and creeps                            */
     /* -------------------------------------------------------------------------- */
@@ -122,9 +120,8 @@ export class RoomInfo {
     /** 需要自动生成的 creep 配置 */
     creepRoleDefs: {
         [roleId: string]: {
-            role: CreepRole,
+            role: CreepRoleType,
             body: BodyPartDescription,
-            target?: string
         };
     }
     tombstones: Tombstone[];
@@ -403,15 +400,20 @@ export class RoomInfo {
     /*                                    spawn                                   */
     /* -------------------------------------------------------------------------- */
 
-    public requestSpawn(role: CreepRole, {
-        body = roleBodies[role],
+    public requestSpawn(role: CreepRoleType, {
+        body,
         roleId,
         group,
         room,
         name = `${this.name}-${roleId || role}-${Game.time % 10000}`,
         memory,
-    }: { body?: BodyPartDescription | Record<number, BodyPartDescription>, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
-        if (!_.isArray(body)) body = body[this.structRcl];
+    }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
+        if (!body) {
+            body = getCreepRole(role).defaultBody;
+            if (!body) {
+                Logger.error(`Cannot spawn ${name}: No body provided for role ${role}!`)
+            }
+        }
         const cost = calcCreepCost(body);
         if (Game.creeps[name]) {
             Logger.error(`${this.name}: Cannot spawn creep ${name}: Existed.`);

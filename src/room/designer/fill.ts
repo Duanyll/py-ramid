@@ -1,5 +1,5 @@
 import Logger, { createMatrix, Queue } from "utils";
-import { dx, dy, INF } from "./constants";
+import { dx, dy, INF } from "utils/constants";
 
 export function fillSquare(s: string[], t: string[][], sx: number, sy: number, size: number): void {
     for (let i = 0; i < size; i++) {

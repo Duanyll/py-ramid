@@ -1,5 +1,5 @@
 import { createMatrix, Queue } from "utils";
-import { INF, dx, dy } from "./constants";
+import { INF, dx, dy } from "utils/constants";
 
 /**
  * 使用 SPFA 算法计算特定点出发到房间内所有点的最短距离
