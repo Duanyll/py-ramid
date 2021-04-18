@@ -69,7 +69,7 @@ export class RoleHarvester extends CreepRoleBase {
         if (room.structRcl < 4) return;
         let ret = {} as Record<string, BodyPartDescription>;
         for (let i = 0; i < room.structures.sources.length; i++) {
-            if (room.structures.sourceLink[i]) {
+            if (room.structures.sourceLink[i] && room.structRcl >= 5) {
                 ret[`harv${i + 1}`] = this.bodyLinked[room.structRcl];
             } else {
                 ret[`harv${i + 1}`] = this.body[room.structRcl];

@@ -1,10 +1,11 @@
-import { getCreepCost as calcCreepCost, globalDelay } from "utils";
+import { getCreepCost as calcCreepCost } from "utils";
 import Logger from "utils";
 import cfg from "config";
 import { StoreRegister } from "utils/storeRegister";
 import { LAB_RECIPE } from "utils/constants";
 import { registerCommand } from "utils/console";
 import { getCreepRole } from "creep/role";
+import { RoomDefenseInfo } from "war/defenseInfo";
 
 export interface RoomRoutineConfig {
     id: RoomRoutineType;
@@ -94,6 +95,8 @@ export class RoomInfo {
         return this.design.rclDone || 1;
     }
 
+    readonly defense: RoomDefenseInfo;
+
     /* -------------------------------------------------------------------------- */
     /*                                    stats                                   */
     /* -------------------------------------------------------------------------- */
@@ -142,7 +145,6 @@ export class RoomInfo {
 
     private loadStructures() {
         this._structures = new RoomStructures();
-        this.detail = Game.rooms[this.name];
         let strobj = this._structures;
         strobj.controller = this.detail.controller as StructureController;
         this.detail.find(FIND_MY_STRUCTURES).forEach((s) => {
@@ -214,6 +216,7 @@ export class RoomInfo {
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
+        this.defense = new RoomDefenseInfo();
         this.initMemory();
         this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
 
@@ -411,7 +414,8 @@ export class RoomInfo {
         if (!body) {
             body = getCreepRole(role).defaultBody;
             if (!body) {
-                Logger.error(`Cannot spawn ${name}: No body provided for role ${role}!`)
+                Logger.error(`Cannot spawn ${name}: No body provided for role ${role}!`);
+                return false;
             }
         }
         const cost = calcCreepCost(body);

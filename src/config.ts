@@ -7,6 +7,7 @@ const cfg = {
     BUILD_TIME: buildTime,
     DEFAULT_CONTROLLER_SIGN: `🔺Py-Ramid🔺`,
     USER_NAME: "duanyll",
+    NPC_USER_NAME: "Invader",
     DEFAULT_PLAYER_WHITELIST: {
         "Administrator-": true,
         "Asixa": true
@@ -77,7 +78,14 @@ const cfg = {
 /* --------------------------------- market --------------------------------- */
 
     MARKET_ADD_PRICE_TIME: 500,
-    ENERGY_PRICE: 0.5
+    ENERGY_PRICE: 0.5,
+
+/* --------------------------------- defense -------------------------------- */
+
+    DEFENSE: {
+        ACTIVE_HEAL_THRESHOLD: 550,
+        ACTIVE_TOUGH_THRESHOLD: 550,
+    }
 }
 
 export default cfg;

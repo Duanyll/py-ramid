@@ -2,7 +2,6 @@ import cfg from "config";
 import { INF, dx, dy } from "utils/constants";
 import { createMatrix, Queue } from "utils";
 import CostMatrixCache from "./costMatrix";
-import { goTo } from "./goTo";
 
 let fleeMatrixCache: Record<string, { time: number, matrix: CostMatrix }> = {};
 
@@ -12,10 +11,17 @@ function createFleeDisMap(roomName: string): CostMatrix {
     let dis = createMatrix(51, 51, INF);
     let ins = createMatrix(51, 51, false);
     let q = new Queue<PointInRoom>();
-    for (const exit of Game.rooms[roomName].find(FIND_EXIT)) {
-        dis[exit.x][exit.y] = 0;
-        ins[exit.x][exit.y] = true;
-        q.push({ x: exit.x, y: exit.y });
+    if (!Game.rooms[roomName].info) {
+        for (const exit of Game.rooms[roomName].find(FIND_EXIT)) {
+            dis[exit.x][exit.y] = 0;
+            ins[exit.x][exit.y] = true;
+            q.push({ x: exit.x, y: exit.y });
+        }
+    } else {
+        const center = Game.rooms[roomName].info.design.center;
+        dis[center.x][center.y] = 0;
+        ins[center.x][center.y] = true;
+        q.push({ x: center.x, y: center.y });
     }
     while (!q.empty()) {
         let u = q.pop();
@@ -67,24 +73,32 @@ function surroundingPosition(u: RoomPosition): RoomPosition[] {
     return res;
 }
 
-export function creepFlee(creep: Creep, targets: RoomPosition[]) {
-    if (creep.room.info) {
-        goTo(creep, { pos: new RoomPosition(creep.room.info.design.center.x, creep.room.info.design.center.y, creep.room.name) });
+export function creepFlee(creep: AnyCreep, targets: RoomPosition[]) {
+    let matrix = getFleeMatrix(creep.room.name);
+    const u = creep.pos;
+    const udis = _.sumBy(targets, i => u.getRangeTo(i));
+    let pos = _.maxBy(surroundingPosition(u), (v) => {
+        if (matrix.get(v.x, v.y) == 0xff) return -Infinity;
+        let score = 0;
+        if (matrix.get(v.x, v.y) < matrix.get(u.x, u.y)) score += 1;
+        if (matrix.get(v.x, v.y) > matrix.get(u.x, u.y)) score -= 1;
+        if (pos.lookFor(LOOK_TERRAIN)[0] == "swamp") score -= 2;
+        let vdis = _.sumBy(targets, i => v.getRangeTo(i));
+        if (vdis < udis) score += 1;
+        if (vdis > udis) score -= 1;
+        return score;
+    });
+    if (pos) creep.move(creep.pos.getDirectionTo(pos));
+}
+
+export function getFleeTargets(pos: RoomPosition, range = 5) {
+    if (global.myRooms[pos.roomName]) {
+        if (global.myRooms[pos.roomName].defense.mode != "peace") {
+            return _.filter(global.myRooms[pos.roomName].defense.currentHostiles, h => h.pos.inRangeTo(pos, range));
+        } else {
+            return null;
+        }
     } else {
-        let matrix = getFleeMatrix(creep.room.name);
-        const u = creep.pos;
-        const udis = _.sumBy(targets, i => u.getRangeTo(i));
-        let pos = _.maxBy(surroundingPosition(u), (v) => {
-            if (matrix.get(v.x, v.y) == 0xff) return -Infinity;
-            let score = 0;
-            if (matrix.get(v.x, v.y) < matrix.get(u.x, u.y)) score += 1;
-            if (matrix.get(v.x, v.y) > matrix.get(u.x, u.y)) score -= 1;
-            if (pos.lookFor(LOOK_TERRAIN)[0] == "swamp") score -= 2;
-            let vdis = _.sumBy(targets, i => v.getRangeTo(i));
-            if (vdis < udis) score += 1;
-            if (vdis > udis) score -= 1;
-            return score;
-        });
-        if (pos) creep.move(creep.pos.getDirectionTo(pos));
+        return null;
     }
 }

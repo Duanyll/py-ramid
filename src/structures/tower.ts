@@ -39,14 +39,32 @@ function getTowerRepairHits(range: number) {
 }
 
 export function tickTower(room: RoomInfo) {
-    let hostiles = room.detail.find(FIND_HOSTILE_CREEPS).filter((creep) => isHostile(creep.owner.username));
-    if (hostiles.length > 0 && !room.state.disableTower) {
-        room.structures.towers.forEach((tower) => {
+    let towers = _.filter(room.structures.towers, tower => tower.store.energy >= TOWER_ENERGY_COST);
+    let usedTowers = [] as StructureTower[];
+
+    const hostiles = room.defense.currentHostiles;
+    if (room.defense.mode == "passive") {
+        while (towers.length) {
+            const tower = towers.pop();
             tower.attack(_.sample(hostiles));
-            if (tower.store.free("energy") > 200)
-                room.refillTargets[tower.id] = tower.store.free("energy") + 10;
+            usedTowers.push(tower);
+        }
+    } else if (room.defense.mode == "active") {
+        let hostile = _.maxBy(hostiles, creep => {
+            let damage = creep.info.calcDamage(_.sumBy(towers, tower => getTowerAttackHits(tower.pos.getRangeTo(creep))))
+            - _.sumBy(_.filter(room.defense.currentHostiles, h => h.pos.inRangeTo(creep.pos, 3)), h => h.info.ability.heal)
+            return (damage > 0) ? damage : null;
         });
-    } else if (room.roadToRepair.length > 0) {
+        if (hostile) {
+            while (towers.length) {
+                const tower = towers.pop();
+                tower.attack(hostile);
+                usedTowers.push(tower);
+            }
+        }
+    }
+
+    if (room.roadToRepair.length > 0) {
         let road = Game.getObjectById(room.roadToRepair[0]) as StructureRoad;
         if (!road) {
             room.roadToRepair = [];
@@ -54,26 +72,32 @@ export function tickTower(room: RoomInfo) {
             return;
         }
         let remainHits = road.hitsMax - road.hits;
-        room.structures.towers.forEach((tower) => {
-            if (remainHits > 0) {
-                tower.repair(road);
-                remainHits -= getTowerRepairHits(tower.pos.getRangeTo(road));
-                if (tower.store.free("energy") > 200)
-                    room.refillTargets[tower.id] = tower.store.free("energy") + 10;
-            }
-        });
+        while (towers.length) {
+            if (remainHits < 0) break;
+            const tower = towers.pop();
+            tower.repair(road);
+            let hits = getTowerRepairHits(tower.pos.getRangeTo(road));
+            remainHits -= hits;
+            usedTowers.push(tower);
+        }
         if (remainHits <= 0) room.roadToRepair.shift();
         room.delay("checkRoads", 10);
     }
+
+    for (const tower of usedTowers) {
+        if (tower.store.free("energy") > 200) {
+            room.refillTargets[tower.id] = tower.store.free("energy") + TOWER_ENERGY_COST;
+        }
+    }
 }
 
-registerTask("setTowerState", (param) => {
-    myRooms[param.room].state.disableTower = param.state;
-})
+// registerTask("setTowerState", (param) => {
+//     myRooms[param.room].state.disableTower = param.state;
+// })
 
-registerCommand('disableTower', 'Temporately disable towers in a room for 1500 ticks. ', [
-    { name: "room", type: "myRoom" }
-], (room: string) => {
-    myRooms[room].state.disableTower = true;
-    schedule("setTowerState", 1500, { room, state: false });
-})
+// registerCommand('disableTower', 'Temporately disable towers in a room for 1500 ticks. ', [
+//     { name: "room", type: "myRoom" }
+// ], (room: string) => {
+//     myRooms[room].state.disableTower = true;
+//     schedule("setTowerState", 1500, { room, state: false });
+// })

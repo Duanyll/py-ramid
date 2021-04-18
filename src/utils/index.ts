@@ -69,6 +69,12 @@ export function expandBodypart(body: BodyPartDescription) {
     return res;
 }
 
+Object.defineProperty(Room.prototype, 'yell', {
+    value: function (this: Room, text = '🔺') {
+        this.find(FIND_MY_CREEPS).forEach(creep => creep.say(text, true));
+    }
+})
+
 export * from "./dataStructure";
 export * from "./errorMapper";
 export * from "./scheduler";

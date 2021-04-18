@@ -1,67 +1,10 @@
 import Logger from "utils";
-import { offsetsByDirection } from "utils/constants";
-import { isHostile } from "war/intelligence";
-import { shouldDoBypassCreep } from "./bypass";
+import { moveBypass } from "./bypass";
 import CostMatrixCache from "./costMatrix";
+import { getFleeTargets } from "./flee";
 import { findPath, findRouteCallback } from "./pathfinding";
 
-function getObstacle(pos: RoomPosition): RoomObject {
-    for (const s of pos.lookFor("structure")) {
-        switch (s.structureType) {
-            case "road":
-            case "container":
-                break;
-            case "rampart":
-                if ((s as any).my || (s as any).isPublic) {
-                    break;
-                }
-                return s;
-            default:
-                return s;
-        }
-    }
-
-    for (const s of pos.lookFor("constructionSite")) {
-        if (!isHostile(s.owner.username)) {
-            switch (s.structureType) {
-                case "road":
-                case "container":
-                case "rampart":
-                    break;
-                default:
-                    return s;
-            }
-        }
-    }
-
-    return pos.lookFor("creep")[0] || pos.lookFor("powerCreep")[0];
-}
-
-function moveBypass(creep: AnyCreep, target: DirectionConstant): boolean {
-    function getTargetpos(pos: RoomPosition, dir: DirectionConstant) {
-        let x = pos.x + offsetsByDirection[dir][0];
-        let y = pos.y + offsetsByDirection[dir][1];
-        if (x < 0 || x > 49 || y < 0 || y > 49) return undefined;
-        return new RoomPosition(x, y, pos.roomName);
-    }
-    let tarpos = getTargetpos(creep.pos, target);
-    if (tarpos) {
-        let obstacle = getObstacle(tarpos);
-        if (obstacle instanceof Creep || obstacle instanceof PowerCreep) {
-            if (shouldDoBypassCreep(creep, obstacle)) {
-                obstacle.move(((target + 3) % 8 + 1) as DirectionConstant);
-            }
-        } else if (obstacle) {
-            Logger.debug(`creep ${creep.name} meet obstacle ${obstacle} at ${tarpos}!`)
-            return false;
-        }
-    }
-
-    creep.move(target as any);
-    return true;
-}
-
-function moveByPath(creep: AnyCreep, path: RoomPosition[]): boolean {
+function moveByPath(creep: AnyCreep, path: RoomPosition[], checkFlee?: boolean): boolean {
     var idx = _.findIndex(path, (i) => i.isEqualTo(creep.pos));
     if (idx == -1) {
         if (!path[0]?.isNearTo(creep.pos)) {
@@ -73,10 +16,15 @@ function moveByPath(creep: AnyCreep, path: RoomPosition[]): boolean {
         return false;
     }
 
+    if (checkFlee) {
+        let fleeTargets = getFleeTargets(creep.pos, creep.movement?.fleeRange ?? 5);
+        if (fleeTargets) return true;
+    }
+
     return moveBypass(creep, creep.pos.getDirectionTo(path[idx]));
 }
 
-export function goTo(creep: AnyCreep, opts: GoToPosOpts) {
+export function goTo(creep: AnyCreep, opts: GoToPosOpts, checkFlee?: boolean) {
     const pathReuse = (creep.pos.inRangeTo(opts.pos, 5)) ? 5 : 15;
 
     if (creep.pos.isEqualTo(opts.pos)) {
@@ -94,13 +42,13 @@ export function goTo(creep: AnyCreep, opts: GoToPosOpts) {
             path: findPath(creep, opts).path
         }
     }
-    if (!moveByPath(creep, creep.moveInfo.path) && creep.moveInfo.time != Game.time && Game.time & 1) {
+    if (!moveByPath(creep, creep.moveInfo.path, checkFlee) && creep.moveInfo.time != Game.time && Game.time & 1) {
         creep.moveInfo = {
             opts,
             time: Game.time,
             path: findPath(creep, opts, true).path
         }
-        moveByPath(creep, creep.moveInfo.path);
+        moveByPath(creep, creep.moveInfo.path, checkFlee);
     }
 }
 

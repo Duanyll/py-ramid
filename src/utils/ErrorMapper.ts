@@ -81,7 +81,7 @@ export class ErrorMapper {
                             + this.sourceMappedStackTrace(e);
                         console.log(`<span style='color:red'>${_.escape(message)}</span>`);
                         if (!global.lastException || global.lastException + 1000 < Game.time) {
-                            Game.notify(message);
+                            Game.notify(message, 0);
                         }
                         global.lastException = Game.time;
                     }

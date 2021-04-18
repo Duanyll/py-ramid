@@ -1,4 +1,3 @@
-import { myRooms } from "room/roomInfo";
 import { registerGlobalRoutine } from "utils";
 import { BODYPART_ACTIONS, CREEP_LONG_ACTION } from "utils/constants";
 
@@ -10,16 +9,16 @@ export let creepGroups: {
 } = {};
 
 export function loadCreeps() {
-    for (const name in myRooms) {
-        myRooms[name].creeps = [];
-        myRooms[name].creepForRole = {};
+    for (const name in global.myRooms) {
+        global.myRooms[name].creeps = [];
+        global.myRooms[name].creepForRole = {};
     }
     globalCreeps = {};
     creepGroups = {};
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         if (creep.memory.room) {
-            let room = myRooms[creep.memory.room];
+            let room = global.myRooms[creep.memory.room];
             room.creeps.push(creep);
 
             if (creep.memory.roleId) {
@@ -50,9 +49,11 @@ export class CreepInfo {
     id: string;
     timeToDie: number;
 
-    ability: Record<CreepLongAction, number>;
-    toughHits = 0;
-    totalHits = 0;
+    readonly ability: Record<CreepLongAction, number>;
+    body: BodyPartDefinition[];
+    readonly hasBoost;
+    readonly toughHits: number;
+    readonly totalHits: number;
 
     /** 满载时, 前进一格需要多少 tick */
     readonly moveSpeed: {
@@ -65,11 +66,17 @@ export class CreepInfo {
         this.id = creep.id;
         this.timeToDie = Game.time + creep.ticksToLive;
         this.ability = _.mapValues(CREEP_LONG_ACTION, () => 0);
+        this.body = creep.body;
         this.totalHits = creep.hitsMax;
+        this.toughHits = 0;
+        this.hasBoost = false;
 
         let fatigueSpeed = 0;
         let fatigueCount = 0;
         for (const part of creep.body) {
+            if (part.boost) {
+                this.hasBoost = true;
+            }
             if (part.type == MOVE) {
                 let base = 2;
                 if (part.boost) {
@@ -103,6 +110,58 @@ export class CreepInfo {
             }
         }
     }
+
+    update(creep: Creep) {
+        this.body = creep.body;
+    }
+
+    /** 实际能造成多少伤害 */
+    calcDamage(damage: number) {
+        let damageReduce = 0,
+            damageEffective = damage;
+
+        if (this.hasBoost) {
+            for (let i = 0; i < this.body.length; i++) {
+                if (damageEffective <= 0) {
+                    break;
+                }
+                let bodyPart = this.body[i],
+                    damageRatio = 1;
+                if (bodyPart.type == TOUGH && bodyPart.boost) {
+                    damageRatio = BOOSTS[bodyPart.type][bodyPart.boost].damage;
+                }
+                let bodyPartHitsEffective = bodyPart.hits / damageRatio;
+                damageReduce += Math.min(bodyPartHitsEffective, damageEffective) * (1 - damageRatio);
+                damageEffective -= Math.min(bodyPartHitsEffective, damageEffective);
+            }
+        }
+
+        damage -= Math.round(damageReduce);
+
+        return damage;
+    }
+
+    /** 能否打穿最前面的 tough 组件 */
+    canBreakTough(damage: number) {
+        let damageEffective = damage;
+
+        for (let i = 0; i < this.body.length; i++) {
+            if (damageEffective <= 0) {
+                return false;
+            }
+            let bodyPart = this.body[i],
+                damageRatio = 1;
+            if (bodyPart.type == TOUGH && bodyPart.boost) {
+                damageRatio = BOOSTS[bodyPart.type][bodyPart.boost].damage;
+            } else {
+                return true;
+            }
+            let bodyPartHitsEffective = bodyPart.hits / damageRatio;
+            damageEffective -= Math.min(bodyPartHitsEffective, damageEffective);
+        }
+
+        return true;
+    }
 }
 
 let creepInfoStore: Record<string, CreepInfo> = {};
@@ -119,3 +178,7 @@ Object.defineProperty(Creep.prototype, "info", {
     enumerable: false,
     configurable: true
 })
+
+export function addHostileInfo(info: CreepInfo) {
+    creepInfoStore[info.id] = info;
+}

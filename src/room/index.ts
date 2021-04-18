@@ -84,10 +84,13 @@ function decideRoomEnergyUsage(room: RoomInfo) {
 }
 
 export function tickNormalRoom(room: RoomInfo) {
+    room.detail = Game.rooms[room.name];
     if (!room.detail.memory.rcl || room.detail.memory.rcl < room.detail.controller.level) {
         onRclUpgrade(room, room.detail.controller.level);
     }
     room.detail.memory.rcl = room.detail.controller.level;
+
+    room.defense.run(room.detail);
 
     decideRoomEnergyUsage(room);
 

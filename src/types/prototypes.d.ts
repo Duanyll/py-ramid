@@ -10,6 +10,12 @@ interface Room {
      * 该房间对应的 roomInfo 对象
      */
     readonly info: import("room/roomInfo").RoomInfo;
+
+    /**
+     * 房间内所有 creep 欢呼
+     * @param text 要 say 的文本
+     */
+    yell(text?: string): void;
 }
 
 interface StoreBase<POSSIBLE_RESOURCES extends ResourceConstant, UNLIMITED_STORE extends boolean> {
@@ -44,14 +50,17 @@ interface GoToPosOpts {
      *
      * 注意：如果允许，不要判断 Creep 当前是否在目标房间，否则会导致反复横跳
      */
-    crossRoom?: boolean,
-    /**
-     * 是否允许离开墙内安全区，起点或目标在安全区外忽略该选项
-     */
-    ignoreSafeZone?: boolean
+    crossRoom?: boolean
 }
 
-type CreepMovement = GoToPosOpts | { room: string }
+interface MovementOpts {
+    /**
+     * 需要躲避多少范围内的敌方 Creep, 默认为 5, 设为 0 不自动回避
+     */
+    fleeRange?: number
+}
+
+type CreepMovement = (GoToPosOpts | { room: string }) & MovementOpts
 
 interface Creep {
     /**

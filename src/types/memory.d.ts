@@ -144,7 +144,7 @@ interface RoomState {
     chargeNuker: boolean,
     autoProcessPower: boolean,
     powerToProcess: number,
-    disableTower?: boolean,
+    // disableTower?: boolean,
     boostUpgrade: boolean
 }
 
