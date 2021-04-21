@@ -47,7 +47,7 @@ function runLabs(room: RoomInfo) {
         }
         // @ts-ignore
         let cooldown: number = REACTION_TIME[info.product];
-        room.delay("runLabs", cooldown);
+        room.setTimeout("runLabs", cooldown);
     }
 }
 
@@ -66,11 +66,11 @@ function reactionDone(room: RoomInfo) {
 
 function fetchLabWork(room: RoomInfo) {
     if (room.structures.labs.input.length < 2 || room.structures.labs.output.length - room.state.lab.boost.length <= 0) {
-        room.delay("fetchLabWork");
+        room.setTimeout("fetchLabWork");
         return false;
     }
     if (room.state.lab.remain) {
-        room.delay("fetchLabWork");
+        room.setTimeout("fetchLabWork");
         return false;
     }
     const info = room.state.lab;
@@ -87,7 +87,7 @@ function fetchLabWork(room: RoomInfo) {
         info.total = next.amount;
         Logger.info(`Room ${room.name} takes lab task: ${info.total} * ${info.product}`);
         if (room.powerAvaliable[PWR_OPERATE_LAB]) room.state.lab.allowPower = true;
-        room.delay("runLabs", 1);
+        room.setTimeout("runLabs", 1);
         return true;
     } else {
         return false;
@@ -108,7 +108,7 @@ function runLabBoost(room: RoomInfo) {
         info.boost = [];
         delete info.boostExpires;
     }
-    if (labsForBoost.length > 0) room.delay("runBoost");
+    if (labsForBoost.length > 0) room.setTimeout("runBoost");
 }
 registerRoomRoutine({
     id: "runBoost",

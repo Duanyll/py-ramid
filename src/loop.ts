@@ -5,7 +5,7 @@ import { loadCreeps, globalCreeps } from "creep/creepInfo";
 import { clearCreepMemory, runCreep } from "creep";
 import { tickConstruction } from "room/construction";
 import Logger from "utils";
-import { globalDelay, initTasks, tickGlobalRoutine, tickTasks } from "utils";
+import { setTimeout, initTasks, tickGlobalRoutine, tickTasks } from "utils";
 import { ErrorMapper } from "utils";
 
 import "room/roles"
@@ -57,7 +57,7 @@ function loadScript() {
     loadRooms();
     Logger.report(`It took ${Game.cpu.getUsed()} CPU to restart.`);
 
-    _.forIn(cfg.GLOBAL_ROUTINE_DELAY, (time, type) => globalDelay(type as GlobalRoutine, time));
+    _.forIn(cfg.GLOBAL_ROUTINE_DELAY, (time, type) => setTimeout(type as GlobalRoutine, time));
 }
 
 if (Game) {

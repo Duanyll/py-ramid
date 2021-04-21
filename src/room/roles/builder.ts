@@ -68,7 +68,7 @@ export class RoleBuilder extends CreepRoleBase {
                     if (remHits <= 0) {
                         room.wallBuildRequest.delete(this.target);
                         if (room.wallBuildRequest.size == 0 && room.state.energy.usage.builder) {
-                            room.delay("fetchWall", 1);
+                            room.setTimeout("fetchWall", 1);
                         }
                     } else {
                         room.wallBuildRequest.set(this.target, remHits);
@@ -144,6 +144,8 @@ export class RoleBuilder extends CreepRoleBase {
                 return {
                     "build1": this.body[room.structRcl]
                 }
+            } else {
+                return;
             }
         } else {
             if (room.structRcl == 6) {

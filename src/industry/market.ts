@@ -1,4 +1,4 @@
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { setTimeout, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
 import { registerCommand } from "utils/console";
@@ -62,7 +62,7 @@ function fetchAutoDealOrders() {
         sellOrdersList[type] = _.sortBy(sellOrdersList[type], (o => getMarketOrder(o).price));
     });
     processMyBuyOrders();
-    globalDelay("fetchAutoDealOrders");
+    setTimeout("fetchAutoDealOrders");
 }
 registerGlobalRoutine("fetchAutoDealOrders", fetchAutoDealOrders);
 
@@ -149,7 +149,7 @@ registerCommand('autoSell', 'Create or modify a auto sell order.', [
             reserveAmount: cfg.MARKET_RESERVE,
             updateTime: 0,
         }
-        globalDelay("fetchAutoDealOrders", 1);
+        setTimeout("fetchAutoDealOrders", 1);
     }
 })
 
@@ -165,7 +165,7 @@ registerCommand('autoBuy', 'Create or modify a auto but order.', [
             minAmount: cfg.TERMINAL_EXPORT_DEFAULT,
             updateTime: 0,
         }
-        globalDelay("fetchAutoDealOrders", 1);
+        setTimeout("fetchAutoDealOrders", 1);
     }
 })
 

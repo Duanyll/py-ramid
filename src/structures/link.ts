@@ -10,7 +10,7 @@ function runLinks(room: RoomInfo) {
     function processLink(link: StructureLink) {
         if (!link) return;
         if (link.cooldown) {
-            room.delay("runLinks", link.cooldown);
+            room.setTimeout("runLinks", link.cooldown);
             return;
         }
         if (link.store.energy > 200) {
@@ -19,7 +19,7 @@ function runLinks(room: RoomInfo) {
             if (target.store.energy < 400) {
                 link.transferEnergy(target);
             } else {
-                room.delay("runLinks", 1);
+                room.setTimeout("runLinks", 1);
             }
         }
     }

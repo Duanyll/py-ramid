@@ -15,7 +15,7 @@ export class RoleBoostedUpgrader extends CreepRoleBase {
                 if (creep.goTo(link)) {
                     creep.withdraw(link, "energy");
                     if (link.store.energy < 200) {
-                        room.delay("runLinks", 1);
+                        room.setTimeout("runLinks", 1);
                     }
                 }
             }

@@ -269,7 +269,7 @@ export class RoomInfo {
             let config = roomRoutineStore[routine];
             config.dependsOn?.forEach(doInit);
             config.init?.(this);
-            if (config.defaultDelay) this.delay(routine, config.defaultDelay);
+            if (config.defaultDelay) this.setTimeout(routine, config.defaultDelay);
         }
         (_.keys(roomRoutineStore) as RoomRoutineType[]).forEach(doInit);
     }
@@ -279,12 +279,12 @@ export class RoomInfo {
             if (next == Game.time) {
                 let config = roomRoutineStore[name as RoomRoutineType];
                 roomRoutineStore[name as RoomRoutineType].invoke?.(this);
-                if (config.defaultDelay) this.delay(config.id, config.defaultDelay);
+                if (config.defaultDelay) this.setTimeout(config.id, config.defaultDelay);
             }
         })
     }
 
-    public delay(type: RoomRoutineType, time?: number) {
+    public setTimeout(type: RoomRoutineType, time?: number) {
         time ??= roomRoutineStore[type].defaultDelay;
         if (!this.tasks[type] || this.tasks[type] <= Game.time) {
             this.tasks[type] = Game.time + time;
@@ -442,7 +442,7 @@ export class RoomInfo {
         let fullMemory: CreepMemory = _.defaults(memory, { role, roleId, group, room, boost: boostInfo });
         if (boostInfo.length) {
             this.state.lab.boostExpires = _.max([this.state.lab.boostExpires, Game.time + CREEP_LIFE_TIME]);
-            this.delay("runBoost", 1);
+            this.setTimeout("runBoost", 1);
         }
         this.spawnQueue.push({
             name, body, memory: fullMemory, cost

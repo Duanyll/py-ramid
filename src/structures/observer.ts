@@ -1,5 +1,5 @@
 import { myRooms } from "room/roomInfo";
-import { ErrorMapper, globalDelay, registerGlobalRoutine } from "utils";
+import { ErrorMapper, setTimeout, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 
 let observeQueue: {
@@ -24,7 +24,7 @@ export function tickObserver() {
             }
 
         }
-        globalDelay("observer", 1);
+        setTimeout("observer", 1);
     }
 }
 registerGlobalRoutine("observer", tickObserver);
@@ -35,6 +35,6 @@ export function onVisibility(room: string, callback: () => void) {
     else {
         observeQueue[room] ||= [];
         observeQueue[room].push(callback);
-        globalDelay("observer", 1);
+        setTimeout("observer", 1);
     }
 }

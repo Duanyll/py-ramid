@@ -66,7 +66,7 @@ export function tickSpawn(room: RoomInfo) {
         Logger.silly(`Spawning creep ${req.name}`);
         delete room.state.refillFailTime;
         room.spawnQueue.shift();
-        room.delay("checkRefill", 1);
+        room.setTimeout("checkRefill", 1);
     } else {
         room.state.refillFailTime ||= 0;
         room.state.refillFailTime++;

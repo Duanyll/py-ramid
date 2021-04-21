@@ -1,6 +1,6 @@
 import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { setTimeout, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
 import { StoreRegister } from "utils/storeRegister";
@@ -124,7 +124,7 @@ export class SectionStore {
             Memory.labQueue.push(this.getCompoundTask(product, cfg.LAB_REACTION_AMOUNT, fromBuffer));
         }
         if (amount > 0) this.labQueue.push(this.getCompoundTask(product, amount, fromBuffer));
-        this.rooms.forEach(r => r.delay("fetchLabWork", 1));
+        this.rooms.forEach(r => r.setTimeout("fetchLabWork", 1));
     }
 
     produce(type: ResourceConstant, amount: number, noBuffer: boolean) {

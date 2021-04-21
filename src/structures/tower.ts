@@ -1,7 +1,4 @@
-import { RoomInfo, registerRoomRoutine, myRooms } from "room/roomInfo";
-import { isHostile } from "war/intelligence";
-import { registerTask, schedule } from "utils";
-import { registerCommand } from "utils/console";
+import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
 
 function checkRoads(room: RoomInfo) {
     if (room.roadToRepair.length > 0) return;
@@ -9,7 +6,7 @@ function checkRoads(room: RoomInfo) {
         filter: (s) => (s.structureType == "road" || s.structureType == "container") && s.hitsMax - s.hits >= 200
     });
     if (roads.length == 0) {
-        room.delay("checkRoads");
+        room.setTimeout("checkRoads");
     } else {
         roads.forEach((r) => room.roadToRepair.push(r.id));
     }
@@ -68,7 +65,7 @@ export function tickTower(room: RoomInfo) {
         let road = Game.getObjectById(room.roadToRepair[0]) as StructureRoad;
         if (!road) {
             room.roadToRepair = [];
-            room.delay("checkRoads", 1);
+            room.setTimeout("checkRoads", 1);
             return;
         }
         let remainHits = road.hitsMax - road.hits;
@@ -81,7 +78,7 @@ export function tickTower(room: RoomInfo) {
             usedTowers.push(tower);
         }
         if (remainHits <= 0) room.roadToRepair.shift();
-        room.delay("checkRoads", 10);
+        room.setTimeout("checkRoads", 10);
     }
 
     for (const tower of usedTowers) {

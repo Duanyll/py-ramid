@@ -17,7 +17,7 @@ function runFactory(room: RoomInfo) {
         }
 
         if (factory.cooldown) {
-            room.delay("runFactory", factory.cooldown);
+            room.setTimeout("runFactory", factory.cooldown);
             return;
         }
 
@@ -33,7 +33,7 @@ function runFactory(room: RoomInfo) {
                 info.remain = 0;
                 delete info.product;
             }
-            room.delay("runFactory", recipe.cooldown);
+            room.setTimeout("runFactory", recipe.cooldown);
         }
 
     } else {
@@ -41,7 +41,7 @@ function runFactory(room: RoomInfo) {
             info.product = "battery";
             info.remain = 10000;
             info.needUnlock = false;
-            room.delay("runFactory", 1);
+            room.setTimeout("runFactory", 1);
             return;
         }
         // if (room.structures.storage.store.energy <= 80000) {

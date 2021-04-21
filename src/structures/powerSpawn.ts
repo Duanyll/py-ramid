@@ -15,12 +15,12 @@ function runPowerSpawn(room: RoomInfo) {
             room.state.powerToProcess--;
             room.storeCurrent.add(RESOURCE_POWER, -1);
             if (room.state.powerToProcess > 0) {
-                room.delay("runPowerSpawn", 1);
+                room.setTimeout("runPowerSpawn", 1);
                 return;
             }
         }
     }
-    if (room.state.powerToProcess) room.delay("runPowerSpawn", 10);
+    if (room.state.powerToProcess) room.setTimeout("runPowerSpawn", 10);
 }
 registerRoomRoutine({
     id: "runPowerSpawn",
@@ -43,6 +43,6 @@ registerCommand('burnPower', 'Enable or disable power burning in a room.', [
     } else {
         room.state.energy.primary = ["power", "builder"];
         room.state.autoProcessPower = true;
-        room.delay("runPowerSpawn", 1);
+        room.setTimeout("runPowerSpawn", 1);
     }
 })

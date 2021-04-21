@@ -7,6 +7,7 @@ declare namespace NodeJS {
         logLevel: (level: LogLevel) => LogLevel;
         myRooms: { [name: string]: import("room/roomInfo").RoomInfo; };
         rooms: { [name: string]: import("room/roomInfo").RoomInfo; };
+        setTimeout: (type: GlobalRoutine, time: number) => void;
 
         Game: Game;
         age: number;

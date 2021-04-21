@@ -1,6 +1,6 @@
 import { tryBuyResource, tryDealResource } from "industry/market";
 import { myRooms } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine } from "utils";
+import { setTimeout, registerGlobalRoutine } from "utils";
 import Logger from "utils";
 import cfg from "config";
 
@@ -60,6 +60,6 @@ export function runTerminals() {
             if (readyTerminal) tryDealResource(readyTerminal.terminal, type, readyTerminal.amount);
         });
     }
-    globalDelay("runTerminal");
+    setTimeout("runTerminal");
 }
 registerGlobalRoutine("runTerminal", runTerminals);

@@ -82,7 +82,7 @@ export function creepFlee(creep: AnyCreep, targets: RoomPosition[]) {
         let score = 0;
         if (matrix.get(v.x, v.y) < matrix.get(u.x, u.y)) score += 1;
         if (matrix.get(v.x, v.y) > matrix.get(u.x, u.y)) score -= 1;
-        if (pos.lookFor(LOOK_TERRAIN)[0] == "swamp") score -= 2;
+        if (v.lookFor(LOOK_TERRAIN)[0] == "swamp") score -= 2;
         let vdis = _.sumBy(targets, i => v.getRangeTo(i));
         if (vdis < udis) score += 1;
         if (vdis > udis) score -= 1;

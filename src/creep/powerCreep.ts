@@ -94,8 +94,8 @@ function runOperator(pc: PowerCreep) {
                 let result = pc.usePower(power, target);
 
                 if (result == OK || result != ERR_NOT_ENOUGH_RESOURCES) {
-                    if (power == PWR_OPERATE_EXTENSION) room.delay("checkRefill", 1);
-                    if (power == PWR_OPERATE_FACTORY) room.delay("runFactory", 1);
+                    if (power == PWR_OPERATE_EXTENSION) room.setTimeout("checkRefill", 1);
+                    if (power == PWR_OPERATE_FACTORY) room.setTimeout("runFactory", 1);
                     delete room.powerRequests[pc.memory.target];
                     pc.memory.state = "idle";
                 }
@@ -137,7 +137,7 @@ registerCommand('assignPC', 'Assign PC to a room.', [
         global.reloadRoomsNextTick = true;
     }
     pc.memory.room = room;
-    myRooms[room].delay("checkPower", 1);
+    myRooms[room].setTimeout("checkPower", 1);
 })
 
 Object.defineProperties(RoomObject.prototype, {

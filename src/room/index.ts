@@ -16,8 +16,8 @@ function decideRoomEnergyUsage(room: RoomInfo) {
 
     function end() {
         config.activeCount = _.compact(_.values(config.usage)).length;
-        room.delay("updateCreepCount", 1);
-        if (config.usage.power) room.delay("runPowerSpawn", 1);
+        room.setTimeout("updateCreepCount", 1);
+        if (config.usage.power) room.setTimeout("runPowerSpawn", 1);
         Logger.silly(`${room.name} update energy mode: ${JSON.stringify(config.usage)}`);
     }
 
@@ -116,9 +116,9 @@ function onRclUpgrade(room: RoomInfo, level: number) {
             runCommand("bostUpgrade", room.name, false)
         }
     }
-    room.delay("setConstruction", 1);
-    room.delay("checkRoads", 1);
-    room.delay("checkRefill", 1);
+    room.setTimeout("setConstruction", 1);
+    room.setTimeout("checkRoads", 1);
+    room.setTimeout("checkRefill", 1);
 }
 
 registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
@@ -158,6 +158,7 @@ registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = getRoomCreepConfig(room);
+    room.setTimeout("updateCreepCount", 100);
 }
 registerRoomRoutine({
     id: "updateCreepCount",
@@ -206,7 +207,7 @@ function checkRoomPower(room: RoomInfo) {
             room.requestPower(room.structures.mineral, PWR_REGEN_MINERAL);
         nextRun = true;
     }
-    if (nextRun) room.delay("checkPower");
+    if (nextRun) room.setTimeout("checkPower");
 }
 registerRoomRoutine({
     id: "checkPower",

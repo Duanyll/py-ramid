@@ -23,7 +23,7 @@ export function tickGlobalRoutine() {
     })
 }
 
-export function globalDelay(type: GlobalRoutine, time?: number) {
+export function setTimeout(type: GlobalRoutine, time?: number) {
     time ??= cfg.GLOBAL_ROUTINE_DELAY[type];
     if (!Memory.routine[type] || Memory.routine[type] <= Game.time) {
         Memory.routine[type] = Game.time + time;
@@ -31,12 +31,13 @@ export function globalDelay(type: GlobalRoutine, time?: number) {
         Memory.routine[type] = _.min([Game.time + time, Memory.routine[type]]);
     }
 }
+global.setTimeout = setTimeout;
 registerCommand('delay', 'Set a global routine. ', [
     { name: "name", type: "string" },
     { name: "time", type: "number" },
 ], (name: string, time: number) => {
     if (name in globalRoutineStore) {
-        globalDelay(name as GlobalRoutine, time);
+        setTimeout(name as GlobalRoutine, time);
     } else {
         Logger.error('Unknown routine!');
     }

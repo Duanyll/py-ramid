@@ -1,5 +1,3 @@
-import cfg from "config";
-import { invoke } from "lodash";
 import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
 import Logger, { RMManager } from "utils";
 
@@ -22,7 +20,7 @@ export function pushConstructQueue(req: ConstructionRequest) {
 }
 
 export function onSRCLUpgrade(room: RoomInfo) {
-    if (room.structRcl >= 5) room.delay("runLinks", 1);
+    if (room.structRcl >= 5) room.setTimeout("runLinks", 1);
     if (room.structRcl >= 6) room.state.enableMining = true;
     if (room.structures.nuker) room.state.chargeNuker = true;
 }
@@ -63,9 +61,9 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
             room.design.rclDone = stages[stage].rcl;
             room.design.currentStage++;
             onSRCLUpgrade(room);
-            room.delay("setConstruction", 1);
+            room.setTimeout("setConstruction", 1);
         } else {
-            room.delay("setConstruction");
+            room.setTimeout("setConstruction");
         }
     })
 }

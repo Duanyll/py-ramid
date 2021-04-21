@@ -1,5 +1,5 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine, RMManager } from "utils";
+import { setTimeout, registerGlobalRoutine, RMManager } from "utils";
 import cfg from "config";
 
 interface RoomStats {
@@ -97,6 +97,6 @@ export function summaryStats() {
         }
         return obj;
     });
-    globalDelay("summaryStats");
+    setTimeout("summaryStats");
 }
 registerGlobalRoutine("summaryStats", summaryStats);

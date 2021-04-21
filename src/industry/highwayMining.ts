@@ -1,5 +1,5 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
-import { globalDelay, registerGlobalRoutine, schedule } from "utils";
+import { setTimeout, registerGlobalRoutine, schedule } from "utils";
 import { onVisibility } from "structures/observer";
 import { objToPos, posToObj } from "utils";
 import Logger from "utils";
@@ -30,12 +30,12 @@ function scanPowerBank() {
                         pos: posToObj(pb.pos),
                         status: "waiting"
                     }
-                    globalDelay("processPowerBank", 1);
+                    setTimeout("processPowerBank", 1);
                 }
             })
         })
     })
-    globalDelay("scanPowerBank");
+    setTimeout("scanPowerBank");
 }
 registerGlobalRoutine("scanPowerBank", scanPowerBank);
 
@@ -56,7 +56,7 @@ function processPowerBank() {
         }
     })
     Memory.mining.power.info = newPBInfo;
-    globalDelay("processPowerBank");
+    setTimeout("processPowerBank");
 }
 registerGlobalRoutine("processPowerBank", processPowerBank);
 

@@ -21,7 +21,7 @@ export class RoleHarvester extends CreepRoleBase {
             if (creep.store.free() <= 20) {
                 if (creep.goTo(link)) {
                     creep.transfer(link, "energy");
-                    room.delay("runLinks", 1);
+                    room.setTimeout("runLinks", 1);
                 }
             }
         } else {

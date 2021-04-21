@@ -101,6 +101,6 @@ You can specialize the range to avoid recording unecessary walls.`,
                 .forEach(st => {
                     detail.ramparts.push({ x: st.pos.x, y: st.pos.y });
                 });
-            room.delay("fetchWall", 1);
+            room.setTimeout("fetchWall", 1);
         });
     })

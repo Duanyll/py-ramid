@@ -17,7 +17,7 @@ export class RoleManager extends CreepRoleBase {
             (room, storage) => {
                 if (room.state.boostUpgrade && room.state.energy.usage.upgrade && room.state.link.centerMode == "send") {
                     if (room.structures.centerLink?.store.free("energy") >= 400) {
-                        room.delay("runLinks", 2)
+                        room.setTimeout("runLinks", 2)
                         return {
                             from: storage,
                             to: room.structures.centerLink,
@@ -136,7 +136,7 @@ export class RoleManager extends CreepRoleBase {
                 if (room.state.energy.usage.power) {
                     if (!room.state.energy.storeMode
                         && room.structures.powerSpawn?.store.free("energy") >= capacity) {
-                        room.delay("runPowerSpawn", 2);
+                        room.setTimeout("runPowerSpawn", 2);
                         return {
                             from: storage,
                             to: room.structures.powerSpawn,
