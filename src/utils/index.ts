@@ -78,5 +78,4 @@ Object.defineProperty(Room.prototype, 'yell', {
 export * from "./dataStructure";
 export * from "./errorMapper";
 export * from "./scheduler";
-export * from "./rawMemory";
 export default Logger;

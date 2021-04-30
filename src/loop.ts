@@ -16,7 +16,7 @@ import "structures"
 import "stats"
 import cfg from "config";
 import { checkMigrateDone, initMigrate } from "migrate";
-import { tickSegmentRequest } from "utils/rawMemory";
+import Storage from "utils/rawMemory";
 import { runPowerCreep } from "creep/powerCreep";
 import { confirmMarketOrders } from "industry/market";
 
@@ -72,7 +72,7 @@ export const runLoop = ErrorMapper.wrap(() => {
     Memory.age = ++global.age;
 
     if (global.migrating) {
-        tickSegmentRequest();
+        Storage.tick();
         if (!checkMigrateDone()) {
             Logger.info(`Tick ${Game.time} dropped. Waiting for migration done`);
             return;
@@ -109,6 +109,7 @@ export const runLoop = ErrorMapper.wrap(() => {
 
     tickGlobalRoutine();
     tickTasks();
+    Storage.tick();
 
     clearCreepMemory();
 }, "main loop");

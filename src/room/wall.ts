@@ -1,15 +1,13 @@
 import cfg from "config";
 import { pushConstructQueue } from "room/construction";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
-import { RMManager } from "utils";
 import { registerCommand } from "utils/console";
+import Storage from "utils/rawMemory";
 
 function fetchWallTask(room: RoomInfo) {
-    RMManager.read(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
+    Storage.getSegment(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
         let detail = segment[room.name];
-        if (room.wallBuildRequest.size > 0) {
-            return;
-        }
+        room.wallBuildRequest = new Map();
         let repairQueue: (StructureWall | StructureRampart)[] = [];
         if (detail.walls && room.state.energy.usage.builder) {
             detail.walls.forEach(p => {
@@ -46,6 +44,8 @@ function fetchWallTask(room: RoomInfo) {
                 room.wallBuildRequest.set(st.id, cfg.WALL_BUILD_STEP);
             }
         }
+
+        return false;
     })
 }
 registerRoomRoutine({
@@ -67,7 +67,7 @@ You can specialize the range to avoid recording unecessary walls.`,
     ],
     (roomName: string, x1 = 0, y1 = 0, x2 = 49, y2 = 49) => {
         let room = myRooms[roomName];
-        RMManager.readWrite(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
+        Storage.getSegment(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
             let detail = segment[room.name];
             detail.walls = [];
             detail.ramparts = [];
@@ -102,5 +102,7 @@ You can specialize the range to avoid recording unecessary walls.`,
                     detail.ramparts.push({ x: st.pos.x, y: st.pos.y });
                 });
             room.setTimeout("fetchWall", 1);
+
+            return true;
         });
     })

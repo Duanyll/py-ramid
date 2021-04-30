@@ -1,6 +1,7 @@
 import { myRooms, RoomInfo } from "room/roomInfo";
-import { setTimeout, registerGlobalRoutine, RMManager } from "utils";
+import { setTimeout, registerGlobalRoutine } from "utils";
 import cfg from "config";
+import Storage from "utils/rawMemory";
 
 interface RoomStats {
     rcl: number,
@@ -71,31 +72,28 @@ function summaryResource(): Partial<Record<ResourceConstant, number>> {
 }
 
 export function summaryStats() {
-    RMManager.write(cfg.SEGMENTS.stats, () => {
-        let obj: Stats = {
-            gcl: {
-                level: Game.gcl.level,
-                progress: Game.gcl.progress,
-                progressTotal: Game.gcl.progressTotal,
-                progressPercentage: Game.gcl.progress / Game.gcl.progressTotal
-            },
-            gpl: {
-                level: Game.gpl.level,
-                progress: Game.gpl.progress,
-                progressTotal: Game.gpl.progressTotal,
-                progressPercentage: Game.gpl.progress / Game.gpl.progressTotal
-            },
-            cpu: {
-                current: Game.cpu.getUsed(),
-                bucket: Game.cpu.bucket
-            },
-            rooms: _.mapValues(myRooms, summaryRoom),
-            time: Game.time,
-            resource: summaryResource(),
-            credits: Game.market.credits,
-            labRunningCount: _.reduce(myRooms, (cnt, room) => cnt += room.labRunning ? 1 : 0, 0)
-        }
-        return obj;
+    Storage.setSegment(cfg.SEGMENTS.stats, {
+        gcl: {
+            level: Game.gcl.level,
+            progress: Game.gcl.progress,
+            progressTotal: Game.gcl.progressTotal,
+            progressPercentage: Game.gcl.progress / Game.gcl.progressTotal
+        },
+        gpl: {
+            level: Game.gpl.level,
+            progress: Game.gpl.progress,
+            progressTotal: Game.gpl.progressTotal,
+            progressPercentage: Game.gpl.progress / Game.gpl.progressTotal
+        },
+        cpu: {
+            current: Game.cpu.getUsed(),
+            bucket: Game.cpu.bucket
+        },
+        rooms: _.mapValues(myRooms, summaryRoom),
+        time: Game.time,
+        resource: summaryResource(),
+        credits: Game.market.credits,
+        labRunningCount: _.reduce(myRooms, (cnt, room) => cnt += room.labRunning ? 1 : 0, 0)
     });
     setTimeout("summaryStats");
 }

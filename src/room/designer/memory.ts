@@ -1,15 +1,6 @@
-import cfg from "config";
-import Logger, { RMManager } from "utils";
+import Logger from "utils";
+import Storage from "utils/rawMemory";
 import { RoomDesignOld } from "./classic";
-
-export function getDesignSegment(roomName: string) {
-    const existSegment = _.find(cfg.SEGMENTS.roomDesign, id => _.includes(Memory.rawMemoryIndex[id], roomName));
-    if (existSegment) return existSegment;
-    const newSegment = _.find(cfg.SEGMENTS.roomDesign, id => _.size(Memory.rawMemoryIndex[id]) < 5);
-    Memory.rawMemoryIndex[newSegment] ||= [];
-    Memory.rawMemoryIndex[newSegment].push(roomName);
-    return newSegment;
-}
 
 function createLabInfo(pos: [number, number][]): RoomDesign["lab"] {
     let res: RoomDesign["lab"] = { input: [], output: [] };
@@ -31,9 +22,9 @@ function createLabInfo(pos: [number, number][]): RoomDesign["lab"] {
 export function migrateToRoomDesign2(roomName: string) {
     if (Memory.rooms[roomName].design.version >= 3) return;
     let old = Memory.rooms[roomName].design as any as RoomDesignOld;
-    let segmentId = getDesignSegment(roomName);
-    Logger.debug(`Requested to migerate room design in ${roomName}`)
-    RMManager.readWrite(segmentId, (segment: Record<string, RoomDesignDetail>) => {
+    Logger.debug(`Requested to migerate room design in ${roomName}`);
+    let segmentId = Storage.where("roomDesign", roomName);
+    Storage.getSegment(segmentId, (segment: Record<string, RoomDesignDetail>) => {
         Logger.info(`Migrating room design info in ${roomName}`);
         Memory.rooms[roomName].design = {
             version: 3,
@@ -59,19 +50,20 @@ export function migrateToRoomDesign2(roomName: string) {
             ramparts: old.ramparts,
             matrix: old.matrix
         }
-        return segment;
+        return true;
     });
 }
 
 
 export function saveRoomDesign(roomName: string, [design, detail]: [RoomDesign, RoomDesignDetail]) {
-    let segmentId = getDesignSegment(roomName);
-    RMManager.readWrite(segmentId, (segment: Record<string, RoomDesignDetail>) => {
+    let segmentId = Storage.where("roomDesign", roomName);
+    Storage.getSegment(segmentId, (segment: Record<string, RoomDesignDetail>) => {
         Memory.rooms[roomName] ??= {} as RoomMemory;
         Memory.rooms[roomName].design = design;
         segment[roomName] = detail;
         design.detailSegment = segmentId;
         Logger.info(`Saving design of room ${roomName} to segment #${segmentId}`);
         global.reloadRoomsNextTick = true;
+        return true;
     })
 }

@@ -77,15 +77,21 @@ export function creepFlee(creep: AnyCreep, targets: RoomPosition[]) {
     let matrix = getFleeMatrix(creep.room.name);
     const u = creep.pos;
     const udis = _.sumBy(targets, i => u.getRangeTo(i));
+    let strMap = CostMatrixCache.get(creep.room.name, "structure");
     let pos = _.maxBy(surroundingPosition(u), (v) => {
         if (matrix.get(v.x, v.y) == 0xff) return -Infinity;
         let score = 0;
         if (matrix.get(v.x, v.y) < matrix.get(u.x, u.y)) score += 1;
         if (matrix.get(v.x, v.y) > matrix.get(u.x, u.y)) score -= 1;
-        if (v.lookFor(LOOK_TERRAIN)[0] == "swamp") score -= 2;
+        const terrain = strMap.get(v.x, v.y);
+        if (terrain == 1) {
+            score += 1;
+        } else if (terrain == 10) {
+            score -= 2;
+        }
         let vdis = _.sumBy(targets, i => v.getRangeTo(i));
-        if (vdis < udis) score += 1;
-        if (vdis > udis) score -= 1;
+        if (vdis < udis) score += 2;
+        if (vdis > udis) score -= 2;
         return score;
     });
     if (pos) creep.move(creep.pos.getDirectionTo(pos));

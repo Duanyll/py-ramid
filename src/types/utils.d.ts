@@ -8,7 +8,17 @@ declare module 'consts:buildTime' {
 
 type Constructor<T> = { new(...param: any[]): T; }
 type LogLevel = "prompt" | "assert" | "error" | "report" | "info" | "debug" | "silly";
-type BodyPartDescription = [BodyPartConstant, number, MineralBoostConstant?][];
+type _SingleBodyPart<T extends BodyPartConstant> = [T, number, (keyof typeof BOOSTS[T])?];
+type _AnySinglePart = (
+    _SingleBodyPart<WORK>
+    | _SingleBodyPart<CARRY>
+    | _SingleBodyPart<MOVE>
+    | _SingleBodyPart<ATTACK>
+    | _SingleBodyPart<RANGED_ATTACK>
+    | _SingleBodyPart<TOUGH>
+    | _SingleBodyPart<HEAL>
+    | [CLAIM, number]);
+type BodyPartDescription = _AnySinglePart[];
 type RefillableStructure = StructureTower | StructureExtension | StructureSpawn;
 interface PointInRoom { x: number, y: number }
 

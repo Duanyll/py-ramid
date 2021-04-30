@@ -1,8 +1,8 @@
 import { onVisibility } from "structures/observer"
 import Logger, { registerCommand } from "utils/console"
-import { getDesignSegment, saveRoomDesign } from "./memory"
+import { saveRoomDesign } from "./memory"
 import { designRoom } from "./design"
-import { RMManager } from "utils"
+import Storage from "utils/rawMemory"
 
 export { migrateToRoomDesign2 } from "./memory"
 
@@ -24,7 +24,6 @@ registerCommand('designRoom', 'Create and save RoomDesign data for any room', [
     })
 });
 
-
 registerCommand('previewDesign', 'Preview saved RoomDesign data for a room', [
     { name: "room", type: "room" }
 ], (roomName: string) => {
@@ -32,7 +31,8 @@ registerCommand('previewDesign', 'Preview saved RoomDesign data for a room', [
         Logger.error(`No design data for room ${roomName}. Create with designRoom(${roomName})`);
         return;
     }
-    RMManager.read(getDesignSegment(roomName), (segment: Record<string, RoomDesignDetail>) => {
-        printDesign(segment[roomName]);
+    Storage.getKey("roomDesign", roomName, (segment: RoomDesignDetail) => {
+        printDesign(segment);
+        return false;
     })
 });

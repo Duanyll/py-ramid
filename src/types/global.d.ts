@@ -1,5 +1,6 @@
 declare namespace NodeJS {
     interface Global {
+        Storage: DataStorage;
         help: (func?: any) => void;
         lastException: number;
         store: import("industry/store").SectionStore;

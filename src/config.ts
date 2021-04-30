@@ -16,6 +16,9 @@ const cfg = {
         stats: 50,
         roomDesign: [10, 11, 12, 13, 14]
     },
+    SEGMENT_SIZE: {
+        roomDesign: 5
+    } as Record<string, number>,
     COSTMATRIX_UPDATE: 100,
 
 /* -------------------------------- routines -------------------------------- */

@@ -1,5 +1,6 @@
 import { RoomInfo, registerRoomRoutine } from "room/roomInfo";
-import Logger, { RMManager } from "utils";
+import Logger from "utils";
+import Storage from "utils/rawMemory";
 
 interface ConstructionRequest {
     pos: RoomPosition;
@@ -26,7 +27,7 @@ export function onSRCLUpgrade(room: RoomInfo) {
 }
 
 export function setConstruction(room: RoomInfo, full?: boolean) {
-    RMManager.read(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
+    Storage.getSegment(room.design.detailSegment, (segment: Record<string, RoomDesignDetail>) => {
         const stage = room.design.currentStage;
         const stages = segment[room.name].stages;
         if (full) {
@@ -65,6 +66,8 @@ export function setConstruction(room: RoomInfo, full?: boolean) {
         } else {
             room.setTimeout("setConstruction");
         }
+
+        return false;
     })
 }
 registerRoomRoutine({

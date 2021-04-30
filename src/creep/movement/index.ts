@@ -3,6 +3,7 @@ import { creepFlee, getFleeTargets } from "./flee";
 import { goToRoom, goTo } from "./goTo";
 
 function processCreepMovement(creep: AnyCreep) {
+    if (!creep.pos) return;
     if (!(creep.movement?.fleeRange)) {
         let targets = getFleeTargets(creep.pos, creep.movement?.fleeRange ?? 5);
         if (targets?.length) {

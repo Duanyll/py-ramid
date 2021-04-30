@@ -62,6 +62,10 @@ export default class CostMatrixCache {
         this.structure = this.terrain.clone();
         let maxHits = 0;
         let unwalkable: Structure[] = [];
+        if (room.info) {
+            const center = room.info.design.center;
+            this.structure.set(center.x, center.y, 0xff);
+        }
         for (const s of room.find(FIND_STRUCTURES)) {
             switch (s.structureType) {
                 case "road":

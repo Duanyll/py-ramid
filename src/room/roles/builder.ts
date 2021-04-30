@@ -61,15 +61,16 @@ export class RoleBuilder extends CreepRoleBase {
             }
 
             let st = Game.getObjectById(this.target) as (StructureRampart | StructureWall);
+            if (!st) {
+                room.setTimeout("fetchWall", 1);
+                return;
+            }
             let remHits = room.wallBuildRequest.get(this.target);
             if (creep.goTo(st, 3)) {
                 if (creep.repair(st) == OK) {
                     remHits -= creep.info.ability.repair;
                     if (remHits <= 0) {
                         room.wallBuildRequest.delete(this.target);
-                        if (room.wallBuildRequest.size == 0 && room.state.energy.usage.builder) {
-                            room.setTimeout("fetchWall", 1);
-                        }
                     } else {
                         room.wallBuildRequest.set(this.target, remHits);
                     }
@@ -116,7 +117,13 @@ export class RoleBuilder extends CreepRoleBase {
                 }
                 return;
             }
-            if (!this.goBuild(creep, room)) RoleUpgrader.prototype.goUpgrade.call(this, creep, room);
+            if (!this.goBuild(creep, room)) {
+                if (room.state.energy.usage.builder && room.wallHits > 0) {
+                    room.setTimeout("fetchWall", 1);
+                } else {
+                    RoleUpgrader.prototype.goUpgrade.call(this, creep, room);
+                }
+            }
         }
     }
 

@@ -1,98 +1,119 @@
-import { setTimeout, registerGlobalRoutine } from "./scheduler";
-
-type SegmentRequest = {
-    type: "r";
-    func: (segment: any) => void;
-} | {
-    type: "w";
-    func: () => any;
-} | {
-    type: "rw";
-    func: (segment: any) => any;
-} | {
-    type: "raw";
-    func: () => void;
-};
-let segmentRequests: {
-    [setment: number]: {
-        read: boolean,
-        write: boolean,
-        callbacks: SegmentRequest[]
-    }
-} = {};
+import cfg from "config";
 
 Memory.rawMemoryIndex ||= {};
 
-export function tickSegmentRequest() {
-    for (const segmentId in RawMemory.segments) {
-        let id = Number(segmentId);
-        if (segmentRequests[id]) {
-            let obj: any;
-            if (segmentRequests[id].read) {
-                obj = _.isEmpty(RawMemory.segments[id]) ? {} : JSON.parse(RawMemory.segments[id]);
-            }
-            segmentRequests[id].callbacks.forEach(i => {
-                switch (i.type) {
-                    case "raw":
-                        i.func();
-                        break;
-                    case "r":
-                        i.func(obj);
-                        break;
-                    case "w":
-                        obj = i.func() ?? obj;
-                        break;
-                    case "rw":
-                        let res = i.func(obj) ?? obj;
-                        break;
+type StorageClass = keyof typeof cfg.SEGMENTS;
+class DataStorage {
+    private cache: Record<number, any> = {};
+    private reqs: {
+        [id: number]: {
+            load?: boolean,
+            save?: boolean,
+            callbacks?: ((obj: any) => boolean)[];
+        }
+    } = {}
+
+    tick() {
+        for (const id in RawMemory.segments) {
+            let req = this.reqs[id];
+            if (!req) continue;
+            delete this.reqs[id];
+            if (req.load) {
+                if (_.isEmpty(RawMemory.segments[id])) {
+                    this.cache[id] = {};
+                } else {
+                    try {
+                        this.cache[id] = JSON.parse(RawMemory.segments[id]);
+                    } catch (e) {
+                        console.log(`Segment #${id} croupted: ${e.message}`)
+                        this.cache[id] = {};
+                    }
                 }
-            });
-            if (segmentRequests[id].write) {
-                RawMemory.segments[id] = JSON.stringify(obj);
             }
-            delete segmentRequests[id];
+            if (req.callbacks) {
+                for (const f of req.callbacks) {
+                    req.save ||= f(this.cache[id]);
+                }
+            }
+            if (req.save) {
+                RawMemory.segments[id] = JSON.stringify(this.cache[id])
+            }
+        }
+
+        let requests = [] as number[];
+        for (const id in this.reqs) {
+            let req = this.reqs[id];
+            if (!_.some(req)) {
+                delete this.reqs[id];
+            }
+            requests.push(Number(id));
+            if (requests.length >= 10) break;
+        }
+
+        if (requests.length) {
+            RawMemory.setActiveSegments(requests);
         }
     }
 
-    let request: number[] = [];
-    for (const segmentId in segmentRequests) {
-        let id = Number(segmentId);
-        request.push(id);
-        if (request.length >= 10) break;
+    getSegment(segment: number, callback: (obj: any) => boolean): boolean {
+        if (this.cache[segment]) {
+            let save = callback(this.cache[segment]);
+            if (save) {
+                this.save(segment);
+            }
+            return true;
+        } else {
+            this.reqs[segment] ||= {};
+            this.reqs[segment].load = true;
+            this.reqs[segment].callbacks ||= [];
+            this.reqs[segment].callbacks.push(callback);
+            return false;
+        }
     }
-    RawMemory.setActiveSegments(request);
-    if (request.length > 0) setTimeout("rawMemory", 1);
+
+    setSegment(segment: number, val: any): boolean {
+        this.cache[segment] = val;
+        return this.save(segment);
+    }
+
+    ready(segment: number) {
+        return segment in RawMemory.segments;
+    }
+
+    save(segment: number): boolean {
+        this.reqs[segment] ||= {};
+        this.reqs[segment].save = true;
+        return this.ready(segment);
+    }
+
+    where(group: StorageClass, key: string): number {
+        const info = cfg.SEGMENTS[group];
+        if (typeof info == "number") {
+            return info;
+        }
+        const existSegment = _.find(info, id => _.includes(Memory.rawMemoryIndex[id], key));
+        if (existSegment) return existSegment;
+        const newSegment = _.find(info, id => (_.size(key) < (cfg.SEGMENT_SIZE[group] ?? 5)));
+        if (typeof newSegment != "number") throw new Error(`Storage class ${group} out of space!`);
+        Memory.rawMemoryIndex[newSegment] ||= [];
+        Memory.rawMemoryIndex[newSegment].push(key);
+        return newSegment;
+    }
+
+    getKey(group: StorageClass, key: string, callback: (obj: any) => boolean): boolean {
+        return this.getSegment(this.where(group, key), (segment) => {
+            return callback(segment[key]);
+        })
+    }
+
+    setKey(group: StorageClass, key: string, val: any): boolean {
+        return this.getSegment(this.where(group, key), (segment) => {
+            segment[key] = val;
+            return true;
+        })
+    }
 }
-registerGlobalRoutine("rawMemory", tickSegmentRequest);
 
-export class RMManager {
-    static onSegment(segment: number, callback: () => void) {
-        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
-        segmentRequests[segment].callbacks.push({ type: "raw", func: callback });
-        setTimeout("rawMemory", 1);
-    }
-
-    static read(segment: number, callback: (segment: any) => void) {
-        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
-        segmentRequests[segment].callbacks.push({ type: "r", func: callback });
-        segmentRequests[segment].read = true;
-        setTimeout("rawMemory", 1);
-    }
-
-    static write(segment: number, callback: () => any) {
-        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
-        segmentRequests[segment].callbacks.push({ type: "w", func: callback });
-        segmentRequests[segment].write = true;
-        setTimeout("rawMemory", 1);
-    }
-
-    static readWrite(segment: number, callback: (segment: any) => any) {
-        segmentRequests[segment] ||= { write: false, read: false, callbacks: [] };
-        segmentRequests[segment].callbacks.push({ type: "rw", func: callback });
-        segmentRequests[segment].read = true;
-        segmentRequests[segment].write = true;
-        setTimeout("rawMemory", 1);
-    }
-
-}
-export default RMManager;
+const Storage = new DataStorage();
+global.Storage = Storage;
+export default Storage;

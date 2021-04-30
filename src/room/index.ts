@@ -108,12 +108,12 @@ function onRclUpgrade(room: RoomInfo, level: number) {
     console.log(`Room ${room.name} ungraded to level ${level}.`);
 
     if (room.state.boostUpgrade) {
-        if (room.detail.controller.level == 5) {
-            runCommand("bostUpgrade", room.name, true)
+        if (level == 6) {
+            runCommand("boostUpgrade", room.name, true)
         }
 
-        if (room.detail.controller.level == 8) {
-            runCommand("bostUpgrade", room.name, false)
+        if (level == 8) {
+            runCommand("boostUpgrade", room.name, false)
         }
     }
     room.setTimeout("setConstruction", 1);
@@ -127,6 +127,7 @@ registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
 ], (roomName: string, enable: boolean) => {
     const room = myRooms[roomName];
     room.state.boostUpgrade = enable;
+    room.setTimeout("updateCreepCount");
     if (room.structures.controller.level >= 5) {
         if (enable) {
             const info = {
@@ -158,7 +159,7 @@ registerCommand('boostUpgrade', "enable or disable boost upgrade in a room.", [
 
 function updateRoomCreepCount(room: RoomInfo) {
     room.creepRoleDefs = getRoomCreepConfig(room);
-    room.setTimeout("updateCreepCount", 100);
+    room.setTimeout("updateCreepCount");
 }
 registerRoomRoutine({
     id: "updateCreepCount",
