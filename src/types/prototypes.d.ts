@@ -16,6 +16,9 @@ interface Room {
      * @param text 要 say 的文本
      */
     yell(text?: string): void;
+
+    /** 手动刷新房间 CostMatrix 缓存, 比如摧毁了房间内建筑等情况 */
+    updateMatrix(): void;
 }
 
 interface StoreBase<POSSIBLE_RESOURCES extends ResourceConstant, UNLIMITED_STORE extends boolean> {

@@ -93,7 +93,7 @@ class DataStorage {
         }
         const existSegment = _.find(info, id => _.includes(Memory.rawMemoryIndex[id], key));
         if (existSegment) return existSegment;
-        const newSegment = _.find(info, id => (_.size(key) < (cfg.SEGMENT_SIZE[group] ?? 5)));
+        const newSegment = _.find(info, id => (_.size(Memory.rawMemoryIndex[id]) < (cfg.SEGMENT_SIZE[group] ?? 5)));
         if (typeof newSegment != "number") throw new Error(`Storage class ${group} out of space!`);
         Memory.rawMemoryIndex[newSegment] ||= [];
         Memory.rawMemoryIndex[newSegment].push(key);

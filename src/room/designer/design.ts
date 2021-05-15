@@ -49,7 +49,8 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
     let rcenter: PointInRoom;
     let fixedCenter = false;
     let spawn = room.find(FIND_MY_SPAWNS)[0]
-        || room.find(FIND_MY_CONSTRUCTION_SITES).filter(s => s.structureType == STRUCTURE_SPAWN)[0];
+        || room.find(FIND_MY_CONSTRUCTION_SITES).filter(s => s.structureType == STRUCTURE_SPAWN)[0]
+        || room.find(FIND_FLAGS).filter(f => f.name.includes('center'))[0];
     if (spawn) {
         Logger.debug("Designing room with spawn at specific position.");
         fixedCenter = true;

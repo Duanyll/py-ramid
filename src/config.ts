@@ -26,7 +26,7 @@ const cfg = {
     WALL_BUILD_STEP: 30000,
     GLOBAL_ROUTINE_DELAY: {
         "countStore": 5000,
-        "fetchAutoDealOrders": 100,
+        "fetchAutoDealOrders": 20,
         "runTerminal": TERMINAL_COOLDOWN,
         "scanPowerBank": 100,
         "summaryStats": 20,
@@ -75,7 +75,8 @@ const cfg = {
         "XUH2O": 10_000,
         "XZH2O": 10_000,
         "XZHO2": 10_000,
-        "ops": 50_000
+        "ops": 50_000,
+        "X": 10_000
     } as Partial<Record<ResourceConstant, number>>,
 
 /* --------------------------------- market --------------------------------- */

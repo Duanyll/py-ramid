@@ -59,18 +59,31 @@ export class RoleHarvester extends CreepRoleBase {
     }
 
     static bodyLinked: Record<number, BodyPartDescription> = {
-        5: [[WORK, 8], [CARRY, 4], [MOVE, 6]],
-        6: [[WORK, 8], [CARRY, 4], [MOVE, 6]],
-        7: [[WORK, 12], [CARRY, 4], [MOVE, 8]],
-        8: [[WORK, 12], [CARRY, 4], [MOVE, 8]]
+        5: [[WORK, 8], [CARRY, 4], [MOVE, 4]],
+        6: [[WORK, 8], [CARRY, 4], [MOVE, 4]],
+        7: [[WORK, 12], [CARRY, 4], [MOVE, 6]],
+        8: [[WORK, 12], [CARRY, 4], [MOVE, 6]]
+    }
+
+    static bodyRegen: Record<number, BodyPartDescription> = {
+        1: [[WORK, 12], [CARRY, 4], [MOVE, 6]],
+        2: [[WORK, 12], [CARRY, 4], [MOVE, 6]],
+        3: [[WORK, 12], [CARRY, 4], [MOVE, 6]],
+        4: [[WORK, 14], [CARRY, 4], [MOVE, 7]],
+        5: [[WORK, 14], [CARRY, 4], [MOVE, 7]]
     }
 
     static spawnInfo(room: RoomInfo) {
         if (room.structRcl < 4) return;
         let ret = {} as Record<string, BodyPartDescription>;
+        let regenPower = room.powerAvaliable[PWR_REGEN_SOURCE]?.[0] ?? 0;
         for (let i = 0; i < room.structures.sources.length; i++) {
             if (room.structures.sourceLink[i] && room.structRcl >= 5) {
-                ret[`harv${i + 1}`] = this.bodyLinked[room.structRcl];
+                if (regenPower > 0) {
+                    ret[`harv${i + 1}`] = this.bodyRegen[regenPower];
+                } else {
+                    ret[`harv${i + 1}`] = this.bodyLinked[room.structRcl];
+                }
             } else {
                 ret[`harv${i + 1}`] = this.body[room.structRcl];
             }

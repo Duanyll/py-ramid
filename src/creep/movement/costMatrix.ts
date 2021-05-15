@@ -3,7 +3,7 @@ import Logger from "utils";
 import { isHostile } from "war/intelligence";
 
 export default class CostMatrixCache {
-    private static cacheStore: Record<string, CostMatrixCache> = {};
+    static cacheStore: Record<string, CostMatrixCache> = {};
     static get(roomName: string, type: "wallOnly" | "terrain" | "structure" | "breakWall") {
         this.cacheStore[roomName] ||= new CostMatrixCache(roomName);
         this.cacheStore[roomName].tryUpdate();
@@ -146,3 +146,13 @@ export default class CostMatrixCache {
         this.breakWall ||= this.wallOnly;
     }
 }
+
+Object.defineProperty(Room.prototype, "updateMatrix", {
+    value: function (this: Room) {
+        if (CostMatrixCache.cacheStore[this.name]) {
+            CostMatrixCache.cacheStore[this.name].updateTime = 0;
+        }
+    },
+    enumerable: false,
+    configurable: false
+})

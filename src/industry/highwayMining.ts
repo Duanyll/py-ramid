@@ -76,7 +76,7 @@ function tryHarvestPB(pb: PowerBankInfo, id: string) {
         goHarvestPB(pb, id, minDist.room, minDist.dis);
         return;
     }
-    if (pb.power > 2000 && minDist.dis <= 600 && pb.decayTime - Game.time > 4700) {
+    if (pb.power > 2000 && minDist.dis <= 400 && pb.decayTime - Game.time > 4700) {
         goHarvestPB(pb, id, minDist.room, minDist.dis);
         return;
     }

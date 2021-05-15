@@ -2,7 +2,7 @@ import { creepRole, CreepRoleBase, memorize } from "creep/role";
 import { myRooms } from "room/roomInfo";
 import Logger, { registerCommand } from "utils/console";
 
-@creepRole("attack")
+@creepRole("cleaner")
 export class RoleSimpleAttacker extends CreepRoleBase {
     @memorize
     targets: string[];
@@ -23,6 +23,7 @@ export class RoleSimpleAttacker extends CreepRoleBase {
                     }
                 } else {
                     flag.remove();
+                    creep.room.updateMatrix();
                 }
             } else {
                 const spawn = creep.room.find(FIND_HOSTILE_SPAWNS)[0];
@@ -34,8 +35,9 @@ export class RoleSimpleAttacker extends CreepRoleBase {
                         creep.rangedAttack(spawn);
                     }
                 } else {
-                    Logger.report(`Room ${targetRoom} cleaned.`)
+                    Logger.report(`Room ${targetRoom} cleaned.`);
                     this.targets.shift();
+                    creep.room.updateMatrix();
                 }
             }
         }

@@ -35,18 +35,19 @@ function runLabs(room: RoomInfo) {
                     room.storeCurrent.add(recipe[1], -amount);
                     room.storeCurrent.add(info.product, amount);
 
-                    if (info.remain <= 10) {
+                    if (info.remain <= amount) {
                         reactionDone(room);
                         return;
                     }
-                } else if (info.remain <= amount) {
-                    reactionDone(room);
-                    return;
                 }
             }
         }
-        // @ts-ignore
-        let cooldown: number = REACTION_TIME[info.product];
+        if (info.remain <= 15) {
+            reactionDone(room);
+            return;
+        }
+
+        let cooldown: number = REACTION_TIME[info.product as MineralCompoundConstant];
         room.setTimeout("runLabs", cooldown);
     }
 }

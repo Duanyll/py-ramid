@@ -412,7 +412,7 @@ export class RoomInfo {
         memory,
     }: { body?: BodyPartDescription, roleId?: string, name?: string, group?: string, memory?: Partial<CreepMemory>, room?: string }) {
         if (!body) {
-            body = getCreepRole(role).defaultBody;
+            body = getCreepRole(role)?.defaultBody;
             if (!body) {
                 Logger.error(`Cannot spawn ${name}: No body provided for role ${role}!`);
                 return false;
