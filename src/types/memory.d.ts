@@ -99,6 +99,7 @@ interface Memory {
         [segment: number]: string[]
     },
     version: number;
+    config: any;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -108,10 +108,10 @@ export function designRoom(room: Room): [RoomDesign, RoomDesignDetail] {
     }
 
     let routes = getRoutes(matrix, design.center, [
-        room.controller,
-        ...room.find(FIND_SOURCES),
-        ...room.find(FIND_MINERALS)
-    ].map(s => s.pos));
+        room.controller.pos,
+        ...design.link.source,
+        design.mineralContainer
+    ]);
     if (isSmall) fillExtensions(matrix, design.center);
 
     createBuildStages(matrix, room, design, detail, routes);

@@ -55,17 +55,21 @@ export class RolePowerHealer extends CreepRoleBase {
     run(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
         const tarpos = objToPos(pbInfo.pos);
-        if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos, 4)) {
+        if (creep.goToRoom(tarpos.roomName)) {
             let healTarget = creep.group["attack"];
             if (!healTarget && pbInfo.status == "harvested") {
                 creep.suicide();
                 return;
             }
             if (!healTarget) return;
-            creep.posLock = true;
             if (healTarget.pos.isNearTo(tarpos)) {
                 if (creep.goTo(healTarget)) {
+                    creep.posLock = true;
                     creep.heal(healTarget);
+                }
+            } else {
+                if (creep.goTo(tarpos, 4)) {
+                    creep.posLock = true;
                 }
             }
         }
@@ -84,7 +88,7 @@ export class RolePowerCarrier extends CreepRoleBase {
         let pbInfo = Memory.mining.power.info[this.target];
         const tarpos = objToPos(pbInfo.pos);
         if (this.state == "go") {
-            if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos, 4))
+            if (creep.goToRoom(tarpos.roomName))
                 if (pbInfo.status == "harvested") {
                     if (creep.goTo(tarpos)) {
                         const ruin = tarpos.lookFor(LOOK_RUINS)[0];
@@ -98,7 +102,8 @@ export class RolePowerCarrier extends CreepRoleBase {
                         }
                     }
                 } else {
-                    creep.posLock = true;
+                    if (creep.goTo(tarpos, 4))
+                        creep.posLock = true;
                 }
         } else {
             const home = pbInfo.harvRoom

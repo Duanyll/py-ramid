@@ -1,6 +1,6 @@
 import buildTime from "consts:buildTime";
 
-const cfg = {
+let cfg = {
 
 /* ------------------------------- basic info ------------------------------- */
 
@@ -50,6 +50,9 @@ const cfg = {
 
 /* -------------------------------- resource -------------------------------- */
 
+    ENABLE_AUTO_RESERVE: true,
+    ENABLE_BATTERY_PRODUCE: true,
+
     MARKET_RESERVE: 30_000,
     LAB_REACTION_AMOUNT: 6000,
     TERMINAL_MINERAL: 150_000,
@@ -91,5 +94,9 @@ const cfg = {
         ACTIVE_TOUGH_THRESHOLD: 550,
     }
 }
+
+Memory.config ||= {};
+cfg = _.defaultsDeep(_.cloneDeep(Memory.config), cfg);
+cfg.BUILD_TIME = buildTime;
 
 export default cfg;

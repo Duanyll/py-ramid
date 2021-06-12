@@ -2,7 +2,7 @@ import cfg from "config";
 import { creepRole, CreepRoleBase, memorize } from "creep/role";
 import { myRooms } from "room/roomInfo";
 import Logger from "utils";
-import { registerCommand } from "utils/console";
+import { registerCommand, runCommand } from "utils/console";
 
 function sendClaimer(roomName: string, target: string) {
     let room = myRooms[roomName];
@@ -10,13 +10,9 @@ function sendClaimer(roomName: string, target: string) {
         Logger.error("unknown room.");
         return;
     }
-    if (!(target in Memory.rooms)) {
-        Logger.error("Design the room first.");
-        return;
-    }
     _.assign(Memory.rooms[target], { helperRoom: roomName });
     room.requestSpawn("claim", {
-        name: `${target}-claim`, memory: { target },
+        name: `${target}-claim`, memory: { target, home: roomName } as any,
     });
 }
 
@@ -63,13 +59,24 @@ registerCommand('sendAttacker', 'Send a unboosted atacker creep to attack target
 export class RoleClaimer extends CreepRoleBase {
     @memorize
     target: string;
+    @memorize
+    home: string;
+    designRequest: boolean;
     run(creep: Creep) {
         if (creep.goToRoom(this.target)) {
             const con = creep.room.controller;
+            if (!creep.room.memory.design) {
+                if (!this.designRequest) {
+                    runCommand("designRoom", creep.room.name, true);
+                    this.designRequest = true;
+                }
+            }
             if (creep.goTo(con)) {
                 if (con.owner && !con.my) {
                     creep.attackController(con);
                 } else if (!con.owner) {
+                    if (!creep.room.memory.design) return;
+                    creep.room.memory.helperRoom = this.home;
                     creep.claimController(con);
                     const sign = Memory.rooms[creep.room.name]?.sign || cfg.DEFAULT_CONTROLLER_SIGN;
                     creep.signController(con, sign);

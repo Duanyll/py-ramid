@@ -1,7 +1,6 @@
 import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import { setTimeout, registerGlobalRoutine } from "utils";
-import Logger from "utils";
 import cfg from "config";
 import { StoreRegister } from "utils/storeRegister";
 
@@ -33,8 +32,11 @@ registerRoomRoutine({
 });
 
 registerGlobalRoutine("countStore", () => {
-    globalStore.produceBook();
- });
+    if (cfg.ENABLE_AUTO_RESERVE)
+        globalStore.produceBook();
+});
+
+Memory.labQueue ||= [];
 
 /**
  * 统计一定范围内的资源储量
@@ -62,7 +64,7 @@ export class SectionStore {
         })
 
         if (Memory.market.enableAutoDeal) {
-            _.forIn(Memory.market.autoDeal, (info, res)=> {
+            _.forIn(Memory.market.autoDeal, (info, res) => {
                 this._book.add(res as ResourceConstant, info.reserveAmount);
             })
         }

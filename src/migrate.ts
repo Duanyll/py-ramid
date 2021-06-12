@@ -1,4 +1,6 @@
 import { migrateToRoomDesign2 } from "room/designer";
+import { designRoom } from "room/designer/design";
+import { runCommand } from "utils/console";
 
 function migrateLab() {
     Memory.labQueue.forEach((i: any) => {
@@ -57,31 +59,22 @@ function cleanMemory() {
 
 export function initMigrate() {
     let operated = false;
-    for (const roomName in Memory.rooms) {
-        if (Memory.rooms[roomName].design.version < 3) {
-            migrateToRoomDesign2(roomName);
-            operated = true;
+    if (_.isEmpty(Memory.rooms)) {
+        operated = true;
+        Memory.rooms = {};
+        Memory.creeps = {};
+        for (const roomName in Game.rooms) {
+            runCommand("designRoom", roomName, true);
         }
     }
-    if (!Memory.version || Memory.version < 1) {
-        migrateLab();
-        Memory.version = 1;
-    }
-    if (Memory.version < 2) {
-        cleanMemory();
-        Memory.version = 2;
-    }
-    if (Memory.version < 3) {
-        Memory.market.buyOrders = [];
+
+    if (!Memory.version || Memory.version < 3) {
         Memory.version = 3;
     }
     return operated;
 }
 
 export function checkMigrateDone() {
-    for (const roomName in Memory.rooms) {
-        if (Memory.rooms[roomName].design.version < 3)
-            return false;
-    }
+    if (_.isEmpty(Memory.rooms)) return false;
     return true;
 }

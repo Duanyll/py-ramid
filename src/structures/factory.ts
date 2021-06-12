@@ -37,7 +37,7 @@ function runFactory(room: RoomInfo) {
         }
 
     } else {
-        if (room.state.energy.usage.battery) {
+        if (room.state.energy.usage.battery && cfg.ENABLE_BATTERY_PRODUCE) {
             info.product = "battery";
             info.remain = 10000;
             info.needUnlock = false;
