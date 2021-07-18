@@ -87,7 +87,7 @@ function fetchLabWork(room: RoomInfo) {
         info.remain = next.amount;
         info.total = next.amount;
         Logger.info(`Room ${room.name} takes lab task: ${info.total} * ${info.product}`);
-        if (room.powerAvaliable[PWR_OPERATE_LAB]) room.state.lab.allowPower = true;
+        if (room.powerAvailable[PWR_OPERATE_LAB]) room.state.lab.allowPower = true;
         room.setTimeout("runLabs", 1);
         return true;
     } else {

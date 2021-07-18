@@ -76,7 +76,7 @@ export class RoleHarvester extends CreepRoleBase {
     static spawnInfo(room: RoomInfo) {
         if (room.structRcl < 4) return;
         let ret = {} as Record<string, BodyPartDescription>;
-        let regenPower = room.powerAvaliable[PWR_REGEN_SOURCE]?.[0] ?? 0;
+        let regenPower = room.powerAvailable[PWR_REGEN_SOURCE]?.[0] ?? 0;
         for (let i = 0; i < room.structures.sources.length; i++) {
             if (room.structures.sourceLink[i] && room.structRcl >= 5) {
                 if (regenPower > 0) {

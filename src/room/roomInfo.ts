@@ -455,21 +455,21 @@ export class RoomInfo {
     /* -------------------------------------------------------------------------- */
 
     powerRequests: Record<string, { type: PowerConstant, level?: number }> = {};
-    powerAvaliable: Partial<Record<PowerConstant, number[]>> = {};
+    powerAvailable: Partial<Record<PowerConstant, number[]>> = {};
     registerPowerCreep(pc: PowerCreep) {
         _.forIn(pc.powers, (power, id) => {
             const powerId = Number(id) as PowerConstant;
-            if (powerId in this.powerAvaliable) {
-                this.powerAvaliable[powerId].push(power.level);
+            if (powerId in this.powerAvailable) {
+                this.powerAvailable[powerId].push(power.level);
             } else {
-                this.powerAvaliable[powerId] = [power.level];
+                this.powerAvailable[powerId] = [power.level];
             }
         });
     }
     requestPower(s: RoomObject & { id: string }, powerId: PowerConstant, level?: number) {
         if (_.find(s.effects, e => e.effect == powerId && e.ticksRemaining >= 100)) return;
-        if (this.powerAvaliable[powerId]) {
-            if (level !== undefined && _.find(this.powerAvaliable[powerId], i => i == level) === undefined) return;
+        if (this.powerAvailable[powerId]) {
+            if (level !== undefined && _.find(this.powerAvailable[powerId], i => i == level) === undefined) return;
             this.powerRequests[s.id] = { type: powerId, level };
         }
     }
