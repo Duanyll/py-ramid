@@ -7,7 +7,7 @@
             "label": "Push to Localhost",
             "type": "shell",
             "windows": {
-                "command": "cmd /C \"copy /Y dist %userprofile%\\appdata\\local\\screeps\\scripts\\127_0_0_1___21025\\default\""
+                "command": "cmd /C \"copy /Y dist %userprofile%\\appdata\\local\\screeps\\scripts\\screeps.com\\main\""
             },
             "problemMatcher": [],
             "group": {

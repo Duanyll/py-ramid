@@ -1,6 +1,6 @@
 import { creepGroups } from "creep/creepInfo";
 import { creepRole, CreepRoleBase, memorize } from "creep/role";
-import { onPBHarvesterArrive } from "industry/highwayMining";
+import { onPBHarvesterArrive } from "industry/powerMining";
 import { objToPos } from "utils";
 
 @creepRole("pbHarv")
@@ -13,15 +13,15 @@ export class RolePowerHarvester extends CreepRoleBase {
     target: string;
     run(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
-        const tarpos = objToPos(pbInfo.pos);
-        if (creep.goToRoom(tarpos.roomName) && creep.goTo(tarpos)) {
+        const tarPos = objToPos(pbInfo.pos);
+        if (creep.goToRoom(tarPos.roomName) && creep.goTo(tarPos)) {
             if (!this.arrived) {
                 this.arrived = true;
                 pbInfo.distance = CREEP_LIFE_TIME - creep.ticksToLive;
             }
             const group = creep.group;
             if (group["heal1"]?.pos.isNearTo(creep.pos) && group["heal2"]?.pos.isNearTo(creep.pos)) {
-                const pb = tarpos.lookFor(LOOK_STRUCTURES).find(s => s.structureType == STRUCTURE_POWER_BANK) as StructurePowerBank;
+                const pb = tarPos.lookFor(LOOK_STRUCTURES).find(s => s.structureType == STRUCTURE_POWER_BANK) as StructurePowerBank;
                 if (!pb) {
                     pbInfo.status = "harvested";
                     delete Memory.mining.power.roomLock[pbInfo.harvRoom];
@@ -35,7 +35,7 @@ export class RolePowerHarvester extends CreepRoleBase {
                     if (pb.hits < 5000 && creep.ticksToLive > 10) {
                         const carryGroup = creepGroups[pbInfo.carryGroup];
                         const carrierCount = _.ceil(pb.power / (CARRY_CAPACITY * 25));
-                        const readyCount = _.values(carryGroup).filter(c => c.pos.inRangeTo(tarpos, 8)).length;
+                        const readyCount = _.values(carryGroup).filter(c => c.pos.inRangeTo(tarPos, 8)).length;
                         if (readyCount < carrierCount) return;
                     }
                     creep.attack(pb);
@@ -54,21 +54,21 @@ export class RolePowerHealer extends CreepRoleBase {
     target: string;
     run(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
-        const tarpos = objToPos(pbInfo.pos);
-        if (creep.goToRoom(tarpos.roomName)) {
+        const tarPos = objToPos(pbInfo.pos);
+        if (creep.goToRoom(tarPos.roomName)) {
             let healTarget = creep.group["attack"];
             if (!healTarget && pbInfo.status == "harvested") {
                 creep.suicide();
                 return;
             }
             if (!healTarget) return;
-            if (healTarget.pos.isNearTo(tarpos)) {
+            if (healTarget.pos.isNearTo(tarPos)) {
                 if (creep.goTo(healTarget)) {
                     creep.posLock = true;
                     creep.heal(healTarget);
                 }
             } else {
-                if (creep.goTo(tarpos, 4)) {
+                if (creep.goTo(tarPos, 4)) {
                     creep.posLock = true;
                 }
             }
@@ -86,23 +86,23 @@ export class RolePowerCarrier extends CreepRoleBase {
     target: string;
     run(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
-        const tarpos = objToPos(pbInfo.pos);
+        const tarPos = objToPos(pbInfo.pos);
         if (this.state == "go") {
-            if (creep.goToRoom(tarpos.roomName))
+            if (creep.goToRoom(tarPos.roomName))
                 if (pbInfo.status == "harvested") {
-                    if (creep.goTo(tarpos)) {
-                        const ruin = tarpos.lookFor(LOOK_RUINS)[0];
+                    if (creep.goTo(tarPos)) {
+                        const ruin = tarPos.lookFor(LOOK_RUINS)[0];
                         if (ruin) {
                             creep.withdraw(ruin, RESOURCE_POWER);
                             this.state = "back";
                         } else {
-                            const resource = tarpos.lookFor(LOOK_RESOURCES).find(r => r.resourceType == RESOURCE_POWER);
+                            const resource = tarPos.lookFor(LOOK_RESOURCES).find(r => r.resourceType == RESOURCE_POWER);
                             if (resource) creep.pickup(resource);
                             this.state = "back";
                         }
                     }
                 } else {
-                    if (creep.goTo(tarpos, 4))
+                    if (creep.goTo(tarPos, 4))
                         creep.posLock = true;
                 }
         } else {

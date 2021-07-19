@@ -1,6 +1,6 @@
 type CreepRoleType = "carry" | "harvest" | "work" | "build" | "upgrade" | "manage" | "mine"
     | "claim" | "emergency" | "dismantle" | "attack" | "scout" | "rCarry" | "cleaner"
-    | "pbHarv" | "pbHeal" | "pbCarry"
+    | "pbHarv" | "pbHeal" | "pbCarry" | "depoHarv" | "depoCarry" | "depoContainer"
     | "xUpgrade";
 
 type RoomRoutineType =
@@ -10,7 +10,7 @@ type RoomRoutineType =
     "runFactory" | "scanInvaders";
 
 type GlobalRoutine = "runTerminal" | "summaryStats" | "rawMemory" | "observer" |
-    "scanPowerBank" | "processPowerBank" |
+    "scanPowerBank" | "processPowerBank" | "scanDeposit" | "processDeposit" |
     "countStore" | "fetchAutoDealOrders" |
     "clearCreepInfoStore";
 

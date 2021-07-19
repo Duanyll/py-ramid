@@ -30,7 +30,9 @@ let cfg = {
         "runTerminal": TERMINAL_COOLDOWN,
         "scanPowerBank": 100,
         "summaryStats": 20,
-        "clearCreepInfoStore": 2000
+        "clearCreepInfoStore": 2000,
+        "scanDeposit": 100,
+        "processDeposit": 100
     } as Partial<Record<GlobalRoutine, number>>,
     ROOM_ROUTINE_DELAY: {
         "checkRefill": 200,
@@ -86,6 +88,8 @@ let cfg = {
 
     MARKET_ADD_PRICE_TIME: 500,
     ENERGY_PRICE: 0.5,
+
+    DEPO_CD_THRESHOLD: 125,
 
 /* --------------------------------- defense -------------------------------- */
 

@@ -1,4 +1,5 @@
 import { RoomInfo } from "room/roomInfo";
+import Logger from "utils";
 
 export interface CreepRoleDriver {
     readonly creepName: string;

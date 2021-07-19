@@ -36,6 +36,18 @@ interface PowerBankInfo {
     remainHits?: number
 }
 
+interface DepositInfo {
+    discoverTime: number,
+    type: DepositConstant,
+    lastCooldown?: number,
+    decayTime?: number,
+    pos: { room: string, x: number, y: number },
+    status: "waiting" | "harvesting" | "finished",
+    harvGroupSent: number,
+    harvRoom?: string,
+    distance?: number
+}
+
 interface Memory {
     logLevel: LogLevel;
     age: number;
@@ -60,9 +72,11 @@ interface Memory {
             }
         },
         deposit: {
-            from: { [room: string]: string };
+            roomLock: { [room: string]: boolean };
             targets: string[];
-            info: {}
+            info: {
+                [id: string]: DepositInfo
+            }
         }
     },
     market: {

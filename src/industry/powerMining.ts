@@ -8,7 +8,7 @@ import { estimateDistance } from "creep/movement/pathfinding";
 
 Memory.mining ||= {} as any;
 _.defaultsDeep(Memory.mining,
-    { power: { roomLock: {}, targets: [], info: {} }, deposit: { from: {}, targets: [], info: {} } });
+    { power: { roomLock: {}, targets: [], info: {} } });
 
 function canRoomHarvestPB(room: RoomInfo) {
     return room.structRcl == 8 && room.energy > cfg.ENERGY.LOW && !Memory.mining.power.roomLock[room.name];
