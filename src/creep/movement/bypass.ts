@@ -1,14 +1,14 @@
 import Logger from "utils";
 import { offsetsByDirection } from "utils/constants";
 import { isHostile } from "war/intelligence";
-import { movingCreeps, creepPostionLock } from "./data";
+import { movingCreeps, creepPositionLock } from "./data";
 
 export function canBypassCreep(i: AnyCreep, creep: AnyCreep) {
     if (!creep.my) return false;
     if (creep.memory.role == "manage") return false;
     if (i.memory.role == creep.memory.role) return false;
     if (movingCreeps[creep.name]) return true;
-    if (creepPostionLock[creep.name]) return false;
+    if (creepPositionLock[creep.name]) return false;
     return true;
 }
 
@@ -17,7 +17,7 @@ export function shouldDoBypassCreep(i: AnyCreep, creep: AnyCreep) {
     if (!creep.my) return false;
     if (creep.memory.role == "manage") return false;
     if (i.memory.role == creep.memory.role) return false;
-    if (movingCreeps[creep.name] || creepPostionLock[creep.name]) return false;
+    if (movingCreeps[creep.name] || creepPositionLock[creep.name]) return false;
     return true;
 }
 
@@ -71,21 +71,21 @@ function getObstacle(pos: RoomPosition): RoomObject {
 }
 
 export function moveBypass(creep: AnyCreep, target: DirectionConstant): boolean {
-    function getTargetpos(pos: RoomPosition, dir: DirectionConstant) {
+    function getTargetPos(pos: RoomPosition, dir: DirectionConstant) {
         let x = pos.x + offsetsByDirection[dir][0];
         let y = pos.y + offsetsByDirection[dir][1];
         if (x < 0 || x > 49 || y < 0 || y > 49) return undefined;
         return new RoomPosition(x, y, pos.roomName);
     }
-    let tarpos = getTargetpos(creep.pos, target);
-    if (tarpos) {
-        let obstacle = getObstacle(tarpos);
+    let tarPos = getTargetPos(creep.pos, target);
+    if (tarPos) {
+        let obstacle = getObstacle(tarPos);
         if (obstacle instanceof Creep || obstacle instanceof PowerCreep) {
             if (shouldDoBypassCreep(creep, obstacle)) {
                 obstacle.move(((target + 3) % 8 + 1) as DirectionConstant);
             }
         } else if (obstacle) {
-            Logger.debug(`creep ${creep.name} meet obstacle ${obstacle} at ${tarpos}!`)
+            Logger.debug(`creep ${creep.name} meet obstacle ${obstacle} at ${tarPos}!`)
             return false;
         }
     }

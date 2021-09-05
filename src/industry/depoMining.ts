@@ -1,5 +1,5 @@
 import cfg from "config";
-import { estimateDistance } from "creep/movement/pathfinding";
+import { estimateDistance } from "creep/movement/pathFinding";
 import { myRooms, RoomInfo } from "room/roomInfo";
 import { onVisibility } from "structures/observer";
 import Logger, { setTimeout, registerGlobalRoutine, schedule, posToObj, objToPos } from "utils";
@@ -105,7 +105,7 @@ export function depoHarvesterArrived(creep: Creep, info: DepositInfo, id: string
     if (info.lastCooldown <= cfg.DEPO_CD_THRESHOLD) {
         info.harvGroupSent++;
         let groupName = `depo-${id.substr(7, 8)}-${info.harvGroupSent}`;
-        schedule("spawnCreep", creep.ticksToLive - 150, {
+        schedule("spawnCreep", creep.ticksToLive - 150 - info.distance, {
             room: info.harvRoom,
             role: "depoHarv",
             param: {
@@ -127,7 +127,7 @@ export function depoHarvesterArrived(creep: Creep, info: DepositInfo, id: string
             body = [[MOVE, 12], [CARRY, 12]];
             time = 72;
         }
-        schedule("spawnCreep", creep.ticksToLive + info.distance + 30 - time, {
+        schedule("spawnCreep", creep.ticksToLive + 30 - time, {
             room: info.harvRoom,
             role: "depoCarry",
             param: {

@@ -21,5 +21,18 @@
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.formatOnType": true,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "cSpell.words": [
+    "cooldown",
+    "coord",
+    "depo",
+    "harv",
+    "nuker",
+    "pathfinding",
+    "screeps",
+    "struct",
+    "unwalkable",
+    "xpos",
+    "ypos"
+  ]
 }

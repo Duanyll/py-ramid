@@ -13,7 +13,7 @@ export interface CreepMoveInfo {
 export let movingCreeps: Record<string, CreepMovement>;
 export let moveInfo: Record<string, CreepMoveInfo> = {};
 export let exitInfo: Record<string, CreepExitInfo> = {};
-export let creepPostionLock: Record<string, boolean> = {};
+export let creepPositionLock: Record<string, boolean> = {};
 export function clearCreepMoveCache(name?: string) {
     if (name) {
         delete exitInfo[name];
@@ -26,5 +26,5 @@ export function clearCreepMoveCache(name?: string) {
 
 export function prepareMovement() {
     movingCreeps = {}
-    creepPostionLock = {};
+    creepPositionLock = {};
 }

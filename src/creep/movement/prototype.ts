@@ -1,4 +1,4 @@
-import { CreepExitInfo, CreepMoveInfo, movingCreeps, exitInfo, creepPostionLock, moveInfo } from "./data";
+import { CreepExitInfo, CreepMoveInfo, movingCreeps, exitInfo, creepPositionLock, moveInfo } from "./data";
 
 declare global {
     interface Creep {
@@ -39,10 +39,10 @@ const movementCacheExtensions = {
     },
     posLock: {
         get: function (this: AnyCreep) {
-            return creepPostionLock[this.name];
+            return creepPositionLock[this.name];
         },
         set: function (this: AnyCreep, v: boolean) {
-            creepPostionLock[this.name] = v;
+            creepPositionLock[this.name] = v;
         },
         enumerable: false,
         configurable: true
