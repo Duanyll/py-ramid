@@ -68,7 +68,7 @@ const movementExtensions = {
             if (this.pos.inRangeTo(pos, range)) {
                 return true;
             } else {
-                this.movement = { pos, range };
+                this.movement = _.assign(this.movement, { pos, range });
                 return false;
             }
         },
@@ -80,7 +80,7 @@ const movementExtensions = {
             if (this.room.name == room) {
                 return true;
             } else {
-                this.movement = { room };
+                this.movement = _.assign(this.movement, { room });
                 return false;
             }
         },

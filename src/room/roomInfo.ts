@@ -216,7 +216,7 @@ export class RoomInfo {
     public constructor(roomName: string) {
         this.name = roomName;
         this.detail = Game.rooms[this.name];
-        this.defense = new RoomDefenseInfo();
+        this.defense = new RoomDefenseInfo(this.detail);
         this.initMemory();
         this.detail.find(FIND_HOSTILE_STRUCTURES).forEach(s => s.destroy());
 

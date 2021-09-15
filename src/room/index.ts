@@ -90,7 +90,7 @@ export function tickNormalRoom(room: RoomInfo) {
     }
     room.detail.memory.rcl = room.detail.controller.level;
 
-    room.defense.run(room.detail);
+    room.defense.run();
 
     decideRoomEnergyUsage(room);
 

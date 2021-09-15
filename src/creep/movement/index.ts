@@ -1,3 +1,4 @@
+import { WAR_ROLES } from "utils/constants";
 import { movingCreeps } from "./data";
 import { creepFlee, getFleeTargets } from "./flee";
 import { goToRoom, goTo } from "./goTo";

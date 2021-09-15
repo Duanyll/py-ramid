@@ -1,3 +1,4 @@
+import { CreepRole } from "creep/role";
 
 export const LAB_RECIPE: Partial<Record<ResourceConstant, ResourceConstant[]>> = {};
 _.forIn(REACTIONS, (res2s, res1) => {
@@ -82,3 +83,9 @@ export const structureMapping: { [s: string]: BuildableStructureConstant } = {
 export const INF = 0x3f3f3f3f;
 export const dx = [0, 1, 0, -1, 1, 1, -1, -1];
 export const dy = [1, 0, -1, 0, 1, -1, -1, 1];
+
+export const WAR_ROLES: { [role in CreepRoleType]?: boolean } = {
+    "attack": true,
+    "dismantle": true,
+    "cleaner": true
+}

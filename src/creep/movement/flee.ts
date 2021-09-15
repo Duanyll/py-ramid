@@ -2,6 +2,7 @@ import cfg from "config";
 import { INF, dx, dy } from "utils/constants";
 import { createMatrix, Queue } from "utils";
 import CostMatrixCache from "./costMatrix";
+import { isHostile } from "war/intelligence";
 
 let fleeMatrixCache: Record<string, { time: number, matrix: CostMatrix }> = {};
 
@@ -105,6 +106,6 @@ export function getFleeTargets(pos: RoomPosition, range = 5) {
             return null;
         }
     } else {
-        return null;
+        return _.filter(Game.rooms[pos.roomName].war.getHostiles(), i => i.pos.inRangeTo(pos, range));
     }
 }

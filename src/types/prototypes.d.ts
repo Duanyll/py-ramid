@@ -19,6 +19,8 @@ interface Room {
 
     /** 手动刷新房间 CostMatrix 缓存, 比如摧毁了房间内建筑等情况 */
     updateMatrix(): void;
+
+    war: import("war/warZoneInfo").WarZoneInfo;
 }
 
 interface StoreBase<POSSIBLE_RESOURCES extends ResourceConstant, UNLIMITED_STORE extends boolean> {
@@ -56,6 +58,20 @@ interface GoToPosOpts {
     crossRoom?: boolean
 }
 
+interface GoToRoomOpts {
+    /**
+     * 要前往的目标房间
+     */
+    room: string;
+}
+
+interface FollowOpts {
+    /**
+     * 跟随的 Creep 的名称
+     */
+    following: string;
+}
+
 interface MovementOpts {
     /**
      * 需要躲避多少范围内的敌方 Creep, 默认为 5, 设为 0 不自动回避
@@ -63,7 +79,7 @@ interface MovementOpts {
     fleeRange?: number
 }
 
-type CreepMovement = (GoToPosOpts | { room: string }) & MovementOpts
+type CreepMovement = (GoToPosOpts | GoToRoomOpts) & MovementOpts;
 
 interface Creep {
     /**
