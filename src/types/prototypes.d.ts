@@ -76,10 +76,18 @@ interface MovementOpts {
     /**
      * 需要躲避多少范围内的敌方 Creep, 默认为 5, 设为 0 不自动回避
      */
-    fleeRange?: number
+    fleeRange?: number;
+    /**
+     * 是否需要等待跟随自己的 creep
+     */
+    waitForFollowers?: boolean;
+    /**
+     * 跟随自己的 creep
+     */
+    followedBy?: string;
 }
 
-type CreepMovement = (GoToPosOpts | GoToRoomOpts) & MovementOpts;
+type CreepMovement = (GoToPosOpts | GoToRoomOpts | FollowOpts) & MovementOpts;
 
 interface Creep {
     /**
@@ -113,6 +121,13 @@ interface Creep {
      * @returns 是否在目标房间内
      */
     goToRoom(room: string): boolean;
+    /**
+     * 要求这只 Creep 跟随另一只 Creep
+     * @param target 要跟随的 Creep
+     */
+    follow(target: AnyCreep): boolean;
+
+    shouldWaitForFollower: boolean;
 }
 
 interface PowerCreep {
@@ -143,6 +158,14 @@ interface PowerCreep {
      * 本 tick 内是否成功 `usePower`
      */
     powerUsed: boolean;
+
+    /**
+     * 要求这只 Creep 跟随另一只 Creep
+     * @param target 要跟随的 Creep
+     */
+    follow(target: AnyCreep): boolean;
+
+    shouldWaitForFollower: boolean
 }
 
 interface RoomObject {
@@ -158,4 +181,19 @@ interface StructureTerminal {
      * 本 tick 内该 Terminal 是否发送给资源或进行过 deal 动作
      */
     worked: boolean;
+}
+
+interface RoomPosition {
+    /**
+     * 坐标是否在房间边缘上
+     */
+    isOnEdge(): boolean;
+    /**
+     * 坐标是否与房间边缘相邻
+     */
+    isNearEdge(): boolean;
+    /**
+     * 如果这个点在边缘上, 返回另一侧房间出口的坐标
+     */
+    getOppositeExit(): RoomPosition;
 }

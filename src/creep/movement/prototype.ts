@@ -86,6 +86,24 @@ const movementExtensions = {
         },
         configurable: true,
         enumerable: false
+    },
+    follow: {
+        value: function (this: AnyCreep, target: AnyCreep) {
+            this.movement = _.assign(this.movement, { following: target.name });
+            return this.pos.isNearTo(target.pos);
+        },
+        configurable: true,
+        enumerable: false
+    },
+    shouldWaitForFollower: {
+        get: function (this: AnyCreep) {
+            return this.movement.waitForFollowers ?? false;
+        },
+        set: function (this: AnyCreep, value: boolean) {
+            _.assign(this.movement, { waitForFollower: value });
+        },
+        configurable: true,
+        enumerable: false
     }
 };
 Object.defineProperties(Creep.prototype, movementExtensions);

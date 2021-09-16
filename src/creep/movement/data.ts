@@ -28,3 +28,7 @@ export function prepareMovement() {
     movingCreeps = {}
     creepPositionLock = {};
 }
+
+export function isCreepMoving(creep: AnyCreep) {
+    return ('room' in creep.movement) || ('pos' in creep.movement);
+}

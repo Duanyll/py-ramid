@@ -24,7 +24,7 @@ class DataStorage {
                 } else {
                     try {
                         this.cache[id] = JSON.parse(RawMemory.segments[id]);
-                    } catch (e) {
+                    } catch (e: any) {
                         console.log(`Segment #${id} croupted: ${e.message}`)
                         this.cache[id] = {};
                     }

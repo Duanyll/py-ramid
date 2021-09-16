@@ -1,7 +1,7 @@
 import Logger from "utils";
 import { offsetsByDirection } from "utils/constants";
 import { isHostile } from "war/intelligence";
-import { movingCreeps, creepPositionLock } from "./data";
+import { movingCreeps, creepPositionLock, isCreepMoving } from "./data";
 
 export function canBypassCreep(i: AnyCreep, creep: AnyCreep) {
     if (!creep.my) return false;
@@ -17,7 +17,7 @@ export function shouldDoBypassCreep(i: AnyCreep, creep: AnyCreep) {
     if (!creep.my) return false;
     if (creep.memory.role == "manage") return false;
     if (i.memory.role == creep.memory.role) return false;
-    if (movingCreeps[creep.name] || creepPositionLock[creep.name]) return false;
+    if (isCreepMoving(creep) || creepPositionLock[creep.name]) return false;
     return true;
 }
 
@@ -38,7 +38,7 @@ wrapPositionLockFunc("harvest");
 wrapPositionLockFunc("reserveController");
 
 
-function getObstacle(pos: RoomPosition): RoomObject {
+export function getObstacle(pos: RoomPosition): RoomObject {
     for (const s of pos.lookFor("structure")) {
         switch (s.structureType) {
             case "road":
