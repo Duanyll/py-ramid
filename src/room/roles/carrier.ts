@@ -223,7 +223,7 @@ export class RoleCarrier extends CreepRoleBase {
         }
     }
 
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         if (!this.state || this.state == "idle") {
             this.nextAction(creep, room);
         }

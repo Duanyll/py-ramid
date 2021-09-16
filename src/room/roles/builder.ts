@@ -82,7 +82,7 @@ export class RoleBuilder extends CreepRoleBase {
 
     }
 
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         this.state = this.state || "pickup";
         if (this.state == "work" && creep.store.energy == 0) {
             this.state = "pickup";

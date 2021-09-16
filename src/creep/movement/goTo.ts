@@ -1,10 +1,9 @@
 import Logger from "utils";
 import { moveBypass } from "./bypass";
 import CostMatrixCache from "./costMatrix";
-import { getFleeTargets } from "./flee";
 import { findPath, findRouteCallback } from "./pathfinding";
 
-function moveByPath(creep: AnyCreep, path: RoomPosition[], checkFlee?: boolean): boolean {
+function moveByPath(creep: AnyCreep, path: RoomPosition[]): boolean {
     var idx = _.findIndex(path, (i) => i.isEqualTo(creep.pos));
     if (idx == -1) {
         if (!path[0]?.isNearTo(creep.pos)) {
@@ -16,15 +15,10 @@ function moveByPath(creep: AnyCreep, path: RoomPosition[], checkFlee?: boolean):
         return false;
     }
 
-    if (checkFlee) {
-        let fleeTargets = getFleeTargets(creep.pos, creep.movement?.fleeRange ?? 5);
-        if (fleeTargets) return true;
-    }
-
     return moveBypass(creep, creep.pos.getDirectionTo(path[idx]));
 }
 
-export function goTo(creep: AnyCreep, opts: GoToPosOpts, checkFlee?: boolean) {
+export function goTo(creep: AnyCreep, opts: GoToPosOpts) {
     const pathReuse = (creep.pos.inRangeTo(opts.pos, 5)) ? 5 : 15;
 
     if (creep.pos.isEqualTo(opts.pos)) {
@@ -42,13 +36,13 @@ export function goTo(creep: AnyCreep, opts: GoToPosOpts, checkFlee?: boolean) {
             path: findPath(creep, opts).path
         }
     }
-    if (!moveByPath(creep, creep.moveInfo.path, checkFlee) && creep.moveInfo.time != Game.time && Game.time & 1) {
+    if (!moveByPath(creep, creep.moveInfo.path) && creep.moveInfo.time != Game.time && Game.time & 1) {
         creep.moveInfo = {
             opts,
             time: Game.time,
             path: findPath(creep, opts, true).path
         }
-        moveByPath(creep, creep.moveInfo.path, checkFlee);
+        moveByPath(creep, creep.moveInfo.path);
     }
 }
 

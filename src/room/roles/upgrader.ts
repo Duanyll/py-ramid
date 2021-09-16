@@ -5,7 +5,7 @@ import Logger from "utils";
 
 @creepRole("xUpgrade")
 export class RoleBoostedUpgrader extends CreepRoleBase {
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         if (!room.state.energy.usage.upgrade) return;
         const controller = room.structures.controller;
         if (creep.goTo(controller, 2)) {
@@ -48,7 +48,7 @@ export class RoleUpgrader extends CreepRoleBase {
 
     @memorize
     sign: string;
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         this.status = this.status || "pickup";
         if (this.status == "upgrade" && creep.store.energy == 0) {
             this.status = "pickup";

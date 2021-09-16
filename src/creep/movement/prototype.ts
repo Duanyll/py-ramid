@@ -104,7 +104,14 @@ const movementExtensions = {
         },
         configurable: true,
         enumerable: false
-    }
+    },
+    flee: {
+        value: function (this: AnyCreep, target: AnyCreep[]) {
+            this.movement = _.assign(this.movement, { fleeFrom: target.map(i => i.name) });
+        },
+        configurable: true,
+        enumerable: false
+    },
 };
 Object.defineProperties(Creep.prototype, movementExtensions);
 Object.defineProperties(PowerCreep.prototype, movementExtensions);

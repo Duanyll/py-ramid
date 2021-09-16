@@ -8,7 +8,7 @@ import { RoleUpgrader } from "./upgrader";
 export class RoleWorker extends CreepRoleBase {
     @memorize
     status: "pickup" | "refill" | "build"
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         if (!creep.goToRoom(room.name)) return;
         if (!this.status) this.status = "pickup";
         if ((this.status == "build" || this.status == "refill") && creep.store.energy == 0) {
@@ -89,7 +89,7 @@ export class RoleEmergencyWorker extends CreepRoleBase {
     @memorize
     status: "pickup" | "refill" | "build";
 
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         if (!this.status) this.status = "pickup";
         if (this.status == "refill" && creep.store.energy == 0) {
             this.status = "pickup";

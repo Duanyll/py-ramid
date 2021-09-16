@@ -72,11 +72,14 @@ interface FollowOpts {
     following: string;
 }
 
-interface MovementOpts {
+interface FleeOpts {
     /**
-     * 需要躲避多少范围内的敌方 Creep, 默认为 5, 设为 0 不自动回避
+     * 要试图逃离的坐标
      */
-    fleeRange?: number;
+    fleeFrom: RoomPosition[];
+}
+
+interface MovementOpts {
     /**
      * 是否需要等待跟随自己的 creep
      */
@@ -87,7 +90,7 @@ interface MovementOpts {
     followedBy?: string;
 }
 
-type CreepMovement = (GoToPosOpts | GoToRoomOpts | FollowOpts) & MovementOpts;
+type CreepMovement = (GoToPosOpts | GoToRoomOpts | FollowOpts | FleeOpts) & MovementOpts;
 
 interface Creep {
     /**
@@ -126,6 +129,8 @@ interface Creep {
      * @param target 要跟随的 Creep
      */
     follow(target: AnyCreep): boolean;
+
+    flee(target: RoomPosition[]): void;
 
     shouldWaitForFollower: boolean;
 }

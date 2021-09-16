@@ -45,6 +45,6 @@ export function followCreep(creep: AnyCreep, target: AnyCreep) {
             return;
         }
     }
-    goTo(creep, { pos: target.pos }, false);
+    goTo(creep, { pos: target.pos, crossRoom: true });
 }
 

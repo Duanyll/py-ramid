@@ -30,7 +30,7 @@ export class RoleLootCarrier extends CreepRoleBase {
     home: string;
     @memorize
     remainRun: number;
-    run(creep: Creep) {
+    work(creep: Creep) {
         const flag = Game.flags[this.target];
         if (!flag) {
             Logger.error(`${creep.name}: Invalid target ${this.target}`)

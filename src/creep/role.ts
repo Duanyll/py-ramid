@@ -1,9 +1,10 @@
 import { RoomInfo } from "room/roomInfo";
 import Logger from "utils";
+import { getFleeTargets } from "war/intelligence";
 
 export interface CreepRoleDriver {
     readonly creepName: string;
-    run: (creep: Creep, room?: RoomInfo) => void;
+    tick: (creep: Creep, room?: RoomInfo) => void;
     die?: () => void;
 }
 
@@ -22,7 +23,15 @@ export abstract class CreepRoleBase implements CreepRoleDriver {
     @memorize
     room: string;
 
-    abstract run(creep: Creep, room?: RoomInfo): void;
+    tick(creep: Creep, room?: RoomInfo) {
+        let fleeTargets = getFleeTargets(creep.pos, 5);
+        if (fleeTargets.length > 0) {
+            creep.flee(fleeTargets.map(i => i.pos));
+            return;
+        }
+        this.work(creep, room);
+    }
+    work(creep: Creep, room?: RoomInfo): void {};
     constructor(creepName: string) {
         this.creepName = creepName;
     }

@@ -28,7 +28,7 @@ function sendDismantler(roomName: string, target: string, size: number) {
     });
 }
 
-function sendAttaker(roomName: string, target: string) {
+function sendAttacker(roomName: string, target: string) {
     let room = myRooms[roomName];
     if (!room) {
         Logger.error("unknown room.");
@@ -50,10 +50,10 @@ registerCommand('sendDismantler', 'Send a unboosted dismantler creep to dismantl
     { name: "size", type: "number", description: "how many WORK part should the creep carry" }
 ], sendDismantler);
 
-registerCommand('sendAttacker', 'Send a unboosted atacker creep to attack target flag. (NOT FOR WAR!)', [
+registerCommand('sendAttacker', 'Send a unboosted attacker creep to attack target flag. (NOT FOR WAR!)', [
     { name: "home", type: "myRoom" },
     { name: "target", type: "string" }
-], sendAttaker);
+], sendAttacker);
 
 @creepRole("claim")
 export class RoleClaimer extends CreepRoleBase {
@@ -62,7 +62,7 @@ export class RoleClaimer extends CreepRoleBase {
     @memorize
     home: string;
     designRequest: boolean;
-    run(creep: Creep) {
+    work(creep: Creep) {
         if (creep.goToRoom(this.target)) {
             const con = creep.room.controller;
             if (!creep.room.memory.design) {
@@ -93,7 +93,7 @@ export class RoleClaimer extends CreepRoleBase {
 export class RoleSimpleDismantler extends CreepRoleBase {
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let target = Game.flags[this.target];
         if (!target) return;
         if (creep.goToRoom(target.pos.roomName) && creep.goTo(target)) {
@@ -111,7 +111,7 @@ export class RoleSimpleDismantler extends CreepRoleBase {
 export class RoleSimpleAttacker extends CreepRoleBase {
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let target = Game.flags[this.target];
         if (!target) return;
         if (creep.goToRoom(target.pos.roomName) && creep.goTo(target)) {

@@ -11,7 +11,7 @@ export class RolePowerHarvester extends CreepRoleBase {
     started: boolean;
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
         const tarPos = objToPos(pbInfo.pos);
         if (creep.goToRoom(tarPos.roomName) && creep.goTo(tarPos)) {
@@ -52,7 +52,7 @@ export class RolePowerHarvester extends CreepRoleBase {
 export class RolePowerHealer extends CreepRoleBase {
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
         const tarPos = objToPos(pbInfo.pos);
         if (creep.goToRoom(tarPos.roomName)) {
@@ -84,7 +84,7 @@ export class RolePowerCarrier extends CreepRoleBase {
     state: "go" | "back";
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let pbInfo = Memory.mining.power.info[this.target];
         const tarPos = objToPos(pbInfo.pos);
         if (this.state == "go") {

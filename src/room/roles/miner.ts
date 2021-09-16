@@ -4,7 +4,7 @@ import { creepRole, CreepRoleBase } from "../../creep/role";
 
 @creepRole("mine")
 export class RoleMiner extends CreepRoleBase {
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         let mineral = room.structures.mineral;
         let container = room.structures.mineralContainer;
         if (!container) return;

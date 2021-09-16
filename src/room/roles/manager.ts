@@ -211,7 +211,7 @@ export class RoleManager extends CreepRoleBase {
             }
         ]
 
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         if (!creep) return;
         const storage = room.structures.storage;
         if (this.target) {

@@ -8,7 +8,7 @@ export class RoleDepositHarvester extends CreepRoleBase {
     arrived: boolean;
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let info = Memory.mining.deposit.info[this.target];
         const tarPos = objToPos(info.pos);
         if (creep.goToRoom(tarPos.roomName) && creep.goTo(tarPos)) {
@@ -40,7 +40,7 @@ export class RoleDepositHarvester extends CreepRoleBase {
 export class RoleDepositContainer extends CreepRoleBase {
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let info = Memory.mining.deposit.info[this.target];
         const tarPos = objToPos(info.pos);
         if (creep.goToRoom(tarPos.roomName)) {
@@ -67,7 +67,7 @@ export class RolePowerCarrier extends CreepRoleBase {
     state: "go" | "back";
     @memorize
     target: string;
-    run(creep: Creep) {
+    work(creep: Creep) {
         let info = Memory.mining.deposit.info[this.target];
         const tarPos = objToPos(info.pos);
         if (this.state == "go") {

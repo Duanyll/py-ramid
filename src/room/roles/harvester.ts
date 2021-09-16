@@ -6,7 +6,7 @@ import { RoleCarrier } from "./carrier";
 export class RoleHarvester extends CreepRoleBase {
     @memorize
     status: "harvest" | "move"
-    run(creep: Creep, room: RoomInfo) {
+    work(creep: Creep, room: RoomInfo) {
         const sourceId = Number(_.last(creep.memory.roleId)) - 1;
         const source = room.structures.sources[sourceId];
         const link = room.structures.sourceLink[sourceId];
