@@ -2,6 +2,7 @@ import { LAB_RECIPE } from "utils/constants";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 import { registerCommand } from "utils/console";
+import cfg from "config";
 
 function getLabReactionAmount(lab: StructureLab) {
     let power = lab.getPower(PWR_OPERATE_LAB);
@@ -18,6 +19,11 @@ function runLabs(room: RoomInfo) {
     const labs = room.structures.labs;
     const outputLabs = _.drop(labs.output, info.boost.length);
     const recipe = LAB_RECIPE[info.product];
+    if (Game.cpu.bucket < cfg.CPU_BUCKET_THRESHOLD) {
+        room.setTimeout("runLabs", 100);
+        return;
+    }
+
     if (info.remain) {
         const input0 = labs.input[0];
         const input1 = labs.input[1];

@@ -1,3 +1,4 @@
+import cfg from "config";
 import { myRooms, registerRoomRoutine, RoomInfo } from "room/roomInfo";
 import Logger from "utils";
 import { registerCommand } from "utils/console";
@@ -10,6 +11,12 @@ function runPowerSpawn(room: RoomInfo) {
     if (room.state.autoProcessPower && room.state.powerToProcess < 50) {
         room.state.powerToProcess += 100;
     }
+
+    if (Game.cpu.bucket < cfg.CPU_BUCKET_THRESHOLD) {
+        room.setTimeout("runPowerSpawn", 50);
+        return;
+    }
+
     if (s.store.power > 0 && s.store.energy >= POWER_SPAWN_ENERGY_RATIO && room.state.powerToProcess > 0) {
         if (s.processPower() == OK) {
             room.state.powerToProcess--;

@@ -57,8 +57,8 @@ function decideRoomEnergyUsage(room: RoomInfo) {
         function findSecondaryWork(): EnergyWork | false {
             if (!config.usage.builder) return "builder";
             if (!config.usage.power && room.structures.powerSpawn) return "power";
-            if (!config.usage.battery && room.structures.factory) return "battery";
             if (!config.usage.upgrade) return "upgrade";
+            if (!config.usage.battery && room.structures.factory) return "battery";
             return false;
         }
         let secondary = findSecondaryWork();

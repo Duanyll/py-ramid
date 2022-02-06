@@ -1,0 +1,30 @@
+diff --git a/node_modules/screeps-api/dist/ScreepsAPI.js b/node_modules/screeps-api/dist/ScreepsAPI.js
+index 62209c1..9af3b75 100644
+--- a/node_modules/screeps-api/dist/ScreepsAPI.js
++++ b/node_modules/screeps-api/dist/ScreepsAPI.js
+@@ -12,6 +12,7 @@ const util = require('util');
+ const fs = require('fs');
+ const YAML = require('yamljs');
+ const path = require('path');
++const tunnel = require('tunnel');
+ 
+ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+ 
+@@ -1149,8 +1150,16 @@ intent can be an empty object for suicide and unclaim, but the web interface sen
+     if (opts.token) {
+       this.token = opts.token;
+     }
++    const t = tunnel.httpsOverHttp({
++      proxy: {
++        host: '127.0.0.1',
++        port: 7890
++      }
++    });
+     this.http = axios__default['default'].create({
+-      baseURL: this.opts.url
++      baseURL: this.opts.url,
++      httpsAgent: t,
++      proxy: false
+     });
+   }
+ 

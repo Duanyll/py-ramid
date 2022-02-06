@@ -20,6 +20,7 @@ let cfg = {
         roomDesign: 5
     } as Record<string, number>,
     COSTMATRIX_UPDATE: 100,
+    CPU_BUCKET_THRESHOLD: 5000,
 
 /* -------------------------------- routines -------------------------------- */
 

@@ -34,7 +34,7 @@ registerGlobalRoutine("scanDeposit", scanDeposit);
 function processDeposit() {
     let newDepoInfo: { [id: string]: DepositInfo } = {}
     _.forIn(Memory.mining.deposit.info, (info, id) => {
-        if (info.status == 'harvesting' || ('decayTime' in info) || Game.time < info.decayTime + 1000) {
+        if (info.status == 'harvesting' || ('decayTime' in info) && Game.time < info.decayTime + 1000) {
             newDepoInfo[id] = info;
         } else {
             Logger.silly(`Removing old Deposit in ${info.pos.room}`);
@@ -43,7 +43,7 @@ function processDeposit() {
             }
         }
         if (info.status == "waiting") {
-            tryHarvestDepo(info, id);
+            tryHarvestDepo(info, id);  
         }
     });
     Memory.mining.deposit.info = newDepoInfo;

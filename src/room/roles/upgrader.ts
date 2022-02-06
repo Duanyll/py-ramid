@@ -115,7 +115,7 @@ export class RoleUpgrader extends CreepRoleBase {
                 "upgr1": this.body[room.structRcl],
                 "upgr2": this.body[room.structRcl]
             }
-        } else if (!room.state.boostUpgrade) {
+        } else if (!room.state.boostUpgrade || room.storeCurrent.get('XGH2O') < 10000) {
             if (room.structRcl <= 7) {
                 return {
                     "upgr1": this.body[room.structRcl]

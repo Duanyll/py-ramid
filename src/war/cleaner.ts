@@ -6,7 +6,7 @@ import Logger, { registerCommand } from "utils/console";
 export class RoleSimpleAttacker extends CreepRoleBase {
     @memorize
     targets: string[];
-    work(creep: Creep) {
+    tick(creep: Creep) {
         let targetRoom = this.targets?.[0];
         creep.heal(creep);
         if (!targetRoom) return;
